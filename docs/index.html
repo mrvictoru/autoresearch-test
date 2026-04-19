@@ -104,18 +104,19 @@ nav button:disabled{background:#444;cursor:default}
 <section class="slide">
   <h1>Key Concept 2 — Tasks</h1>
   <div class="card">
-    <ul>
-      <li>A <strong>Task</strong> defines the problem we want to solve</li>
-      <li>It provides:
-        <ul>
-          <li><code>name</code> — unique identifier</li>
-          <li><code>describe_context()</code> — what the LLM needs to know</li>
-          <li><code>initial_model_state()</code> — starting parameters</li>
-          <li><code>evaluate_model(state)</code> — returns a score (higher = better)</li>
-        </ul>
-      </li>
-      <li>The framework never looks inside the task — <strong>black box</strong></li>
-    </ul>
+      <ul>
+        <li>A <strong>Task</strong> defines the problem we want to solve</li>
+        <li>It provides:
+          <ul>
+            <li><code>name</code> — unique identifier</li>
+            <li><code>describe_context()</code> — what the LLM needs to know</li>
+            <li><code>initial_model_state()</code> — starting parameters</li>
+            <li><code>evaluate_model(state)</code> — returns a scalar score</li>
+            <li><code>evaluate_model_detailed(state)</code> — returns score + optional metrics</li>
+          </ul>
+        </li>
+        <li>The framework never looks inside the task — <strong>black box</strong></li>
+      </ul>
   </div>
 </section>
 
@@ -139,8 +140,8 @@ nav button:disabled{background:#444;cursor:default}
     <ul>
       <li><code>AutoresearchRunner</code> glues everything together</li>
       <li>Call <code>runner.run(task, iterations=N)</code></li>
-      <li>Tracks the <strong>best score</strong> and full history of every iteration</li>
-      <li>Returns a <code>RunResult</code> dataclass you can inspect or log</li>
+      <li>Tracks the <strong>best score</strong>, detailed metrics, and full history of every iteration</li>
+      <li>Returns a <code>RunResult</code> you can inspect, export, plot, or log</li>
     </ul>
   </div>
 </section>
@@ -205,11 +206,13 @@ nav button:disabled{background:#444;cursor:default}
   <h1>Project Structure</h1>
   <div class="diagram">autoresearch/
 ├── __init__.py      ← public API exports
-├── agent.py         ← ResearchAgent + LocalLLMResearchAgent
-├── core.py          ← AutoresearchRunner loop
-├── demo.py          ← runnable demo (no LLM needed)
-├── tasks.py         ← ResearchTask + 2 example tasks
-└── training.py      ← TaskTrainer + trainers + registry
+├── agent.py         ← agents, traces, prompt presets
+├── core.py          ← runner loop + results/export helpers
+├── demo.py          ← CLI demo + config entrypoint
+├── neural.py        ← optional torch-gated neural scaffold
+├── tasks.py         ← task interfaces + detailed metrics
+├── training.py      ← trainers + parsing helpers + registry
+└── visualise.py     ← plotting + HTML reporting
 
 tests/
 └── test_autoresearch.py</div>
@@ -219,17 +222,21 @@ tests/
 <section class="slide">
   <h1><code>agent.py</code> — The Research Agent</h1>
   <pre><code>class ResearchAgent(ABC):
-    @abstractmethod
-    def propose(self, *, task_name, model_state, context) -&gt; str:
-        """Return a plain-text suggestion."""
+    def propose(self, *, task_name, model_state, context) -&gt; str: ...
 
 class LocalLLMResearchAgent(ResearchAgent):
-    def __init__(self, endpoint, model, system_prompt=..., timeout=30):
+    def __init__(self, endpoint, model, system_prompt=...,
+                 user_prompt_template=..., temperature=0.2, timeout_seconds=30):
         ...
 
-    def propose(self, *, task_name, model_state, context) -&gt; str:
-        # Build prompt → HTTP POST to /v1/chat/completions
-        # Parse response → return content string
+class TraceableAgent(ResearchAgent):
+    # Wraps any agent and records prompt/response/latency
+
+class FewShotResearchAgent(LocalLLMResearchAgent):
+    # Prepends example state/suggestion pairs
+
+class StructuredOutputAgent(LocalLLMResearchAgent):
+    # Normalizes replies into strict JSON
 </code></pre>
 </section>
 
@@ -245,12 +252,13 @@ class LocalLLMResearchAgent(ResearchAgent):
     def describe_context(self)    -&gt; dict: ...
     def initial_model_state(self) -&gt; dict: ...
     def evaluate_model(self, model_state) -&gt; float: ...
+    def evaluate_model_detailed(self, model_state) -&gt; dict: ...
 
 class RestaurantInventoryTask(ResearchTask):
-    ...  # simulates 14 days of demand
+    # score + stockouts + waste_units + total_orders
 
 class BlackjackTask(ResearchTask):
-    ...  # plays 300 rounds of simplified blackjack
+    # score + wins + losses + draws + win_rate
 </code></pre>
 </section>
 
@@ -271,6 +279,9 @@ class InventoryPolicyTrainer(TaskTrainer):
 class BlackjackPolicyTrainer(TaskTrainer):
     # extracts hit_threshold, clamps to [12, 20]
 
+class HyperparameterTrainer(TaskTrainer):
+    # updates learning_rate / num_layers / num_heads
+
 class TrainerRegistry:
     def register(self, task_name, trainer): ...
     def get(self, task_name) -&gt; TaskTrainer: ...
@@ -284,24 +295,29 @@ class TrainerRegistry:
     def run(self, task, *, iterations=5) -&gt; RunResult:
         trainer = self.registry.get(task.name)
         model_state = task.initial_model_state()
-        best_score = task.evaluate_model(model_state)
+        best_score = task.evaluate_model_detailed(model_state)["score"]
 
         for i in range(1, iterations + 1):
             suggestion  = self.agent.propose(...)
             model_state = trainer.train_step(...)
-            score       = task.evaluate_model(model_state)
+            metrics     = task.evaluate_model_detailed(model_state)
+            score       = metrics["score"]
 
             if score &gt; best_score:
                 best_score = score
                 best_model_state = model_state
 
         return RunResult(...)
+
+class RunResult:
+    def to_csv(self, path): ...
+    def to_trace_log(self, path): ...
 </code></pre>
 </section>
 
 <!-- Slide 17 --------------------------------------------------- -->
 <section class="slide">
-  <h1><code>demo.py</code> — Try It Without an LLM</h1>
+  <h1><code>demo.py</code> — CLI Demo and Config Runner</h1>
   <pre><code>class CyclicDemoAgent(ResearchAgent):
     """Hard-coded suggestions — no LLM server needed."""
     def propose(self, *, task_name, model_state, context):
@@ -309,10 +325,15 @@ class TrainerRegistry:
             return "reorder_point=22 target_stock=52"
         return f"hit_threshold={16 + (self._counter % 3)}"
 
-# Run:  python -m autoresearch.demo
-# Output:
-#   Inventory best: {'reorder_point': 18, 'target_stock': 40} (score: -468.60)
-#   Blackjack best: {'hit_threshold': 17} (score: -0.0233)
+# Run:
+#   python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
+#   python -m autoresearch.demo --config experiment.json
+#
+# Writes:
+#   artifacts/&lt;task&gt;/results.csv
+#   artifacts/&lt;task&gt;/trace.json
+#   artifacts/&lt;task&gt;/report.html
+#   artifacts/&lt;task&gt;/manifest.json
 </code></pre>
 </section>
 
@@ -327,6 +348,9 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_blackjack_trainer_clamps_threshold(self): ...
     def test_registry_requires_registered_task(self): ...
     def test_extract_int_uses_fallback(self): ...
+    def test_runner_stores_detailed_metrics(self): ...
+    def test_runresult_exports_csv_and_trace(self): ...
+    def test_prompt_preset_factory(self): ...
 
 # Run:  python -m unittest discover -s tests -v
 </code></pre>
@@ -341,15 +365,17 @@ from autoresearch.agent import LocalLLMResearchAgent
 agent = LocalLLMResearchAgent(
     endpoint="http://localhost:8080",
     model="mistral-7b",
+    temperature=0.3,
 )
 
 registry = TrainerRegistry()
 registry.register("restaurant_inventory", InventoryPolicyTrainer())
 registry.register("blackjack", BlackjackPolicyTrainer())
 
-runner = AutoresearchRunner(agent=agent, registry=registry)
+runner = AutoresearchRunner(agent=TraceableAgent(agent), registry=registry)
 result = runner.run(RestaurantInventoryTask(), iterations=10)
 print(result.best_model_state, result.best_score)
+result.to_csv("artifacts/restaurant_inventory/results.csv")
 </code></pre>
 </section>
 
@@ -363,7 +389,7 @@ print(result.best_model_state, result.best_score)
   <div class="card">
     <h3>Three things you can customise:</h3>
     <ol style="margin-top:.6em">
-      <li><strong>Prompt</strong> — change the system/user prompt in the agent</li>
+      <li><strong>Prompting</strong> — change system prompt, user template, preset, few-shot examples, or JSON mode</li>
       <li><strong>Task</strong> — add any new domain by implementing <code>ResearchTask</code> + <code>TaskTrainer</code></li>
       <li><strong>Model architecture</strong> — swap dict-based state for neural-network checkpoints (Transformer, Mamba, etc.)</li>
     </ol>
@@ -398,15 +424,16 @@ class TicTacToeTrainer(TaskTrainer):
 <!-- Slide 22 --------------------------------------------------- -->
 <section class="slide">
   <h1>Swapping to a Neural-Net Model</h1>
-  <div class="card">
-    <ul>
-      <li>Replace dict state with a <strong>checkpoint path</strong></li>
-      <li>Trainer loads the model, applies hyperparameters from the LLM, and re-trains</li>
-      <li>Evaluator loads the checkpoint and computes a metric</li>
-      <li>Works the same for <strong>Transformer (attention)</strong> or <strong>Mamba (SSM)</strong> architectures</li>
-      <li>The runner doesn't change at all — it only passes dicts and floats</li>
-    </ul>
-  </div>
+    <div class="card">
+      <ul>
+        <li>Replace dict state with a <strong>checkpoint path</strong></li>
+        <li>Use <code>NeuralTask</code> / <code>TinyTorchClassificationTask</code> as a starting point</li>
+        <li><code>HyperparameterTrainer</code> applies learning-rate / layer-count / head-count updates</li>
+        <li>Evaluator loads the checkpoint and computes a metric</li>
+        <li>Works the same for <strong>Transformer (attention)</strong> or <strong>Mamba (SSM)</strong> architectures</li>
+        <li>The runner doesn't change at all — it only passes dicts and metrics</li>
+      </ul>
+    </div>
 </section>
 
 <!-- Slide 23 --------------------------------------------------- -->
@@ -416,8 +443,8 @@ class TicTacToeTrainer(TaskTrainer):
     <ol>
       <li><strong>Agent</strong> proposes new parameters using a local LLM</li>
       <li><strong>Trainer</strong> parses and validates those parameters</li>
-      <li><strong>Task evaluator</strong> scores the resulting model</li>
-      <li><strong>Runner</strong> repeats and tracks the best result</li>
+      <li><strong>Task evaluator</strong> returns score plus optional detailed metrics</li>
+      <li><strong>Runner</strong> repeats, traces iterations, and exports results</li>
     </ol>
     <p style="margin-top:1em">Everything is pluggable — swap any component without touching the others.</p>
   </div>

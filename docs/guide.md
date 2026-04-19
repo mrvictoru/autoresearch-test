@@ -4,199 +4,304 @@
 
 1. [Overview](#overview)
 2. [Architecture](#architecture)
-3. [Module-by-Module Walk-through](#module-by-module-walk-through)
-4. [How a Run Executes End-to-End](#how-a-run-executes-end-to-end)
-5. [Customisation Guide](#customisation-guide)
-   - [Changing the LLM Research Agent Prompt](#changing-the-llm-research-agent-prompt)
-   - [Adding a New Task](#adding-a-new-task)
-   - [Switching the Experiment Model to an Attention-Based or Mamba-Based Architecture](#switching-the-experiment-model-to-an-attention-based-or-mamba-based-architecture)
-6. [Running Tests](#running-tests)
-7. [FAQ](#faq)
+3. [Core Workflow](#core-workflow)
+4. [Observability and Exports](#observability-and-exports)
+5. [Agent Customisation](#agent-customisation)
+6. [CLI and Config Files](#cli-and-config-files)
+7. [Adding a New Task](#adding-a-new-task)
+8. [Optional Neural-Task Support](#optional-neural-task-support)
+9. [Running Tests](#running-tests)
+10. [FAQ](#faq)
 
 ---
 
 ## Overview
 
-This repository reimplements the core ideas of Andrej Karpathy's
-[autoresearch](https://github.com/karpathy/autoresearch) project but generalises
-them beyond the original setting.  Instead of training neural-network language
-models, the framework lets you plug in **any task** (a restaurant inventory
-simulator, a blackjack strategy optimiser, or anything else) and use a
-**locally-hosted LLM** as the research agent that proposes what to try next.
+`autoresearch-test` is a small experimentation framework inspired by
+[`karpathy/autoresearch`](https://github.com/karpathy/autoresearch). A run loops through:
 
-The feedback loop is:
+1. a **research agent** that proposes the next experiment,
+2. a **trainer** that applies that suggestion to a model state,
+3. a **task evaluator** that returns a score and optional detailed metrics.
 
-```
-┌──────────────┐   suggestion   ┌───────────┐   new state   ┌──────────────┐
-│ Research     │ ────────────►  │  Trainer   │ ───────────►  │  Task        │
-│ Agent (LLM)  │                │            │               │  Evaluator   │
-└──────┬───────┘                └────────────┘               └──────┬───────┘
-       ▲                                                           │
-       │              score + context                              │
-       └───────────────────────────────────────────────────────────┘
-```
+The framework now includes:
 
-Each loop iteration:
-
-1. The **agent** looks at the current model state and context, then proposes
-   updated parameters.
-2. The **trainer** parses that proposal and produces a new model state.
-3. The **task evaluator** scores the new state.
-4. If the score beats the previous best, the state is saved.
+- iteration tracing (prompt, raw response, latency),
+- detailed per-iteration metrics,
+- CSV and JSON trace export,
+- matplotlib and HTML reporting helpers,
+- configurable prompt templates and temperature,
+- JSON/YAML demo configuration,
+- optional torch-gated neural-task scaffolding.
 
 ---
 
 ## Architecture
 
-```
+```text
 autoresearch/
-├── __init__.py        # Public API surface
-├── agent.py           # ResearchAgent ABC + LocalLLMResearchAgent
+├── __init__.py        # Public API exports
+├── agent.py           # ResearchAgent implementations, traces, prompt presets
 ├── core.py            # AutoresearchRunner, IterationRecord, RunResult
-├── demo.py            # Self-contained demo with a stub agent
-├── tasks.py           # ResearchTask ABC + two example tasks
-└── training.py        # TaskTrainer ABC + trainers + TrainerRegistry
+├── demo.py            # CLI demo/config entrypoint
+├── neural.py          # Optional torch-gated neural task scaffold
+├── tasks.py           # ResearchTask ABC + example tasks
+├── training.py        # Trainers, parsing helpers, registry
+└── visualise.py       # Plotting and HTML report helpers
 
 tests/
-└── test_autoresearch.py   # Unit tests
+└── test_autoresearch.py
 ```
 
-The framework is deliberately **pure-Python** with zero external dependencies,
-so it can run anywhere Python 3.10+ is available.
+The base framework remains lightweight. Optional features require extra packages:
+
+- `matplotlib` for `--plot` / `plot_run_result(...)`
+- `PyYAML` for `.yaml` / `.yml` config files
+- `torch` for neural-task examples
 
 ---
 
-## Module-by-Module Walk-through
+## Core Workflow
 
-### `agent.py` — Research Agents
+### Agents
 
-| Class | Purpose |
-|---|---|
-| `ResearchAgent` (ABC) | Defines the single method `propose(task_name, model_state, context) → str`. |
-| `LocalLLMResearchAgent` | Concrete implementation that calls a local OpenAI-compatible `/v1/chat/completions` endpoint. |
+`agent.py` exposes:
 
-`LocalLLMResearchAgent` accepts:
+- `ResearchAgent` — abstract base class
+- `LocalLLMResearchAgent` — local OpenAI-compatible client
+- `TraceableAgent` — wrapper that records trace metadata
+- `FewShotResearchAgent` — injects example state/suggestion pairs
+- `StructuredOutputAgent` — normalises replies into JSON
+- `PROMPT_TEMPLATE_PRESETS` — built-in prompt templates
 
-- `endpoint` — base URL of the local LLM server (e.g. `http://localhost:8080`).
-- `model` — model identifier expected by that server.
-- `system_prompt` — the system message sent to the LLM.
-- `timeout_seconds` — HTTP timeout.
+`LocalLLMResearchAgent` now supports:
 
-### `tasks.py` — Task Definitions
+- `system_prompt`
+- `user_prompt_template`
+- `temperature`
+- `timeout_seconds`
 
-| Class | Purpose |
-|---|---|
-| `ResearchTask` (ABC) | Requires `name`, `describe_context()`, `initial_model_state()`, `evaluate_model()`. |
-| `RestaurantInventoryTask` | Simulates daily demand, tracks stockouts & waste, returns negative total cost. |
-| `BlackjackTask` | Plays simplified blackjack rounds and returns mean reward. |
+### Tasks
 
-The `evaluate_model()` method always returns a **scalar score where higher is
-better**.
+`ResearchTask` defines:
 
-### `training.py` — Trainers & Registry
+- `name`
+- `describe_context()`
+- `initial_model_state()`
+- `evaluate_model()`
+- `evaluate_model_detailed()` — defaults to `{"score": evaluate_model(...)}`
 
-| Class / Function | Purpose |
-|---|---|
-| `TaskTrainer` (ABC) | `train_step(model_state, suggestion, task_context) → new_model_state` |
-| `_extract_int(suggestion, key, fallback)` | Regex helper that pulls `key=value` or `key:value` from the LLM response. |
-| `InventoryPolicyTrainer` | Extracts `reorder_point` and `target_stock` from a suggestion string. |
-| `BlackjackPolicyTrainer` | Extracts `hit_threshold`, clamped to `[12, 20]`. |
-| `TrainerRegistry` | Maps task names → trainers so the runner can look up the right one. |
+Built-in example tasks now emit richer metrics:
 
-### `core.py` — The Runner
+- `RestaurantInventoryTask`: `score`, `stockouts`, `waste_units`, `total_orders`
+- `BlackjackTask`: `score`, `wins`, `losses`, `draws`, `win_rate`
 
-`AutoresearchRunner.run(task, iterations)` drives the loop described in the
-overview.  It returns a `RunResult` containing the best model state, its score,
-and the full iteration history.
+### Runner and Results
 
-### `demo.py` — Quick Demo
+`AutoresearchRunner.run(...)` returns a `RunResult` with:
 
-Contains a `CyclicDemoAgent` that returns hard-coded suggestions (no LLM
-required) and a `main()` function that runs both tasks for four iterations each.
+- `best_model_state`
+- `best_score`
+- `history`
+
+Each `IterationRecord` now stores:
+
+- `suggestion`
+- `model_state`
+- `score`
+- `metrics`
+- `prompt_sent`
+- `raw_response`
+- `latency_seconds`
 
 ---
 
-## How a Run Executes End-to-End
+## Observability and Exports
+
+### Tracing
+
+Wrap any agent with `TraceableAgent` to preserve prompt/response/latency data:
 
 ```python
-from autoresearch import (
-    AutoresearchRunner, TrainerRegistry,
-    RestaurantInventoryTask, InventoryPolicyTrainer,
-)
-from autoresearch.agent import LocalLLMResearchAgent
+from autoresearch import TraceableAgent, LocalLLMResearchAgent
 
-# 1. Set up the research agent
-agent = LocalLLMResearchAgent(
+agent = TraceableAgent(
+    LocalLLMResearchAgent(
+        endpoint="http://localhost:8080",
+        model="mistral-7b",
+        temperature=0.3,
+    )
+)
+```
+
+### Export helpers
+
+`RunResult` includes:
+
+- `to_csv(path)` — iteration table for spreadsheets or pandas
+- `to_trace_log(path)` — JSON trace dump for postmortem inspection
+
+### Visualisation
+
+`visualise.py` provides:
+
+- `plot_run_result(result, include_parameters=True, show=True)`
+- `save_html_report(result, path)`
+
+Example:
+
+```python
+from autoresearch import plot_run_result, save_html_report
+
+plot_run_result(result)
+save_html_report(result, "artifacts/restaurant_inventory/report.html")
+```
+
+---
+
+## Agent Customisation
+
+### Prompt templates
+
+Built-in presets:
+
+- `concise`
+- `chain-of-thought`
+- `json-only`
+
+Example:
+
+```python
+from autoresearch import LocalLLMResearchAgent
+
+agent = LocalLLMResearchAgent.from_preset(
+    endpoint="http://localhost:8080",
+    model="mistral-7b",
+    prompt_preset="concise",
+    temperature=0.2,
+)
+```
+
+You can also pass your own template via `user_prompt_template`. Supported placeholders include:
+
+- `{task_name}`
+- `{model_state}`
+- `{context}`
+- `{model_state_json}`
+- `{context_json}`
+
+### Few-shot prompting
+
+```python
+from autoresearch import FewShotResearchAgent
+
+agent = FewShotResearchAgent(
+    endpoint="http://localhost:8080",
+    model="mistral-7b",
+    few_shot_examples=[
+        ({"hit_threshold": 16}, '{"hit_threshold": 17}')
+    ],
+)
+```
+
+### Structured JSON output
+
+```python
+from autoresearch import StructuredOutputAgent
+
+agent = StructuredOutputAgent(
     endpoint="http://localhost:8080",
     model="mistral-7b",
 )
-
-# 2. Register trainers
-registry = TrainerRegistry()
-registry.register("restaurant_inventory", InventoryPolicyTrainer())
-
-# 3. Create the runner and launch
-runner = AutoresearchRunner(agent=agent, registry=registry)
-result = runner.run(RestaurantInventoryTask(), iterations=10)
-
-print(result.best_model_state, result.best_score)
 ```
 
-Behind the scenes the runner calls `agent.propose()`, which sends the current
-state to the local LLM.  The LLM replies with something like
-`reorder_point=24 target_stock=55`.  The `InventoryPolicyTrainer` parses that
-string, validates the values, and returns an updated state dict.  The task
-evaluator simulates 14 days of demand and returns the negative total cost.
+This is useful when trainers prefer parsing JSON over regex-based extraction.
 
 ---
 
-## Customisation Guide
+## CLI and Config Files
 
-### Changing the LLM Research Agent Prompt
+The demo is now a small CLI:
 
-The prompt sent to the LLM consists of two parts:
-
-1. **System prompt** — set via the `system_prompt` constructor argument of
-   `LocalLLMResearchAgent`.
-2. **User prompt** — assembled automatically inside `propose()`.
-
-To change the system prompt:
-
-```python
-agent = LocalLLMResearchAgent(
-    endpoint="http://localhost:8080",
-    model="mistral-7b",
-    system_prompt=(
-        "You are an expert operations researcher. "
-        "Given the current inventory policy and performance, "
-        "suggest improved reorder_point and target_stock values. "
-        "Reply ONLY with key=value pairs, one per line."
-    ),
-)
+```bash
+python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
 ```
 
-To change the **user prompt template**, subclass `LocalLLMResearchAgent` and
-override `propose()`:
+Supported flags include:
 
-```python
-class CustomAgent(LocalLLMResearchAgent):
-    def propose(self, *, task_name, model_state, context):
-        # Build your own prompt however you like, then call the LLM
-        user_prompt = f"Optimise the {task_name} policy. State: {model_state}"
-        # You can reuse the HTTP helper from the parent or call self directly.
-        ...
+- `--config`
+- `--task`
+- `--iterations`
+- `--plot`
+- `--trace`
+- `--output-dir`
+- `--agent-endpoint`
+- `--agent-model`
+- `--prompt-preset`
+- `--temperature`
+
+### JSON config example
+
+```json
+{
+  "task": "restaurant_inventory",
+  "task_params": {
+    "days": 30,
+    "seed": 42
+  },
+  "agent": {
+    "endpoint": "http://localhost:8080",
+    "model": "mistral-7b",
+    "system_prompt": "You are a research optimizer.",
+    "temperature": 0.3,
+    "prompt_preset": "concise"
+  },
+  "iterations": 20,
+  "output_dir": "artifacts"
+}
 ```
 
-### Adding a New Task
+### YAML config example
 
-You need two things: a **task** and a **trainer**.
+```yaml
+task: restaurant_inventory
+task_params:
+  days: 30
+  seed: 42
+agent:
+  endpoint: http://localhost:8080
+  model: mistral-7b
+  system_prompt: You are a research optimizer.
+  temperature: 0.3
+  prompt_preset: concise
+iterations: 20
+output_dir: artifacts
+```
 
-#### Step 1 — Create the task
+Each task writes artifacts under `artifacts/<task_name>/`:
 
-Create a new file or add a class to `tasks.py`:
+- `results.csv`
+- `trace.json`
+- `report.html`
+- `manifest.json`
+
+The manifest stores the resolved config, timestamp, task name, iteration count, best score, and git commit hash.
+
+---
+
+## Adding a New Task
+
+You usually need:
+
+1. a `ResearchTask` implementation,
+2. a `TaskTrainer` implementation,
+3. a registry entry.
+
+Example:
 
 ```python
 from autoresearch.tasks import ResearchTask
+from autoresearch.training import TaskTrainer, _extract_int
 
 class TicTacToeTask(ResearchTask):
     @property
@@ -204,109 +309,78 @@ class TicTacToeTask(ResearchTask):
         return "tic_tac_toe"
 
     def describe_context(self) -> dict:
-        return {"board_size": 3, "goal": "maximise win rate"}
+        return {"board_size": 3, "goal": "maximize win rate"}
 
     def initial_model_state(self) -> dict:
-        # Whatever parameters your model/strategy exposes
         return {"aggression": 5, "defence": 5}
 
-    def evaluate_model(self, model_state: dict) -> float:
-        # Run simulated games and return a score (higher = better)
-        ...
-        return win_rate
-```
-
-#### Step 2 — Create the trainer
-
-```python
-from autoresearch.training import TaskTrainer, _extract_int
+    def evaluate_model_detailed(self, model_state: dict) -> dict:
+        win_rate = 0.6
+        return {"score": win_rate, "win_rate": win_rate}
 
 class TicTacToeTrainer(TaskTrainer):
     def train_step(self, *, model_state, suggestion, task_context):
         aggression = _extract_int(suggestion, "aggression", model_state["aggression"])
         defence = _extract_int(suggestion, "defence", model_state["defence"])
-        return {"aggression": max(0, min(10, aggression)),
-                "defence": max(0, min(10, defence))}
+        return {"aggression": aggression, "defence": defence}
 ```
 
-#### Step 3 — Register and run
+Then register and run it:
 
 ```python
 registry.register("tic_tac_toe", TicTacToeTrainer())
 result = runner.run(TicTacToeTask(), iterations=10)
 ```
 
-### Switching the Experiment Model to an Attention-Based or Mamba-Based Architecture
+---
 
-The current tasks use simple parameter dicts as the "model state".  To use a
-real neural network (e.g. a Transformer or Mamba model) you would:
+## Optional Neural-Task Support
 
-1. **Extend `model_state`** to hold serialised model weights (or a path to a
-   checkpoint file).
+`neural.py` adds a torch-gated scaffold:
 
-2. **Update the task evaluator** to load and run the neural network:
+- `NeuralTask`
+- `TinyTorchClassificationTask`
+- `HyperparameterTrainer`
 
-   ```python
-   def evaluate_model(self, model_state: dict) -> float:
-       model = load_checkpoint(model_state["checkpoint_path"])
-       # run inference / evaluation
-       return score
-   ```
+This path is optional; the framework still works without torch installed.
 
-3. **Update the trainer** to apply the LLM suggestion as a hyperparameter
-   change, then actually train the model:
+The intended pattern is:
 
-   ```python
-   class AttentionModelTrainer(TaskTrainer):
-       def train_step(self, *, model_state, suggestion, task_context):
-           lr = _extract_float(suggestion, "learning_rate", 1e-4)
-           epochs = _extract_int(suggestion, "epochs", 5)
-           model = load_checkpoint(model_state["checkpoint_path"])
-           train(model, lr=lr, epochs=epochs)
-           new_path = save_checkpoint(model)
-           return {"checkpoint_path": new_path, "lr": lr, "epochs": epochs}
-   ```
-
-4. **For Mamba-based models** the process is identical — only the model
-   definition and training loop change.  The autoresearch framework does not
-   care what kind of model you use; it only needs a `dict` that describes the
-   current state and a `float` score from the evaluator.
-
-> **Key insight:** the framework treats the model as a black box.  You can swap
-> the entire model architecture without changing `AutoresearchRunner` or
-> `ResearchAgent`.
+- model state stores hyperparameters and checkpoint information,
+- trainer applies LLM-suggested hyperparameter changes,
+- task evaluator runs training/evaluation and returns detailed metrics.
 
 ---
 
 ## Running Tests
 
 ```bash
-# Run the full test suite
 python -m unittest discover -s tests -v
-
-# Run the demo (no LLM server required)
 python -m autoresearch.demo
+```
+
+Optional examples:
+
+```bash
+python -m autoresearch.demo --task blackjack --trace
+python -m autoresearch.demo --config experiment.json
 ```
 
 ---
 
 ## FAQ
 
-**Q: Do I need a GPU to run this?**
-No.  The framework itself is pure Python.  If your task trains a neural
-network, GPU acceleration is helpful but optional.
+**Do I need a GPU?**  
+No. The base framework does not. Only optional neural-task experiments may benefit from one.
 
-**Q: Which local LLM servers are compatible?**
-Any server that exposes an OpenAI-compatible `/v1/chat/completions` endpoint.
-Popular choices include [llama.cpp](https://github.com/ggerganov/llama.cpp),
-[Ollama](https://ollama.com), [vLLM](https://github.com/vllm-project/vllm),
-and [LM Studio](https://lmstudio.ai).
+**Do I need a local LLM server to try the project?**  
+No. `python -m autoresearch.demo` uses a deterministic stub agent by default.
 
-**Q: Can I run the framework without a local LLM?**
-Yes — use the demo (`python -m autoresearch.demo`) or write a custom
-`ResearchAgent` subclass that generates suggestions with any strategy you like
-(random search, Bayesian optimisation, hard-coded rules, etc.).
+**Which local LLM servers are compatible?**  
+Any server exposing an OpenAI-compatible `/v1/chat/completions` endpoint.
 
-**Q: How do I add more extraction helpers (e.g. `_extract_float`)?**
-Add them to `training.py` following the same pattern as `_extract_int`.  Use
-a regex like `r"key\s*[:=]\s*([0-9.]+)"` and `float()` instead of `int()`.
+**What do I use for spreadsheet analysis?**  
+Export `RunResult.to_csv(...)` or use the demo-generated `results.csv`.
+
+**How do I inspect what the agent saw and returned?**  
+Use `TraceableAgent`, `--trace`, or `RunResult.to_trace_log(...)`.
