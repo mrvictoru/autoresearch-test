@@ -21,7 +21,7 @@ class TaskTrainer(ABC):
 
 
 def _extract_int(suggestion: str, key: str, fallback: int) -> int:
-    """Extract integer parameter value from a suggestion string or return fallback."""
+    """Extract `key` from `key:value` or `key=value` formats; return fallback otherwise."""
     pattern = rf"{re.escape(key)}\s*[:=]\s*(\d+)"
     match = re.search(pattern, suggestion, re.IGNORECASE)
     if match:

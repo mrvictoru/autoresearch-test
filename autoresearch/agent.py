@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 from urllib import request
 
+MAX_ERROR_PAYLOAD_LENGTH = 200
+
 
 class ResearchAgent(ABC):
     """Produces the next research suggestion for a task."""
@@ -71,5 +73,5 @@ class LocalLLMResearchAgent(ResearchAgent):
         except (KeyError, IndexError, AttributeError, TypeError) as exc:
             raise ValueError(
                 f"Unexpected response payload from local LLM endpoint: {exc}. "
-                f"Payload snippet: {raw[:200]}"
+                f"Payload snippet: {raw[:MAX_ERROR_PAYLOAD_LENGTH]}"
             ) from exc
