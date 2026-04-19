@@ -26,6 +26,9 @@ class ResearchTask(ABC):
     def evaluate_model(self, model_state: dict[str, Any]) -> float:
         """Return scalar score (higher is better)."""
 
+    def evaluate_model_detailed(self, model_state: dict[str, Any]) -> dict[str, Any]:
+        return {"score": self.evaluate_model(model_state)}
+
 
 class RestaurantInventoryTask(ResearchTask):
     @property
@@ -63,23 +66,37 @@ class RestaurantInventoryTask(ResearchTask):
         return {"reorder_point": 18, "target_stock": 40}
 
     def evaluate_model(self, model_state: dict[str, Any]) -> float:
+        return float(self.evaluate_model_detailed(model_state)["score"])
+
+    def evaluate_model_detailed(self, model_state: dict[str, Any]) -> dict[str, Any]:
         reorder_point = int(model_state["reorder_point"])
         target_stock = max(reorder_point + 1, int(model_state["target_stock"]))
         rng = random.Random(self.seed)
         stock = target_stock
         total_cost = 0.0
+        total_stockouts = 0
+        total_waste = 0
+        total_orders = 0
         for _ in range(self.days):
             demand = max(0, int(rng.gauss(self.demand_mean, self.demand_std)))
             sold = min(stock, demand)
             stockout = demand - sold
             stock -= sold
+            total_stockouts += stockout
+            total_waste += stock
             total_cost += stockout * self.stockout_penalty
             total_cost += stock * self.waste_cost
             if stock <= reorder_point:
                 order = target_stock - stock
                 stock += order
+                total_orders += 1
                 total_cost += order * self.unit_cost
-        return -total_cost
+        return {
+            "score": -total_cost,
+            "stockouts": total_stockouts,
+            "waste_units": total_waste,
+            "total_orders": total_orders,
+        }
 
 
 class BlackjackTask(ResearchTask):
@@ -104,9 +121,15 @@ class BlackjackTask(ResearchTask):
         return {"hit_threshold": 16}
 
     def evaluate_model(self, model_state: dict[str, Any]) -> float:
+        return float(self.evaluate_model_detailed(model_state)["score"])
+
+    def evaluate_model_detailed(self, model_state: dict[str, Any]) -> dict[str, Any]:
         threshold = int(model_state["hit_threshold"])
         rng = random.Random(self.seed)
         rewards = []
+        wins = 0
+        losses = 0
+        draws = 0
         for _ in range(self.rounds):
             player = self._draw(rng) + self._draw(rng)
             dealer = self._draw(rng) + self._draw(rng)
@@ -114,17 +137,28 @@ class BlackjackTask(ResearchTask):
                 player += self._draw(rng)
                 if player > 21:
                     rewards.append(-1.0)
+                    losses += 1
                     break
             else:
                 while dealer < 17:
                     dealer += self._draw(rng)
                 if dealer > 21 or player > dealer:
                     rewards.append(1.0)
+                    wins += 1
                 elif player == dealer:
                     rewards.append(0.0)
+                    draws += 1
                 else:
                     rewards.append(-1.0)
-        return mean(rewards)
+                    losses += 1
+        score = mean(rewards)
+        return {
+            "score": score,
+            "wins": wins,
+            "losses": losses,
+            "draws": draws,
+            "win_rate": wins / self.rounds,
+        }
 
     @staticmethod
     def _draw(rng: random.Random) -> int:

@@ -27,3 +27,22 @@ Run a small demo:
 ```bash
 python -m autoresearch.demo
 ```
+
+Run with trace and plots:
+
+```bash
+python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
+```
+
+Use a config file:
+
+```bash
+python -m autoresearch.demo --config experiment.json
+```
+
+Demo outputs per-task artifacts under `artifacts/<task_name>/`:
+
+- `results.csv` (iteration history for spreadsheet analysis)
+- `trace.json` (prompt/response/state trace log)
+- `report.html` (self-contained visual report)
+- `manifest.json` (reproducibility metadata including git commit hash)
