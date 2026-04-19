@@ -21,7 +21,7 @@ class TaskTrainer(ABC):
 
 
 def _extract_int(suggestion: str, key: str, fallback: int) -> int:
-    pattern = rf"{re.escape(key)}\s*[:=]\s*(-?\d+)"
+    pattern = rf"{re.escape(key)}\s*[:=]\s*(\d+)"
     match = re.search(pattern, suggestion, re.IGNORECASE)
     if match:
         return int(match.group(1))

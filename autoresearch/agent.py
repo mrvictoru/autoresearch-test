@@ -66,4 +66,9 @@ class LocalLLMResearchAgent(ResearchAgent):
         with request.urlopen(req, timeout=self.timeout_seconds) as response:
             raw = response.read().decode("utf-8")
         parsed = json.loads(raw)
-        return parsed["choices"][0]["message"]["content"].strip()
+        try:
+            return parsed["choices"][0]["message"]["content"].strip()
+        except (KeyError, IndexError, AttributeError, TypeError) as exc:
+            raise ValueError(
+                "Unexpected response payload from local LLM endpoint"
+            ) from exc

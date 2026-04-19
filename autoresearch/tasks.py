@@ -9,7 +9,10 @@ from typing import Any
 class ResearchTask(ABC):
     """Evaluates model state against a concrete optimization objective."""
 
-    name: str
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
 
     @abstractmethod
     def describe_context(self) -> dict[str, Any]:
@@ -25,7 +28,9 @@ class ResearchTask(ABC):
 
 
 class RestaurantInventoryTask(ResearchTask):
-    name = "restaurant_inventory"
+    @property
+    def name(self) -> str:
+        return "restaurant_inventory"
 
     def __init__(
         self,
@@ -78,7 +83,9 @@ class RestaurantInventoryTask(ResearchTask):
 
 
 class BlackjackTask(ResearchTask):
-    name = "blackjack"
+    @property
+    def name(self) -> str:
+        return "blackjack"
 
     def __init__(self, *, rounds: int = 300, seed: int = 17) -> None:
         self.rounds = rounds
