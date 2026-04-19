@@ -36,12 +36,8 @@ class InventoryPolicyTrainer(TaskTrainer):
         suggestion: str,
         task_context: dict[str, Any],
     ) -> dict[str, Any]:
-        reorder_point = _extract_int(
-            suggestion, "reorder_point", int(model_state["reorder_point"])
-        )
-        target_stock = _extract_int(
-            suggestion, "target_stock", int(model_state["target_stock"])
-        )
+        reorder_point = _extract_int(suggestion, "reorder_point", model_state["reorder_point"])
+        target_stock = _extract_int(suggestion, "target_stock", model_state["target_stock"])
         reorder_point = max(1, reorder_point)
         target_stock = max(reorder_point + 1, target_stock)
         return {"reorder_point": reorder_point, "target_stock": target_stock}
@@ -55,9 +51,7 @@ class BlackjackPolicyTrainer(TaskTrainer):
         suggestion: str,
         task_context: dict[str, Any],
     ) -> dict[str, Any]:
-        threshold = _extract_int(
-            suggestion, "hit_threshold", int(model_state["hit_threshold"])
-        )
+        threshold = _extract_int(suggestion, "hit_threshold", model_state["hit_threshold"])
         threshold = max(12, min(20, threshold))
         return {"hit_threshold": threshold}
 

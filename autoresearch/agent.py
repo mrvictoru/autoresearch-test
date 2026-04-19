@@ -70,5 +70,6 @@ class LocalLLMResearchAgent(ResearchAgent):
             return parsed["choices"][0]["message"]["content"].strip()
         except (KeyError, IndexError, AttributeError, TypeError) as exc:
             raise ValueError(
-                "Unexpected response payload from local LLM endpoint"
+                f"Unexpected response payload from local LLM endpoint: {exc}. "
+                f"Payload snippet: {raw[:200]}"
             ) from exc
