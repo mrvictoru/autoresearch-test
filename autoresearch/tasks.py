@@ -128,4 +128,5 @@ class BlackjackTask(ResearchTask):
 
     @staticmethod
     def _draw(rng: random.Random) -> int:
+        """Draw a simplified blackjack card value (10 appears more frequently)."""
         return rng.choice([2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11])
