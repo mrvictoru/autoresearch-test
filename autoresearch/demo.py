@@ -27,8 +27,14 @@ def main() -> None:
 
     inventory_result = runner.run(RestaurantInventoryTask(), iterations=4)
     blackjack_result = runner.run(BlackjackTask(), iterations=4)
-    print("Inventory best:", inventory_result.best_model_state, inventory_result.best_score)
-    print("Blackjack best:", blackjack_result.best_model_state, blackjack_result.best_score)
+    print(
+        f"Inventory best: {inventory_result.best_model_state} "
+        f"(score: {inventory_result.best_score:.2f})"
+    )
+    print(
+        f"Blackjack best: {blackjack_result.best_model_state} "
+        f"(score: {blackjack_result.best_score:.4f})"
+    )
 
 
 if __name__ == "__main__":
