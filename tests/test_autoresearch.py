@@ -7,6 +7,7 @@ from autoresearch.training import (
     BlackjackPolicyTrainer,
     InventoryPolicyTrainer,
     TrainerRegistry,
+    _extract_int,
 )
 
 
@@ -48,6 +49,11 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_registry_requires_registered_task(self):
         with self.assertRaises(KeyError):
             TrainerRegistry().get("missing_task")
+
+    def test_extract_int_uses_fallback_for_missing_or_malformed_values(self):
+        self.assertEqual(_extract_int("no relevant key here", "hit_threshold", 16), 16)
+        self.assertEqual(_extract_int("hit_threshold=abc", "hit_threshold", 16), 16)
+        self.assertEqual(_extract_int("hit_threshold:18", "hit_threshold", 16), 18)
 
 
 if __name__ == "__main__":

@@ -83,7 +83,7 @@ class RestaurantInventoryTask(ResearchTask):
 
 
 class BlackjackTask(ResearchTask):
-    """Simplified blackjack simulator where aces are always valued as 11."""
+    """Simplified blackjack simulator with fixed card values (including 11)."""
 
     @property
     def name(self) -> str:
