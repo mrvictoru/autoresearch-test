@@ -8,12 +8,19 @@ This document describes the main components in `autoresearch/` and how they fit 
 autoresearch/
 ├── __init__.py
 ├── agent.py
+├── brief.py
 ├── core.py
 ├── demo.py
+├── executor.py
+├── harness.py
+├── mutation_agent.py
+├── mutation_runner.py
 ├── neural.py
+├── sandbox.py
 ├── tasks.py
 ├── training.py
-└── visualise.py
+├── visualise.py
+└── experiments/
 ```
 
 ---
@@ -201,6 +208,12 @@ autoresearch/
 7. Track best score and append an `IterationRecord`
 8. Return a `RunResult`
 
+### Mutation records/results
+
+- `ExperimentStatus`: `keep`, `discard`, `crash`
+- `ExperimentRecord`: per-attempt mutation lifecycle entry
+- `MutationRunResult`: mutation run aggregate with `to_csv(...)` and `to_experiment_log(...)`
+
 ---
 
 ## `tasks.py`
@@ -349,6 +362,80 @@ autoresearch/
 **Use when**
 
 - You want a shareable artifact without requiring Python tooling to inspect it.
+
+### `plot_mutation_run`
+
+**Role**
+
+- Plots mutation lifecycle: score trajectory, keep/discard/crash status, cumulative resource usage.
+
+---
+
+## `brief.py`
+
+**Purpose**
+
+- Defines `ResearchBrief` schema and loader for JSON/YAML brief files.
+
+**Key API**
+
+- `ResearchBrief.to_context()`
+- `load_research_brief(path)`
+
+---
+
+## `harness.py`
+
+**Purpose**
+
+- Wraps task evaluator calls behind `EvaluationHarness` to enforce optional timeouts and score presence.
+
+---
+
+## `mutation_agent.py`
+
+**Purpose**
+
+- Defines structured mutation proposal interfaces.
+
+**Key types**
+
+- `FileEdit`
+- `MutationProposal`
+- `MutationAgent`
+- `LocalLLMMutationAgent`
+
+---
+
+## `sandbox.py`
+
+**Purpose**
+
+- Provides `Workspace` for isolated frontier/candidate directories and file whitelist enforcement.
+
+---
+
+## `executor.py`
+
+**Purpose**
+
+- Provides `SafeExecutor` and `ExecutionResult` for guarded experiment execution and failure classification.
+
+---
+
+## `mutation_runner.py`
+
+**Purpose**
+
+- Orchestrates mutation lifecycle: baseline -> propose -> apply -> run -> keep/discard/crash.
+
+---
+
+## `experiments/neural_eval.py` and `experiments/neural_train.py`
+
+**Purpose**
+
+- Split immutable evaluator (`neural_eval.py`) from mutable training logic (`neural_train.py`) for mutation-safe neural experimentation.
 
 ---
 

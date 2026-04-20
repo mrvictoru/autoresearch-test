@@ -6,6 +6,7 @@ Additional documentation:
 
 - `docs/guide.md` for the full usage and architecture guide
 - `docs/components.md` for component-level documentation
+- `docs/mutation_guide.md` for mutation backend usage
 
 ## What is included
 
@@ -31,6 +32,11 @@ Additional documentation:
   - `NeuralTask`
   - `TinyTorchClassificationTask`
   - `HyperparameterTrainer`
+- Mutation backend components:
+  - `MutationRunner`, `MutationAgent`, `MutationProposal`
+  - `Workspace` sandbox isolation with mutable-file whitelist
+  - `SafeExecutor` timeout/log/failure classification
+  - `research_brief.yaml` objective/constraint file
 
 ## Quick start
 
@@ -44,6 +50,18 @@ Run a small demo:
 
 ```bash
 python -m autoresearch.demo
+```
+
+Run mutation mode with a research brief:
+
+```bash
+python -m autoresearch.demo \
+  --mode mutation \
+  --task tiny_torch_classification \
+  --brief research_brief.json \
+  --agent-endpoint http://localhost:8080 \
+  --agent-model local-model \
+  --iterations 3
 ```
 
 Run with trace and plots:

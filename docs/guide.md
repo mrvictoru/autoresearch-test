@@ -8,12 +8,14 @@
 4. [Observability and Exports](#observability-and-exports)
 5. [Agent Customisation](#agent-customisation)
 6. [CLI and Config Files](#cli-and-config-files)
-7. [Component Reference](#component-reference)
-8. [Adding a New Task](#adding-a-new-task)
-9. [Optional Neural-Task Support](#optional-neural-task-support)
-10. [Docker and Docker Compose](#docker-and-docker-compose)
-11. [Running Tests](#running-tests)
-12. [FAQ](#faq)
+7. [Mutation Backend](#mutation-backend)
+8. [Research Brief](#research-brief)
+9. [Component Reference](#component-reference)
+10. [Adding a New Task](#adding-a-new-task)
+11. [Optional Neural-Task Support](#optional-neural-task-support)
+12. [Docker and Docker Compose](#docker-and-docker-compose)
+13. [Running Tests](#running-tests)
+14. [FAQ](#faq)
 
 ---
 
@@ -44,12 +46,21 @@ The framework now includes:
 autoresearch/
 ├── __init__.py        # Public API exports
 ├── agent.py           # ResearchAgent implementations, traces, prompt presets
+├── brief.py           # Research brief schema loader
 ├── core.py            # AutoresearchRunner, IterationRecord, RunResult
 ├── demo.py            # CLI demo/config entrypoint
+├── executor.py        # Safe subprocess execution with timeout/resource constraints
+├── harness.py         # Immutable evaluation wrapper for task scoring
+├── mutation_agent.py  # MutationAgent + structured MutationProposal
+├── mutation_runner.py # Mutation lifecycle orchestration (keep/discard/crash)
 ├── neural.py          # Optional torch-gated neural task scaffold
+├── sandbox.py         # Isolated workspace and mutable-file whitelist enforcement
 ├── tasks.py           # ResearchTask ABC + example tasks
 ├── training.py        # Trainers, parsing helpers, registry
-└── visualise.py       # Plotting and HTML report helpers
+├── visualise.py       # Plotting and HTML report helpers
+└── experiments/       # Mutation-safe neural experiment split
+   ├── neural_eval.py  # Immutable evaluator
+   └── neural_train.py # Mutable training implementation
 
 tests/
 └── test_autoresearch.py
@@ -226,6 +237,7 @@ This is useful when trainers prefer parsing JSON over regex-based extraction.
 For file-by-file component documentation, see:
 
 - `docs/components.md`
+- `docs/mutation_guide.md`
 
 This companion document describes each package module, its primary classes/functions, and how the components interact.
 
@@ -242,6 +254,7 @@ python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
 Supported flags include:
 
 - `--config`
+- `--mode`
 - `--task`
 - `--iterations`
 - `--plot`
@@ -251,6 +264,34 @@ Supported flags include:
 - `--agent-model`
 - `--prompt-preset`
 - `--temperature`
+- `--brief`
+
+---
+
+## Mutation Backend
+
+Mutation mode adds code-edit experiments while keeping the parameter loop as default:
+
+- `ParametricRunner` / `AutoresearchRunner`: existing parameter-update loop
+- `MutationRunner`: proposal -> sandbox apply -> safe execute -> keep/discard/crash
+- `MutationAgent`: structured edit proposals (`patch` or `edits`) with file targets
+- `Workspace`: isolated mutable frontier in temporary workspace
+- `SafeExecutor`: timeout, log capture, metric extraction, failure categorization
+
+---
+
+## Research Brief
+
+Mutation runs consume a research brief (`research_brief.yaml` or `research_brief.json` in repo root) with:
+
+- `goal`
+- `constraints`
+- `allowed_mutable_files`
+- `immutable_files`
+- `time_budget_seconds`
+- `tie_breaker_policy`
+
+This file is loaded by `load_research_brief(...)` and passed into runner/agent context.
 
 ### JSON config example
 

@@ -5,7 +5,7 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
-from .core import RunResult
+from .core import MutationRunResult, RunResult
 
 
 def plot_run_result(
@@ -135,3 +135,48 @@ def save_html_report(result: RunResult, path: str | Path) -> None:
 </html>
 """
     target.write_text(html, encoding="utf-8")
+
+
+def plot_mutation_run(
+    result: MutationRunResult,
+    *,
+    show: bool = True,
+):
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise RuntimeError(
+            "matplotlib is required for plotting. Install with: pip install matplotlib"
+        ) from exc
+    iterations = [entry.iteration for entry in result.history]
+    scores = [entry.score if entry.score is not None else float("nan") for entry in result.history]
+    statuses = [entry.status.value for entry in result.history]
+    wall_times = [
+        float(entry.resource_metrics.get("wall_time_seconds", 0.0))
+        for entry in result.history
+    ]
+    cumulative_wall = []
+    total = 0.0
+    for value in wall_times:
+        total += value
+        cumulative_wall.append(total)
+    fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+    score_ax, status_ax, resource_ax = axes
+    score_ax.plot(iterations, scores, marker="o", label="frontier score candidates")
+    score_ax.set_ylabel("score")
+    score_ax.grid(True, alpha=0.3)
+    status_map = {"keep": 2, "discard": 1, "crash": 0}
+    numeric_status = [status_map.get(status, -1) for status in statuses]
+    status_ax.step(iterations, numeric_status, where="mid")
+    status_ax.set_yticks([0, 1, 2], labels=["crash", "discard", "keep"])
+    status_ax.set_ylabel("status")
+    status_ax.grid(True, alpha=0.3)
+    resource_ax.plot(iterations, cumulative_wall, marker="o", color="#9467bd")
+    resource_ax.set_ylabel("cum. wall seconds")
+    resource_ax.set_xlabel("experiment iteration")
+    resource_ax.grid(True, alpha=0.3)
+    fig.suptitle(f"{result.task_name}: mutation experiment lifecycle")
+    fig.tight_layout()
+    if show:
+        plt.show()
+    return fig
