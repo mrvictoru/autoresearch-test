@@ -49,14 +49,13 @@ python -m unittest discover -s tests -v
 Run a small demo:
 
 ```bash
-python -m autoresearch.demo
+python -m autoresearch parametric
 ```
 
 Run mutation mode with a research brief:
 
 ```bash
-python -m autoresearch.demo \
-  --mode mutation \
+python -m autoresearch mutation \
   --task tiny_torch_classification \
   --brief research_brief.json \
   --agent-endpoint http://localhost:8080 \
@@ -67,13 +66,13 @@ python -m autoresearch.demo \
 Run with trace and plots:
 
 ```bash
-python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
+python -m autoresearch parametric --task blackjack --iterations 8 --trace --plot
 ```
 
 Use a config file:
 
 ```bash
-python -m autoresearch.demo --config experiment.json
+python -m autoresearch parametric --config experiment.json
 ```
 
 ## Run with Docker
@@ -166,7 +165,7 @@ The Jupyter container uses the same host networking setup, so notebooks can reac
 Use a local OpenAI-compatible endpoint:
 
 ```bash
-python -m autoresearch.demo \
+python -m autoresearch parametric \
   --task restaurant_inventory \
   --iterations 10 \
   --agent-endpoint http://localhost:8080 \

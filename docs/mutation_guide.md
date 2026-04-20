@@ -38,8 +38,7 @@ Each mutation iteration:
 ## CLI usage
 
 ```bash
-python -m autoresearch.demo \
-  --mode mutation \
+python -m autoresearch mutation \
   --task tiny_torch_classification \
   --brief research_brief.json \
   --agent-endpoint http://localhost:8080 \

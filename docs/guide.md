@@ -245,16 +245,16 @@ This companion document describes each package module, its primary classes/funct
 
 ## CLI and Config Files
 
-The demo is now a small CLI:
+Use the package entrypoint with subcommands:
 
 ```bash
-python -m autoresearch.demo --task blackjack --iterations 8 --trace --plot
+python -m autoresearch parametric --task blackjack --iterations 8 --trace --plot
+python -m autoresearch mutation --task tiny_torch_classification --brief research_brief.json --agent-endpoint http://localhost:8080 --agent-model local-model --iterations 5
 ```
 
 Supported flags include:
 
 - `--config`
-- `--mode`
 - `--task`
 - `--iterations`
 - `--plot`
@@ -516,14 +516,14 @@ It:
 
 ```bash
 python -m unittest discover -s tests -v
-python -m autoresearch.demo
+python -m autoresearch parametric
 ```
 
 Optional examples:
 
 ```bash
-python -m autoresearch.demo --task blackjack --trace
-python -m autoresearch.demo --config experiment.json
+python -m autoresearch parametric --task blackjack --trace
+python -m autoresearch parametric --config experiment.json
 ```
 
 ---
@@ -534,7 +534,7 @@ python -m autoresearch.demo --config experiment.json
 No. The base framework does not. Only optional neural-task experiments may benefit from one.
 
 **Do I need a local LLM server to try the project?**  
-No. `python -m autoresearch.demo` uses a deterministic stub agent by default.
+No. `python -m autoresearch parametric` uses a deterministic stub agent by default.
 
 **Which local LLM servers are compatible?**  
 Any server exposing an OpenAI-compatible `/v1/chat/completions` endpoint.
