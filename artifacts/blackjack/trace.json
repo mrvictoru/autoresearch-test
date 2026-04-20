@@ -1,0 +1,27 @@
+{
+  "best_model_state": {
+    "hit_threshold": 17
+  },
+  "best_score": -0.023333333333333334,
+  "iterations": [
+    {
+      "iteration": 1,
+      "latency_seconds": 2.0429999949556077e-06,
+      "metrics": {
+        "draws": 19,
+        "losses": 144,
+        "score": -0.023333333333333334,
+        "win_rate": 0.45666666666666667,
+        "wins": 137
+      },
+      "model_state": {
+        "hit_threshold": 17
+      },
+      "prompt_sent": null,
+      "raw_response": "hit_threshold=17",
+      "score": -0.023333333333333334,
+      "suggestion": "hit_threshold=17"
+    }
+  ],
+  "task_name": "blackjack"
+}

@@ -1,0 +1,2 @@
+task_name,iteration,score,suggestion,latency_seconds,metric_draws,metric_losses,metric_score,metric_win_rate,metric_wins,model_hit_threshold
+blackjack,1,-0.023333333333333334,hit_threshold=17,2.0429999949556077e-06,19,144,-0.023333333333333334,0.45666666666666667,137,17
