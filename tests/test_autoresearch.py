@@ -6,6 +6,7 @@ import json
 import sys
 import subprocess
 
+from autoresearch.experiments.neural_eval import _format_results_block
 from autoresearch.agent import (
     LocalLLMResearchAgent,
     PROMPT_TEMPLATE_PRESETS,
@@ -366,6 +367,19 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0)
         self.assertIn("mutation", completed.stdout.lower())
+
+    def test_neural_eval_results_block_format(self):
+        rendered = _format_results_block(
+            {
+                "score": 0.75,
+                "validation_accuracy": 0.8,
+                "validation_loss": 1.0,
+            }
+        )
+        self.assertIn("--- RESULTS ---", rendered)
+        self.assertIn("score", rendered)
+        self.assertIn("validation_accuracy", rendered)
+        self.assertIn("validation_loss", rendered)
 
 
 if __name__ == "__main__":

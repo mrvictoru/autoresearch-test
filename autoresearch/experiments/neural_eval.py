@@ -54,6 +54,29 @@ def evaluate_experiment(experiment_path: str | Path, *, seed: int = 13, samples:
     }
 
 
+def _format_results_block(metrics: dict[str, float]) -> str:
+    ordered_keys = [
+        "score",
+        "validation_accuracy",
+        "validation_loss",
+        "training_seconds",
+        "peak_vram_mb",
+    ]
+    lines = ["--- RESULTS ---"]
+    seen = set()
+    for key in ordered_keys:
+        if key in metrics:
+            lines.append(f"{key:18} {metrics[key]:.6f}")
+            seen.add(key)
+    for key in sorted(k for k in metrics.keys() if k not in seen):
+        value = metrics[key]
+        if isinstance(value, (int, float)):
+            lines.append(f"{key:18} {float(value):.6f}")
+        else:
+            lines.append(f"{key:18} {value}")
+    return "\n".join(lines)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate mutable neural experiment code.")
     parser.add_argument(
@@ -64,6 +87,7 @@ def main() -> None:
     )
     args = parser.parse_args()
     metrics = evaluate_experiment(args.experiment)
+    print(_format_results_block(metrics))
     print(f"METRIC_JSON: {json.dumps(metrics, sort_keys=True)}")
 
 
