@@ -122,7 +122,7 @@ docker compose up autoresearch
 
 ### Use Jupyter Notebook in Docker
 
-The repo includes `/home/runner/work/autoresearch-test/autoresearch-test/notebooks/autoresearch_workflow.ipynb`.
+The repo includes `notebooks/autoresearch_workflow.ipynb`.
 
 Start the notebook server:
 

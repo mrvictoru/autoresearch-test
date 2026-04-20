@@ -447,7 +447,7 @@ docker compose up autoresearch
 An example notebook is included at:
 
 ```text
-/home/runner/work/autoresearch-test/autoresearch-test/notebooks/autoresearch_workflow.ipynb
+notebooks/autoresearch_workflow.ipynb
 ```
 
 It:
