@@ -393,6 +393,22 @@ docker compose run --rm autoresearch python -m unittest discover -s tests -v
 docker compose run --rm autoresearch bash
 ```
 
+### Start Jupyter Notebook in the container
+
+```bash
+export JUPYTER_PORT=8888
+export JUPYTER_TOKEN=autoresearch
+docker compose up jupyter
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8888/tree?token=autoresearch
+```
+
+The notebook server is rooted at `/workspace`, so the example notebook and generated artifacts are visible from both the host and the container.
+
 ### Configure the containerized run
 
 `compose.yaml` reads these environment variables:
@@ -425,6 +441,22 @@ If you prefer config-driven execution:
 export AUTORESEARCH_CONFIG=experiment.json
 docker compose up autoresearch
 ```
+
+### Notebook workflow
+
+An example notebook is included at:
+
+```text
+/home/runner/work/autoresearch-test/autoresearch-test/notebooks/autoresearch_workflow.ipynb
+```
+
+It:
+
+- runs the existing autoresearch workflow,
+- selects a local LLM agent when `AUTORESEARCH_AGENT_ENDPOINT` and `AUTORESEARCH_AGENT_MODEL` are set,
+- otherwise falls back to the deterministic demo agent,
+- visualizes score and parameter trajectories with matplotlib,
+- exports CSV, trace, and HTML report artifacts under `artifacts/notebooks/`.
 
 ---
 

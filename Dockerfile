@@ -9,8 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
     git \
+    python3-ipykernel \
     python3 \
     python3-matplotlib \
+    python3-notebook \
     python3-pip \
     python3-venv \
     python3-yaml \

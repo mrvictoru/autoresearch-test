@@ -12,6 +12,7 @@ services:
     tty: true
     working_dir: /workspace
     environment:
+      AUTORESEARCH_MODE: ${AUTORESEARCH_MODE:-demo}
       AUTORESEARCH_CONFIG: ${AUTORESEARCH_CONFIG:-}
       AUTORESEARCH_TASK: ${AUTORESEARCH_TASK:-all}
       AUTORESEARCH_ITERATIONS: ${AUTORESEARCH_ITERATIONS:-4}
@@ -22,6 +23,31 @@ services:
       AUTORESEARCH_AGENT_MODEL: ${AUTORESEARCH_AGENT_MODEL:-local-model}
       AUTORESEARCH_PROMPT_PRESET: ${AUTORESEARCH_PROMPT_PRESET:-concise}
       AUTORESEARCH_TEMPERATURE: ${AUTORESEARCH_TEMPERATURE:-0.2}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+    volumes:
+      - .:/workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: autoresearch-test:cuda13
+    network_mode: host
+    gpus: all
+    ipc: host
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      AUTORESEARCH_MODE: jupyter
+      AUTORESEARCH_AGENT_ENDPOINT: ${AUTORESEARCH_AGENT_ENDPOINT:-http://127.0.0.1:8080}
+      AUTORESEARCH_AGENT_MODEL: ${AUTORESEARCH_AGENT_MODEL:-local-model}
+      AUTORESEARCH_PROMPT_PRESET: ${AUTORESEARCH_PROMPT_PRESET:-concise}
+      AUTORESEARCH_TEMPERATURE: ${AUTORESEARCH_TEMPERATURE:-0.2}
+      JUPYTER_PORT: ${JUPYTER_PORT:-8888}
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-autoresearch}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
     volumes:

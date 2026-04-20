@@ -81,6 +81,12 @@ Open an interactive shell:
 docker compose run --rm autoresearch bash
 ```
 
+Start a Jupyter server in Docker:
+
+```bash
+docker compose up jupyter
+```
+
 The compose setup is tuned for a Linux/NVIDIA workstation:
 
 - base image: `nvidia/cuda:13.0.0-cudnn-runtime-ubuntu24.04`
@@ -113,6 +119,26 @@ If you prefer a config file:
 export AUTORESEARCH_CONFIG=experiment.json
 docker compose up autoresearch
 ```
+
+### Use Jupyter Notebook in Docker
+
+The repo includes `/home/runner/work/autoresearch-test/autoresearch-test/notebooks/autoresearch_workflow.ipynb`.
+
+Start the notebook server:
+
+```bash
+export JUPYTER_PORT=8888
+export JUPYTER_TOKEN=autoresearch
+docker compose up jupyter
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8888/tree?token=autoresearch
+```
+
+The Jupyter container uses the same host networking setup, so notebooks can reach your host-local LLM endpoint at `http://127.0.0.1:8080`.
 
 Use a local OpenAI-compatible endpoint:
 
@@ -161,3 +187,4 @@ Demo outputs per-task artifacts under `artifacts/<task_name>/`:
 - YAML configs are supported when `PyYAML` is installed.
 - Neural tasks are optional and only activate when `torch` is installed.
 - `compose.yaml` uses Linux host networking so a host-local LLM endpoint remains reachable from the container.
+- `docker compose up jupyter` starts a notebook server rooted at `/workspace`.
