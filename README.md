@@ -53,6 +53,66 @@ Use a config file:
 python -m autoresearch.demo --config experiment.json
 ```
 
+## Run with Docker
+
+This repository can run entirely inside Docker, so you do not need Python installed locally.
+
+Build the CUDA-based image:
+
+```bash
+docker compose build
+```
+
+Run the default demo in the container:
+
+```bash
+docker compose up autoresearch
+```
+
+Run tests in the container:
+
+```bash
+docker compose run --rm autoresearch python -m unittest discover -s tests -v
+```
+
+Open an interactive shell:
+
+```bash
+docker compose run --rm autoresearch bash
+```
+
+The compose setup is tuned for a Linux/NVIDIA workstation:
+
+- base image: `nvidia/cuda:13.0.0-cudnn-runtime-ubuntu24.04`
+- host networking enabled so the container can reach a host-local LLM at `http://127.0.0.1:8080`
+- `gpus: all` enabled for NVIDIA runtime access
+- `ipc: host` enabled for larger ML workloads
+
+### Use your local LLM endpoint from Docker
+
+By default, `compose.yaml` passes:
+
+- `AUTORESEARCH_AGENT_ENDPOINT=http://127.0.0.1:8080`
+- `AUTORESEARCH_AGENT_MODEL=local-model`
+
+Override them in your shell or a `.env` file before running compose:
+
+```bash
+export AUTORESEARCH_AGENT_ENDPOINT=http://127.0.0.1:8080
+export AUTORESEARCH_AGENT_MODEL=qwen2.5-coder
+export AUTORESEARCH_TASK=restaurant_inventory
+export AUTORESEARCH_ITERATIONS=10
+export AUTORESEARCH_TRACE=1
+docker compose up autoresearch
+```
+
+If you prefer a config file:
+
+```bash
+export AUTORESEARCH_CONFIG=experiment.json
+docker compose up autoresearch
+```
+
 Use a local OpenAI-compatible endpoint:
 
 ```bash
@@ -99,3 +159,4 @@ Demo outputs per-task artifacts under `artifacts/<task_name>/`:
 - `--plot` requires `matplotlib`.
 - YAML configs are supported when `PyYAML` is installed.
 - Neural tasks are optional and only activate when `torch` is installed.
+- `compose.yaml` uses Linux host networking so a host-local LLM endpoint remains reachable from the container.

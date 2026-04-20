@@ -10,8 +10,9 @@
 6. [CLI and Config Files](#cli-and-config-files)
 7. [Adding a New Task](#adding-a-new-task)
 8. [Optional Neural-Task Support](#optional-neural-task-support)
-9. [Running Tests](#running-tests)
-10. [FAQ](#faq)
+9. [Docker and Docker Compose](#docker-and-docker-compose)
+10. [Running Tests](#running-tests)
+11. [FAQ](#faq)
 
 ---
 
@@ -349,6 +350,80 @@ The intended pattern is:
 - model state stores hyperparameters and checkpoint information,
 - trainer applies LLM-suggested hyperparameter changes,
 - task evaluator runs training/evaluation and returns detailed metrics.
+
+---
+
+## Docker and Docker Compose
+
+The repository now includes:
+
+- `Dockerfile` based on `nvidia/cuda:13.0.0-cudnn-runtime-ubuntu24.04`
+- `compose.yaml` for one-command local runs
+- `docker/entrypoint.sh` to translate environment variables into CLI flags
+
+This setup is aimed at Linux hosts with NVIDIA GPUs. The compose service enables:
+
+- `network_mode: host`
+- `gpus: all`
+- `ipc: host`
+
+That means a host-local OpenAI-compatible LLM endpoint can be reached directly at:
+
+```text
+http://127.0.0.1:8080
+```
+
+### Build and run
+
+```bash
+docker compose build
+docker compose up autoresearch
+```
+
+### Run tests in the container
+
+```bash
+docker compose run --rm autoresearch python -m unittest discover -s tests -v
+```
+
+### Open a shell in the container
+
+```bash
+docker compose run --rm autoresearch bash
+```
+
+### Configure the containerized run
+
+`compose.yaml` reads these environment variables:
+
+- `AUTORESEARCH_CONFIG`
+- `AUTORESEARCH_TASK`
+- `AUTORESEARCH_ITERATIONS`
+- `AUTORESEARCH_OUTPUT_DIR`
+- `AUTORESEARCH_TRACE`
+- `AUTORESEARCH_PLOT`
+- `AUTORESEARCH_AGENT_ENDPOINT`
+- `AUTORESEARCH_AGENT_MODEL`
+- `AUTORESEARCH_PROMPT_PRESET`
+- `AUTORESEARCH_TEMPERATURE`
+
+Example:
+
+```bash
+export AUTORESEARCH_AGENT_ENDPOINT=http://127.0.0.1:8080
+export AUTORESEARCH_AGENT_MODEL=qwen2.5-coder
+export AUTORESEARCH_TASK=blackjack
+export AUTORESEARCH_ITERATIONS=8
+export AUTORESEARCH_TRACE=1
+docker compose up autoresearch
+```
+
+If you prefer config-driven execution:
+
+```bash
+export AUTORESEARCH_CONFIG=experiment.json
+docker compose up autoresearch
+```
 
 ---
 
