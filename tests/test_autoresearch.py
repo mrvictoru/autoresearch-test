@@ -4,6 +4,7 @@ import tempfile
 import time
 import json
 import sys
+import subprocess
 
 from autoresearch.agent import (
     LocalLLMResearchAgent,
@@ -11,7 +12,7 @@ from autoresearch.agent import (
     ResearchAgent,
     TraceableAgent,
 )
-from autoresearch.brief import load_research_brief
+from autoresearch.brief import ResearchBrief, load_research_brief
 from autoresearch.core import (
     AutoresearchRunner,
     ExperimentRecord,
@@ -20,7 +21,8 @@ from autoresearch.core import (
 )
 from autoresearch.executor import SafeExecutor
 from autoresearch.harness import EvaluationHarness
-from autoresearch.mutation_agent import FileEdit, MutationProposal
+from autoresearch.mutation_agent import FileEdit, MutationAgent, MutationProposal
+from autoresearch.mutation_runner import MutationRunner
 from autoresearch.sandbox import Workspace
 from autoresearch.tasks import BlackjackTask, RestaurantInventoryTask
 from autoresearch.training import (
@@ -41,6 +43,29 @@ class SequenceAgent(ResearchAgent):
         suggestion = self._suggestions[self._index % len(self._suggestions)]
         self._index += 1
         return suggestion
+
+
+class FakeMutationAgent(MutationAgent):
+    def __init__(self, proposals):
+        self._proposals = list(proposals)
+        self._index = 0
+
+    def propose_mutation(self, *, task_name, context):
+        proposal = self._proposals[self._index % len(self._proposals)]
+        self._index += 1
+        return proposal
+
+
+class FailingThenRecoveringMutationAgent(MutationAgent):
+    def __init__(self, recovery_proposal: MutationProposal):
+        self._first_call = True
+        self._recovery_proposal = recovery_proposal
+
+    def propose_mutation(self, *, task_name, context):
+        if self._first_call:
+            self._first_call = False
+            raise ValueError("simulated agent failure")
+        return self._recovery_proposal
 
 
 class AutoresearchFrameworkTests(unittest.TestCase):
@@ -233,6 +258,114 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             self.assertTrue(log_path.exists())
             self.assertIn("status", csv_path.read_text(encoding="utf-8"))
             self.assertIn('"best_snapshot_id"', log_path.read_text(encoding="utf-8"))
+
+    def test_mutation_runner_end_to_end(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "score.txt").write_text("0.5", encoding="utf-8")
+            (root / "eval.py").write_text(
+                "\n".join(
+                    [
+                        "from pathlib import Path",
+                        'score = float(Path("score.txt").read_text(encoding="utf-8").strip())',
+                        'print(f\'METRIC_JSON: {{"score": {score}}}\')',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            brief = ResearchBrief(
+                goal="improve score",
+                constraints={"experiment_command": ["{python}", "eval.py"], "timeout_seconds": 5},
+                allowed_mutable_files=["score.txt"],
+                immutable_files=["eval.py"],
+                time_budget_seconds=30,
+                tie_breaker_policy="best score",
+            )
+            agent = FakeMutationAgent(
+                [
+                    MutationProposal(
+                        description="increase score",
+                        target_files=["score.txt"],
+                        edits=[FileEdit(path="score.txt", operation="replace", content="0.6")],
+                    ),
+                    MutationProposal(
+                        description="decrease score",
+                        target_files=["score.txt"],
+                        edits=[FileEdit(path="score.txt", operation="replace", content="0.4")],
+                    ),
+                ]
+            )
+            result = MutationRunner(
+                agent=agent,
+                executor=SafeExecutor(timeout_seconds=5),
+            ).run(
+                task_name="mutation_test",
+                source_root=root,
+                research_brief=brief,
+                iterations=2,
+            )
+            self.assertEqual(len(result.history), 2)
+            self.assertEqual(result.history[0].status, ExperimentStatus.KEEP)
+            self.assertEqual(result.history[1].status, ExperimentStatus.DISCARD)
+            self.assertAlmostEqual(result.best_score, 0.6)
+
+    def test_mutation_runner_survives_agent_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "score.txt").write_text("0.5", encoding="utf-8")
+            (root / "eval.py").write_text(
+                "\n".join(
+                    [
+                        "from pathlib import Path",
+                        'score = float(Path("score.txt").read_text(encoding="utf-8").strip())',
+                        'print(f\'METRIC_JSON: {{"score": {score}}}\')',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            brief = ResearchBrief(
+                goal="recover after agent failure",
+                constraints={"experiment_command": ["{python}", "eval.py"], "timeout_seconds": 5},
+                allowed_mutable_files=["score.txt"],
+                immutable_files=["eval.py"],
+                time_budget_seconds=30,
+                tie_breaker_policy="best score",
+            )
+            result = MutationRunner(
+                agent=FailingThenRecoveringMutationAgent(
+                    MutationProposal(
+                        description="recover with better score",
+                        target_files=["score.txt"],
+                        edits=[FileEdit(path="score.txt", operation="replace", content="0.8")],
+                    )
+                ),
+                executor=SafeExecutor(timeout_seconds=5),
+            ).run(
+                task_name="mutation_recovery_test",
+                source_root=root,
+                research_brief=brief,
+                iterations=2,
+            )
+            self.assertEqual(len(result.history), 2)
+            self.assertEqual(result.history[0].status, ExperimentStatus.CRASH)
+            self.assertEqual(result.history[0].failure_category, "ValueError")
+            self.assertEqual(
+                result.history[0].description,
+                "<agent failed to produce proposal>",
+            )
+            self.assertEqual(result.history[1].status, ExperimentStatus.KEEP)
+            self.assertAlmostEqual(result.best_score, 0.8)
+
+    def test_cli_mutation_help(self):
+        completed = subprocess.run(
+            [sys.executable, "-m", "autoresearch", "mutation", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(completed.returncode, 0)
+        self.assertIn("mutation", completed.stdout.lower())
 
 
 if __name__ == "__main__":

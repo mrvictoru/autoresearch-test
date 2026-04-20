@@ -48,20 +48,21 @@ class MutationRunner:
             tracked_files=research_brief.allowed_mutable_files,
         )
         for iteration in range(1, iterations + 1):
-            proposal = self.agent.propose_mutation(
-                task_name=task_name,
-                context=self._build_context(
-                    workspace=workspace,
-                    research_brief=research_brief,
-                    frontier_score=frontier_score,
-                    history=history,
-                ),
-            )
             candidate_root = workspace.create_candidate()
             iteration_dir = candidate_root / "artifacts" / "mutation" / f"iter-{iteration:03d}"
             iteration_dir.mkdir(parents=True, exist_ok=True)
             auto_fixed = False
+            proposal = None
             try:
+                proposal = self.agent.propose_mutation(
+                    task_name=task_name,
+                    context=self._build_context(
+                        workspace=workspace,
+                        research_brief=research_brief,
+                        frontier_score=frontier_score,
+                        history=history,
+                    ),
+                )
                 workspace.apply_proposal(
                     candidate_root=candidate_root,
                     proposal=proposal,
@@ -151,7 +152,11 @@ class MutationRunner:
                     ExperimentRecord(
                         iteration=iteration,
                         status=ExperimentStatus.CRASH,
-                        description=proposal.description,
+                        description=(
+                            proposal.description
+                            if proposal is not None
+                            else "<agent failed to produce proposal>"
+                        ),
                         snapshot_id=snapshot_id,
                         score=None,
                         run_log_path=str(iteration_dir / "exception.log"),
