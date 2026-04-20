@@ -366,6 +366,7 @@ This setup is aimed at Linux hosts with NVIDIA GPUs. The compose service enables
 - `network_mode: host`
 - `gpus: all`
 - `ipc: host`
+- Docker Compose v1.28+ / Compose V2 and the NVIDIA Container Toolkit are required on the host
 
 That means a host-local OpenAI-compatible LLM endpoint can be reached directly at:
 

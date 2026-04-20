@@ -87,6 +87,7 @@ The compose setup is tuned for a Linux/NVIDIA workstation:
 - host networking enabled so the container can reach a host-local LLM at `http://127.0.0.1:8080`
 - `gpus: all` enabled for NVIDIA runtime access
 - `ipc: host` enabled for larger ML workloads
+- requires Docker Compose v1.28+ / Compose V2 and the NVIDIA Container Toolkit on the host
 
 ### Use your local LLM endpoint from Docker
 

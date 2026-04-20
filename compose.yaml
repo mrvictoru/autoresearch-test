@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: autoresearch-test:cuda13
+    # Requires Docker Compose v1.28+ / Compose V2 and the NVIDIA Container Toolkit on the host.
     network_mode: host
     gpus: all
     ipc: host
