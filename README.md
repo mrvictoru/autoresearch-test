@@ -2,6 +2,11 @@
 
 Minimal framework inspired by [`karpathy/autoresearch`](https://github.com/karpathy/autoresearch), adapted for training task-specific models with a local-hosted LLM research agent.
 
+Additional documentation:
+
+- `docs/guide.md` for the full usage and architecture guide
+- `docs/components.md` for component-level documentation
+
 ## What is included
 
 - A reusable autoresearch loop (`AutoresearchRunner`) that:

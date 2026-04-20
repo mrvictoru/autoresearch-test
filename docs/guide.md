@@ -8,11 +8,12 @@
 4. [Observability and Exports](#observability-and-exports)
 5. [Agent Customisation](#agent-customisation)
 6. [CLI and Config Files](#cli-and-config-files)
-7. [Adding a New Task](#adding-a-new-task)
-8. [Optional Neural-Task Support](#optional-neural-task-support)
-9. [Docker and Docker Compose](#docker-and-docker-compose)
-10. [Running Tests](#running-tests)
-11. [FAQ](#faq)
+7. [Component Reference](#component-reference)
+8. [Adding a New Task](#adding-a-new-task)
+9. [Optional Neural-Task Support](#optional-neural-task-support)
+10. [Docker and Docker Compose](#docker-and-docker-compose)
+11. [Running Tests](#running-tests)
+12. [FAQ](#faq)
 
 ---
 
@@ -217,6 +218,16 @@ agent = StructuredOutputAgent(
 ```
 
 This is useful when trainers prefer parsing JSON over regex-based extraction.
+
+---
+
+## Component Reference
+
+For file-by-file component documentation, see:
+
+- `docs/components.md`
+
+This companion document describes each package module, its primary classes/functions, and how the components interact.
 
 ---
 
