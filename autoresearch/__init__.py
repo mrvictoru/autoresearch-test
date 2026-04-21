@@ -20,6 +20,7 @@ from .core import (
     RunResult,
 )
 from .executor import ExecutionResult, SafeExecutor
+from .frontier import create_research_branch
 from .harness import EvaluationHarness
 from .mutation_agent import FileEdit, LocalLLMMutationAgent, MutationAgent, MutationProposal
 from .mutation_runner import MutationRunner
@@ -41,6 +42,7 @@ __all__ = [
     "EvaluationHarness",
     "BlackjackPolicyTrainer",
     "BlackjackTask",
+    "create_research_branch",
     "ExecutionResult",
     "ExperimentRecord",
     "ExperimentStatus",

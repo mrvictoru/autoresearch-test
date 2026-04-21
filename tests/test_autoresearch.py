@@ -25,6 +25,7 @@ from autoresearch.core import (
     MutationRunResult,
 )
 from autoresearch.executor import SafeExecutor
+from autoresearch.frontier import create_research_branch
 from autoresearch.harness import EvaluationHarness
 from autoresearch.mutation_agent import FileEdit, MutationAgent, MutationProposal
 from autoresearch.mutation_runner import MutationRunner
@@ -471,6 +472,55 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         brief = load_research_brief("research_brief_restaurant.json")
         self.assertIn("autoresearch/experiments/restaurant_train.py", brief.allowed_mutable_files)
         self.assertIn("autoresearch/experiments/restaurant_eval.py", brief.immutable_files)
+
+    def test_create_research_branch_creates_autoresearch_prefixed_branch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            (root / "README.md").write_text("seed\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README.md"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            branch_name = create_research_branch("Phase 3 / Restaurant", repo_root=root)
+            self.assertEqual(branch_name, "autoresearch/phase-3-restaurant")
+            head_branch = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual(head_branch, branch_name)
+
+    def test_create_research_branch_rejects_empty_normalized_tag(self):
+        with self.assertRaises(ValueError):
+            create_research_branch("////")
 
 
 if __name__ == "__main__":
