@@ -6,8 +6,9 @@ from pathlib import Path
 
 
 def _normalize_branch_tag(tag: str) -> str:
-    normalized = re.sub(r"[^a-z0-9._-]+", "-", tag.strip().lower())
-    normalized = normalized.strip("-._/")
+    normalized = tag.strip().lower()
+    normalized = re.sub(r"[^a-z0-9._-]+", "-", normalized)
+    normalized = normalized.strip("-._")
     if not normalized:
         raise ValueError("tag must contain at least one alphanumeric character")
     return normalized
@@ -24,4 +25,3 @@ def create_research_branch(tag: str, *, repo_root: str | Path = ".") -> str:
         message = (completed.stderr or completed.stdout).strip() or "git checkout failed"
         raise RuntimeError(message)
     return branch_name
-

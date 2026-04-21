@@ -522,6 +522,100 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             create_research_branch("////")
 
+    def test_create_research_branch_normalizes_mixed_case_and_special_chars(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            (root / "README.md").write_text("seed\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README.md"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            branch_name = create_research_branch("  PHASE /// 3__A  ", repo_root=root)
+            self.assertEqual(branch_name, "autoresearch/phase-3__a")
+
+    def test_create_research_branch_raises_when_branch_exists(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            (root / "README.md").write_text("seed\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README.md"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            base_branch = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+
+            create_research_branch("phase-3", repo_root=root)
+            subprocess.run(
+                ["git", "checkout", base_branch],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            with self.assertRaises(RuntimeError):
+                create_research_branch("phase-3", repo_root=root)
+
+    def test_create_research_branch_raises_when_not_a_git_repo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(RuntimeError):
+                create_research_branch("phase-3", repo_root=tmp)
+
 
 if __name__ == "__main__":
     unittest.main()
