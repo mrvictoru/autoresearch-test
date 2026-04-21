@@ -1,8 +1,5 @@
-goal: "Improve restaurant inventory policy while preserving immutable evaluation."
+goal: "Improve the restaurant inventory policy while preserving the immutable benchmark."
 constraints:
-  timeout_seconds: 120
-  cpu_time_limit_seconds: 120
-  memory_limit_mb: 4096
   experiment_command:
     - "{python}"
     - "-m"
@@ -13,9 +10,8 @@ allowed_mutable_files:
   - "autoresearch/experiments/restaurant_train.py"
 immutable_files:
   - "autoresearch/experiments/restaurant_eval.py"
-  - "autoresearch/mutation_runner.py"
-  - "autoresearch/sandbox.py"
-  - "autoresearch/executor.py"
-  - "autoresearch/harness.py"
+  - "autoresearch/tasks.py"
+  - "program.md"
+  - "AGENTS.md"
 time_budget_seconds: 1800
-tie_breaker_policy: "Prefer higher score; tie-break by lower wall_time_seconds."
+tie_breaker_policy: "Prefer higher score; ties are discarded."

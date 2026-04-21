@@ -1,9 +1,8 @@
 # Agent Harness Notes
 
 1. Start by reading `program.md`.
-2. Follow mutable/immutable boundaries exactly.
-3. For neural mutation mode, only edit:
-   - `autoresearch/experiments/neural_train.py`
-4. Do not edit evaluator or benchmark-defining files unless explicitly authorized.
-5. Use `results.tsv` plus Git branch/commit history as the optimization frontier.
-6. Keep changes small and reproducible; run baseline first.
+2. This repository is harness-only.
+3. For benchmark runs, only edit `autoresearch/experiments/restaurant_train.py` unless explicitly told otherwise.
+4. Treat evaluator and benchmark-defining files as immutable unless explicitly authorized.
+5. Use `results.tsv` plus git commit history as the optimization frontier.
+6. Run a baseline restaurant evaluation before changing benchmark code.
