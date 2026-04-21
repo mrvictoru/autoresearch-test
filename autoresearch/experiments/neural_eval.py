@@ -33,7 +33,9 @@ def evaluate_experiment(experiment_path: str | Path, *, seed: int = 13, samples:
     module = _load_experiment_module(experiment_path)
     train_fn = getattr(module, "train_and_predict", None)
     if train_fn is None:
-        raise RuntimeError("Experiment module must define train_and_predict(...)")
+        raise RuntimeError(
+            f"Experiment module at {Path(experiment_path).resolve()} must define train_and_predict(...)"
+        )
     default_config = getattr(module, "DEFAULT_CONFIG", {})
     torch.manual_seed(seed)
     x = torch.randn(samples, 2)

@@ -142,7 +142,9 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             self.assertIn('"task_name"', trace_path.read_text(encoding="utf-8"))
             tsv_path = Path(tmp) / "result.tsv"
             result.to_csv(tsv_path, delimiter="\t")
-            self.assertIn("\titeration\t", tsv_path.read_text(encoding="utf-8").splitlines()[0])
+            lines = tsv_path.read_text(encoding="utf-8").splitlines()
+            self.assertIn("\titeration\t", lines[0])
+            self.assertIn("\t", lines[1])
 
     def test_prompt_preset_factory(self):
         agent = LocalLLMResearchAgent.from_preset(

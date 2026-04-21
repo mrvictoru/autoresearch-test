@@ -58,9 +58,11 @@ autoresearch/
 ├── tasks.py           # ResearchTask ABC + example tasks
 ├── training.py        # Trainers, parsing helpers, registry
 ├── visualise.py       # Plotting and HTML report helpers
-└── experiments/       # Mutation-safe neural experiment split
-   ├── neural_eval.py  # Immutable evaluator
-   └── neural_train.py # Mutable training implementation
+└── experiments/          # Mutation-safe experiment splits
+   ├── neural_eval.py     # Immutable neural evaluator
+   ├── neural_train.py    # Mutable neural training implementation
+   ├── restaurant_eval.py # Immutable restaurant evaluator
+   └── restaurant_train.py # Mutable restaurant policy implementation
 
 tests/
 └── test_autoresearch.py

@@ -27,7 +27,9 @@ def evaluate_experiment(
     module = _load_experiment_module(experiment_path)
     build_fn = getattr(module, "get_model_state", None)
     if build_fn is None:
-        raise RuntimeError("Experiment module must define get_model_state()")
+        raise RuntimeError(
+            f"Experiment module at {Path(experiment_path).resolve()} must define get_model_state()"
+        )
     model_state = build_fn()
     if not isinstance(model_state, dict):
         raise RuntimeError("get_model_state() must return a dict")

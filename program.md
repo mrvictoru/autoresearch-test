@@ -59,7 +59,7 @@ For restaurant mutation experiments:
 5. Keep change only if `score` improves; otherwise discard/revert.
 6. Append run outcome to experiment history log.
 7. Repeat until budget is exhausted.
-8. Use `results.tsv` plus git branch/commit history as the optimization frontier ledger when running under a harness.
+8. Use `results.tsv`/`mutation_results.tsv` plus git branch/commit history as the optimization frontier ledger when running under a harness.
 
 ## Crash Recovery
 
