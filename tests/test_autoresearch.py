@@ -25,7 +25,15 @@ from autoresearch.core import (
     MutationRunResult,
 )
 from autoresearch.executor import SafeExecutor
-from autoresearch.frontier import create_research_branch
+from autoresearch.frontier import (
+    append_result,
+    commit_before_run,
+    create_research_branch,
+    get_current_sha,
+    init_results_tsv,
+    read_best_result,
+    revert_last_commit,
+)
 from autoresearch.harness import EvaluationHarness
 from autoresearch.mutation_agent import FileEdit, MutationAgent, MutationProposal
 from autoresearch.mutation_runner import MutationRunner
@@ -79,6 +87,42 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         self.registry = TrainerRegistry()
         self.registry.register("restaurant_inventory", InventoryPolicyTrainer())
         self.registry.register("blackjack", BlackjackPolicyTrainer())
+
+    def _init_git_repo(self, root: Path) -> None:
+        subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@example.com"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test User"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+    def _commit_file(self, root: Path, relative_path: str, content: str, message: str) -> None:
+        target = root / relative_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        subprocess.run(
+            ["git", "add", relative_path],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        subprocess.run(
+            ["git", "commit", "-m", message],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
 
     def test_inventory_runner_applies_suggestion(self):
         runner = AutoresearchRunner(
@@ -476,36 +520,8 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_create_research_branch_creates_autoresearch_prefixed_branch(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
-            subprocess.run(
-                ["git", "config", "user.email", "test@example.com"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            (root / "README.md").write_text("seed\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README.md"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "init"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            self._init_git_repo(root)
+            self._commit_file(root, "README.md", "seed\n", "init")
 
             branch_name = create_research_branch("Phase 3 / Restaurant", repo_root=root)
             self.assertEqual(branch_name, "autoresearch/phase-3-restaurant")
@@ -525,36 +541,8 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_create_research_branch_normalizes_mixed_case_and_special_chars(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
-            subprocess.run(
-                ["git", "config", "user.email", "test@example.com"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            (root / "README.md").write_text("seed\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README.md"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "init"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            self._init_git_repo(root)
+            self._commit_file(root, "README.md", "seed\n", "init")
 
             branch_name = create_research_branch("  PHASE /// 3__A  ", repo_root=root)
             self.assertEqual(branch_name, "autoresearch/phase-3__a")
@@ -570,36 +558,8 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_create_research_branch_raises_when_branch_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
-            subprocess.run(
-                ["git", "config", "user.email", "test@example.com"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            (root / "README.md").write_text("seed\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README.md"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "init"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            self._init_git_repo(root)
+            self._commit_file(root, "README.md", "seed\n", "init")
             base_branch = subprocess.run(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
                 cwd=root,
@@ -627,38 +587,93 @@ class AutoresearchFrameworkTests(unittest.TestCase):
     def test_create_research_branch_preserves_underscores_and_collapses_slashes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
-            subprocess.run(
-                ["git", "config", "user.email", "test@example.com"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "config", "user.name", "Test User"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            (root / "README.md").write_text("seed\n", encoding="utf-8")
-            subprocess.run(
-                ["git", "add", "README.md"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            subprocess.run(
-                ["git", "commit", "-m", "init"],
-                cwd=root,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            self._init_git_repo(root)
+            self._commit_file(root, "README.md", "seed\n", "init")
             branch_name = create_research_branch("phase__x///y", repo_root=root)
             self.assertEqual(branch_name, "autoresearch/phase__x-y")
+
+    def test_commit_before_run_commits_tracked_changes_and_returns_sha(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._init_git_repo(root)
+            self._commit_file(root, "mutable.txt", "before\n", "init")
+
+            (root / "mutable.txt").write_text("after\n", encoding="utf-8")
+            (root / "results.tsv").write_text("scratch\n", encoding="utf-8")
+
+            committed_sha = commit_before_run("candidate", repo_root=root)
+
+            self.assertEqual(committed_sha, get_current_sha(repo_root=root))
+            self.assertEqual((root / "mutable.txt").read_text(encoding="utf-8"), "after\n")
+            self.assertTrue((root / "results.tsv").exists())
+            status_lines = subprocess.run(
+                ["git", "status", "--short"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.splitlines()
+            self.assertIn("?? results.tsv", status_lines)
+
+    def test_revert_last_commit_restores_previous_frontier_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._init_git_repo(root)
+            self._commit_file(root, "mutable.txt", "before\n", "init")
+            previous_sha = get_current_sha(repo_root=root)
+
+            (root / "mutable.txt").write_text("candidate\n", encoding="utf-8")
+            commit_before_run("candidate", repo_root=root)
+            reverted_sha = revert_last_commit(repo_root=root)
+
+            self.assertEqual(reverted_sha, previous_sha)
+            self.assertEqual((root / "mutable.txt").read_text(encoding="utf-8"), "before\n")
+
+    def test_results_tsv_helpers_init_append_and_read_best(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            results_path = Path(tmp) / "results.tsv"
+
+            init_results_tsv(results_path)
+            append_result(
+                results_path,
+                branch="autoresearch/run-a",
+                sha="1111111",
+                score=1.0,
+                decision="keep",
+                message="baseline",
+            )
+            append_result(
+                results_path,
+                branch="autoresearch/run-b",
+                sha="2222222",
+                score=2.0,
+                decision="discard",
+                message="worse frontier",
+            )
+            append_result(
+                results_path,
+                branch="autoresearch/run-c",
+                sha="3333333",
+                score=1.5,
+                decision="keep",
+                message="best frontier",
+            )
+            append_result(
+                results_path,
+                branch="autoresearch/run-d",
+                sha="4444444",
+                score=None,
+                decision="crash",
+                message="failed",
+            )
+
+            lines = results_path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(lines[0], "timestamp\tbranch\tsha\tscore\tdecision\tmessage")
+            best = read_best_result(results_path)
+            self.assertIsNotNone(best)
+            self.assertEqual(best["branch"], "autoresearch/run-c")
+            self.assertEqual(best["sha"], "3333333")
+            self.assertAlmostEqual(best["score"], 1.5)
 
 
 if __name__ == "__main__":

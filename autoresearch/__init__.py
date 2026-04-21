@@ -20,7 +20,15 @@ from .core import (
     RunResult,
 )
 from .executor import ExecutionResult, SafeExecutor
-from .frontier import create_research_branch
+from .frontier import (
+    append_result,
+    commit_before_run,
+    create_research_branch,
+    get_current_sha,
+    init_results_tsv,
+    read_best_result,
+    revert_last_commit,
+)
 from .harness import EvaluationHarness
 from .mutation_agent import FileEdit, LocalLLMMutationAgent, MutationAgent, MutationProposal
 from .mutation_runner import MutationRunner
@@ -39,9 +47,11 @@ from .visualise import plot_mutation_run, plot_run_result, save_html_report
 __all__ = [
     "AgentTrace",
     "AutoresearchRunner",
+    "append_result",
     "EvaluationHarness",
     "BlackjackPolicyTrainer",
     "BlackjackTask",
+    "commit_before_run",
     "create_research_branch",
     "ExecutionResult",
     "ExperimentRecord",
@@ -52,6 +62,8 @@ __all__ = [
     "HyperparameterTrainer",
     "InventoryPolicyTrainer",
     "IterationRecord",
+    "get_current_sha",
+    "init_results_tsv",
     "LocalLLMResearchAgent",
     "LocalLLMMutationAgent",
     "MutationAgent",
@@ -66,6 +78,8 @@ __all__ = [
     "ResearchTask",
     "RestaurantInventoryTask",
     "RunResult",
+    "read_best_result",
+    "revert_last_commit",
     "SafeExecutor",
     "StructuredOutputAgent",
     "TaskTrainer",
