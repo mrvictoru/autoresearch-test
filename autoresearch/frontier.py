@@ -41,6 +41,7 @@ def _normalize_branch_tag(tag: str) -> str:
 
 def create_research_branch(tag: str, *, repo_root: str | Path = ".") -> str:
     branch_name = f"autoresearch/{_normalize_branch_tag(tag)}"
+    _git(repo_root, "check-ref-format", "--branch", branch_name)
     _git(repo_root, "checkout", "-b", branch_name)
     return branch_name
 

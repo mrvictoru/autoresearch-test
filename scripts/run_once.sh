@@ -52,6 +52,11 @@ run_evaluator() {
   ) >"$LOG_PATH" 2>&1
 }
 
+show_log_tail() {
+  echo "evaluation failed, last 50 log lines:" >&2
+  tail -n 50 "$LOG_PATH" >&2 || true
+}
+
 parse_score() {
   python - "$LOG_PATH" <<'PY'
 from pathlib import Path
@@ -59,7 +64,7 @@ import re
 import sys
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-match = re.search(r"^score\s+(-?\d+(?:\.\d+)?)", text, flags=re.MULTILINE)
+match = re.search(r"^\s*score\s+(-?\d+(?:\.\d+)?)", text, flags=re.MULTILINE)
 if match is None:
     raise SystemExit(1)
 print(match.group(1))
@@ -89,11 +94,10 @@ PY
 }
 
 if ! run_evaluator; then
-  echo "evaluation failed, last 50 log lines:" >&2
-  tail -n 50 "$LOG_PATH" >&2 || true
+  show_log_tail
   if ! run_evaluator; then
     echo "retry failed, reverting candidate commit" >&2
-    tail -n 50 "$LOG_PATH" >&2 || true
+    show_log_tail
     python - "$REPO_ROOT" <<'PY'
 from pathlib import Path
 import sys

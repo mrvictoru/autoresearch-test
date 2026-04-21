@@ -606,14 +606,14 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             self.assertEqual(committed_sha, get_current_sha(repo_root=root))
             self.assertEqual((root / "mutable.txt").read_text(encoding="utf-8"), "after\n")
             self.assertTrue((root / "results.tsv").exists())
-            status_lines = subprocess.run(
-                ["git", "status", "--short"],
+            untracked_files = subprocess.run(
+                ["git", "ls-files", "--others", "--exclude-standard", "results.tsv"],
                 cwd=root,
                 check=True,
                 capture_output=True,
                 text=True,
             ).stdout.splitlines()
-            self.assertIn("?? results.tsv", status_lines)
+            self.assertEqual(untracked_files, ["results.tsv"])
 
     def test_revert_last_commit_restores_previous_frontier_state(self):
         with tempfile.TemporaryDirectory() as tmp:
