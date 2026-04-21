@@ -298,6 +298,17 @@ The architecture is split into three layers:
 
 In harness sessions, frontier tracking is recorded through git history plus TSV ledgers such as `results.tsv` / `mutation_results.tsv` when produced by the active harness.
 
+For the restaurant benchmark, the intended atomic harness step is:
+
+1. edit only `autoresearch/experiments/restaurant_train.py`
+2. commit tracked changes with helpers in `autoresearch/frontier.py`
+3. run the immutable evaluator
+4. parse `score` from stdout
+5. append the run to `results.tsv`
+6. keep only strict improvements and revert discarded/crashed runs
+
+The repository includes `scripts/run_once.sh` to automate that single-attempt workflow.
+
 ---
 
 ## Research Brief

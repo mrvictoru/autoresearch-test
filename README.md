@@ -85,7 +85,8 @@ Core harness files:
 - `program.md`: run protocol, mutable/immutable boundaries, keep/discard rules
 - `AGENTS.md`: agent-operating notes for harness sessions
 - `results.tsv` / `mutation_results.tsv`: frontier ledgers used by harness runs
-- `scripts/`: optional harness helper scripts when present in your environment
+- `autoresearch/frontier.py`: git-frontier helpers for branch creation, commit/revert, and `results.tsv` bookkeeping
+- `scripts/run_once.sh`: single-attempt harness helper for commit -> evaluate -> parse -> ledger update -> keep/discard
 
 In this mode, treat evaluator and benchmark-defining files as immutable, and only mutate files allowed by the active experiment contract.
 
@@ -108,6 +109,21 @@ python -m autoresearch mutation \
   --agent-model local-model \
   --iterations 5
 ```
+
+Harness-driven single run:
+
+```bash
+./scripts/run_once.sh "adjust restaurant inventory policy"
+```
+
+That helper:
+
+- commits tracked mutable changes,
+- runs the immutable restaurant evaluator,
+- parses `score` from stdout,
+- appends the attempt to `results.tsv`,
+- keeps only strict improvements over the current best kept run,
+- reverts discarded or crashed candidate commits.
 
 ## Run with Docker
 

@@ -30,7 +30,7 @@ For current neural mutation experiments:
   - `research_brief.json`
   - `research_brief.yaml`
 
-For future restaurant harness experiments, mutable/immutable scope is defined by that experiment's contract (single mutable train file, immutable evaluator + benchmark data).
+For restaurant harness experiments, use the fixed contract below.
 
 For restaurant mutation experiments:
 
@@ -41,6 +41,16 @@ For restaurant mutation experiments:
   - `autoresearch/tasks.py`
   - `autoresearch/mutation_runner.py`
   - `autoresearch/executor.py`
+
+## Restaurant Harness Contract
+
+- Goal: maximize the restaurant inventory `score` on the fixed validation scenario exposed by `autoresearch/experiments/restaurant_eval.py`.
+- Mutable code for this benchmark is limited to:
+  - `autoresearch/experiments/restaurant_train.py`
+- Treat the evaluator output on stdout as the source of truth for parsing `score`.
+- Use `results.tsv` plus git commit history as the frontier ledger for keep/discard decisions.
+- `scripts/run_once.sh` is the atomic harness helper for a single experiment attempt.
+- Keep only strict score improvements over the current best `keep` row in `results.tsv`.
 
 ## Output & Logging Format
 
@@ -60,12 +70,14 @@ For restaurant mutation experiments:
 6. Append run outcome to experiment history log.
 7. Repeat until budget is exhausted.
 8. Use `results.tsv`/`mutation_results.tsv` plus git branch/commit history as the optimization frontier ledger when running under a harness.
+9. For restaurant harness runs, `scripts/run_once.sh` should perform the commit -> evaluate -> parse -> ledger update -> keep/discard flow.
 
 ## Crash Recovery
 
 1. Inspect recent log tail for root cause.
-2. If failure is trivial, apply one fix and rerun once.
-3. If still failing, mark run as crash and revert.
+2. Inspect the last 50 log lines before retrying.
+3. If failure is trivial, apply one fix and rerun once.
+4. If still failing, mark run as crash, append it to `results.tsv`, and revert.
 
 ## Keep / Discard Rules
 

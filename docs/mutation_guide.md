@@ -63,3 +63,5 @@ Artifacts are written under `artifacts/<task_name>/`:
   - The outer coding harness owns planning, mutation application cadence, and run bookkeeping.
   - Python evaluators and benchmark logic remain the immutable scoring infrastructure.
   - Mutable scope is still constrained by the active experiment contract (`program.md`, `AGENTS.md`, and research brief boundaries).
+  - Git-frontier helpers in `autoresearch/frontier.py` provide branch creation, commit/revert, and `results.tsv` ledger utilities for this mode.
+  - `scripts/run_once.sh` packages one restaurant experiment attempt into commit -> evaluate -> parse -> keep/discard behavior.
