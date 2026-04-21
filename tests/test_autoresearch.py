@@ -624,6 +624,42 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 create_research_branch("phase-3", repo_root=tmp)
 
+    def test_create_research_branch_preserves_underscores_and_collapses_slashes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "config", "user.email", "test@example.com"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Test User"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            (root / "README.md").write_text("seed\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README.md"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            branch_name = create_research_branch("phase__x///y", repo_root=root)
+            self.assertEqual(branch_name, "autoresearch/phase__x-y")
+
 
 if __name__ == "__main__":
     unittest.main()

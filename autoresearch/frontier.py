@@ -6,6 +6,14 @@ from pathlib import Path
 
 
 def _normalize_branch_tag(tag: str) -> str:
+    """Normalize free-form tags for git branch names.
+
+    Rules:
+    - lower-case and trim surrounding whitespace
+    - collapse one-or-more disallowed characters into a single dash
+    - preserve allowed separators inside the tag: `.`, `_`, `-`
+    - strip leading/trailing separators (`-`, `.`, `_`)
+    """
     normalized = tag.strip().lower()
     normalized = re.sub(r"[^a-z0-9._-]+", "-", normalized)
     normalized = normalized.strip("-._")
