@@ -48,6 +48,41 @@ research_brief_restaurant.yaml
 
 `./scripts/run_once.sh` packages steps 4–8 into one atomic helper.
 
+## Copilot CLI workflow
+
+You can use Copilot CLI as the outer harness that drives the repository loop. The CLI does not replace the benchmark; it coordinates edits, evaluation, and frontier management while the repo itself stays responsible for the immutable evaluator and policy contract.
+
+End-to-end flow:
+
+1. Open the repository in your shell and start your Copilot CLI session.
+2. Read `program.md` and this guide first.
+3. Inspect `autoresearch/experiments/restaurant_train.py`, then edit only that file.
+4. Run the benchmark in Docker:
+
+```bash
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py
+```
+
+5. If the score improves, keep the change; otherwise revert it.
+6. Use `./scripts/run_once.sh "your short experiment note"` when you want the repo to handle commit, run, parse, and keep/discard automatically.
+7. Repeat the loop, changing only the mutable policy file until the score stops improving.
+
+Typical Copilot CLI responsibilities in this workflow:
+
+- read the repo instructions and benchmark contract
+- propose or apply edits to `autoresearch/experiments/restaurant_train.py`
+- run the Docker evaluator command above
+- compare the new score against `results.tsv`
+- decide whether to keep the candidate commit or revert it
+
+Typical repo responsibilities in this workflow:
+
+- define the benchmark in `autoresearch/tasks.py`
+- enforce the immutable evaluator contract in `autoresearch/experiments/restaurant_eval.py`
+- record frontier history in `results.tsv`
+- provide the atomic helper in `scripts/run_once.sh`
+
 ## Mutable and immutable files
 
 Mutable benchmark file:
