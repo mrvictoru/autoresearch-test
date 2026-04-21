@@ -558,6 +558,14 @@ class AutoresearchFrameworkTests(unittest.TestCase):
 
             branch_name = create_research_branch("  PHASE /// 3__A  ", repo_root=root)
             self.assertEqual(branch_name, "autoresearch/phase-3__a")
+            head_branch = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual(head_branch, branch_name)
 
     def test_create_research_branch_raises_when_branch_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
