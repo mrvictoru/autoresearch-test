@@ -32,6 +32,16 @@ For current neural mutation experiments:
 
 For future restaurant harness experiments, mutable/immutable scope is defined by that experiment's contract (single mutable train file, immutable evaluator + benchmark data).
 
+For restaurant mutation experiments:
+
+- Mutable:
+  - `autoresearch/experiments/restaurant_train.py`
+- Immutable:
+  - `autoresearch/experiments/restaurant_eval.py`
+  - `autoresearch/tasks.py`
+  - `autoresearch/mutation_runner.py`
+  - `autoresearch/executor.py`
+
 ## Output & Logging Format
 
 - Evaluators must print a stable parseable summary block to stdout:
@@ -49,6 +59,7 @@ For future restaurant harness experiments, mutable/immutable scope is defined by
 5. Keep change only if `score` improves; otherwise discard/revert.
 6. Append run outcome to experiment history log.
 7. Repeat until budget is exhausted.
+8. Use `results.tsv` plus git branch/commit history as the optimization frontier ledger when running under a harness.
 
 ## Crash Recovery
 

@@ -7,6 +7,10 @@ import sys
 import subprocess
 
 from autoresearch.experiments.neural_eval import _format_results_block
+from autoresearch.experiments.restaurant_eval import (
+    _format_results_block as _format_restaurant_results_block,
+)
+from autoresearch.experiments.restaurant_eval import evaluate_experiment as evaluate_restaurant_experiment
 from autoresearch.agent import (
     LocalLLMResearchAgent,
     PROMPT_TEMPLATE_PRESETS,
@@ -136,6 +140,9 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             self.assertTrue(trace_path.exists())
             self.assertIn("iteration", csv_path.read_text(encoding="utf-8"))
             self.assertIn('"task_name"', trace_path.read_text(encoding="utf-8"))
+            tsv_path = Path(tmp) / "result.tsv"
+            result.to_csv(tsv_path, delimiter="\t")
+            self.assertIn("\titeration\t", tsv_path.read_text(encoding="utf-8").splitlines()[0])
 
     def test_prompt_preset_factory(self):
         agent = LocalLLMResearchAgent.from_preset(
@@ -380,6 +387,33 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         self.assertIn("score", rendered)
         self.assertIn("validation_accuracy", rendered)
         self.assertIn("validation_loss", rendered)
+
+    def test_restaurant_eval_results_block_format(self):
+        rendered = _format_restaurant_results_block(
+            {
+                "score": -10.0,
+                "stockouts": 2.0,
+                "waste_units": 30.0,
+                "total_orders": 4.0,
+            }
+        )
+        self.assertIn("--- RESULTS ---", rendered)
+        self.assertIn("score", rendered)
+        self.assertIn("stockouts", rendered)
+        self.assertIn("waste_units", rendered)
+        self.assertIn("total_orders", rendered)
+
+    def test_restaurant_eval_experiment_metrics(self):
+        metrics = evaluate_restaurant_experiment("autoresearch/experiments/restaurant_train.py")
+        self.assertIn("score", metrics)
+        self.assertIn("stockouts", metrics)
+        self.assertIn("waste_units", metrics)
+        self.assertIn("total_orders", metrics)
+
+    def test_research_brief_loader_restaurant_json(self):
+        brief = load_research_brief("research_brief_restaurant.json")
+        self.assertIn("autoresearch/experiments/restaurant_train.py", brief.allowed_mutable_files)
+        self.assertIn("autoresearch/experiments/restaurant_eval.py", brief.immutable_files)
 
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ class RunResult:
     best_score: float
     history: list[IterationRecord]
 
-    def to_csv(self, path: str | Path) -> None:
+    def to_csv(self, path: str | Path, *, delimiter: str = ",") -> None:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         metric_keys: set[str] = set()
@@ -50,7 +50,7 @@ class RunResult:
             f"model_{k}" for k in sorted(model_state_keys)
         ]
         with target.open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer = csv.DictWriter(handle, fieldnames=fieldnames, delimiter=delimiter)
             writer.writeheader()
             for entry in self.history:
                 row: dict[str, Any] = {
@@ -187,7 +187,7 @@ class MutationRunResult:
     best_snapshot_id: str
     history: list[ExperimentRecord]
 
-    def to_csv(self, path: str | Path) -> None:
+    def to_csv(self, path: str | Path, *, delimiter: str = ",") -> None:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         resource_keys: set[str] = set()
@@ -205,7 +205,7 @@ class MutationRunResult:
             "auto_fixed",
         ] + [f"resource_{key}" for key in sorted(resource_keys)]
         with target.open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer = csv.DictWriter(handle, fieldnames=fieldnames, delimiter=delimiter)
             writer.writeheader()
             for entry in self.history:
                 row: dict[str, Any] = {

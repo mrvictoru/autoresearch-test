@@ -249,6 +249,7 @@ def main() -> None:
             task_dir = output_dir / task.name
             task_dir.mkdir(parents=True, exist_ok=True)
             result.to_csv(task_dir / "results.csv")
+            result.to_csv(task_dir / "results.tsv", delimiter="\t")
             result.to_trace_log(task_dir / "trace.json")
             save_html_report(result, task_dir / "report.html")
             _write_manifest(
@@ -288,6 +289,7 @@ def main() -> None:
     task_dir = output_dir / task_name
     task_dir.mkdir(parents=True, exist_ok=True)
     result.to_csv(task_dir / "mutation_results.csv")
+    result.to_csv(task_dir / "mutation_results.tsv", delimiter="\t")
     result.to_experiment_log(task_dir / "mutation_experiments.json")
     _write_manifest(
         path=task_dir / "manifest.json",
