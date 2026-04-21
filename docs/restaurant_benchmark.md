@@ -2,37 +2,47 @@
 
 ## Overview
 
-The benchmark is a deterministic single-stock inventory simulation evaluated through `autoresearch/experiments/restaurant_eval.py`.
+The benchmark is an immutable multi-item restaurant inventory environment evaluated through `autoresearch/experiments/restaurant_eval.py`.
 
 ## Domain model
 
 The immutable simulator lives in `autoresearch/tasks.py`.
 
-- Demand per day is sampled from a Gaussian distribution and clamped to a non-negative integer.
-- The policy chooses:
-  - `reorder_point`
-  - `target_stock`
-- Daily cost includes:
-  - replenishment cost
-  - leftover waste cost
-  - stockout penalty
+The environment includes:
 
-The evaluator uses a fixed validation scenario:
+- menu items with overlapping ingredient usage
+- lunch and dinner demand periods
+- weekday and late-horizon demand shifts
+- ingredient perishability through shelf-life buckets
+- supplier lead times through an incoming-order pipeline
+- per-ingredient and total storage constraints
 
-- `days=30`
-- `seed=42`
+The mutable policy chooses per-ingredient order quantities each day.
+
+The mutable experiment file must expose `build_policy()` returning an object with:
+
+- `decide_orders(observation)`
+- optional `fit(training_scenarios, task)`
+
+The evaluator uses deterministic train and validation scenario sets generated from the benchmark seed.
 
 Primary objective:
 
-- `score = -total_cost`
+- `score = revenue - order_cost - holding_cost - waste_cost - stockout_penalty`
 - higher score is better
 
 Reported metrics:
 
 - `score`
-- `stockouts`
+- `service_level`
+- `revenue`
+- `fulfilled_orders`
+- `lost_orders`
 - `waste_units`
-- `total_orders`
+- `waste_cost`
+- `holding_cost`
+- `order_cost`
+- `stockout_penalty`
 
 ## Mutable and immutable boundaries
 
@@ -61,7 +71,7 @@ The evaluator must print:
 ## Quick start
 
 ```bash
-python -m autoresearch.experiments.restaurant_eval \
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
   --experiment autoresearch/experiments/restaurant_train.py
 ```
 

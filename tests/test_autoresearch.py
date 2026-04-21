@@ -1,4 +1,5 @@
 import json
+import math
 import subprocess
 import tempfile
 import unittest
@@ -58,51 +59,126 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             text=True,
         )
 
-    def test_restaurant_task_emits_expected_metrics(self):
-        metrics = RestaurantInventoryTask(days=30, seed=42).evaluate_model_detailed(
-            {"reorder_point": 18, "target_stock": 40}
+    def test_restaurant_context_describes_richer_benchmark(self):
+        context = RestaurantInventoryTask(days=14, seed=42).describe_context()
+        self.assertEqual(context["days"], 14)
+        self.assertIn("burger", context["menu_items"])
+        self.assertTrue(context["constraints"]["overlapping_ingredients"])
+        self.assertTrue(context["constraints"]["ingredient_perishability"])
+        self.assertTrue(context["constraints"]["supplier_lead_times"])
+
+    def test_restaurant_scenarios_are_deterministic(self):
+        first = RestaurantInventoryTask(days=10, seed=42)
+        second = RestaurantInventoryTask(days=10, seed=42)
+        self.assertEqual(first.training_scenarios(), second.training_scenarios())
+        self.assertEqual(first.validation_scenarios(), second.validation_scenarios())
+
+    def test_restaurant_menu_has_overlapping_ingredients(self):
+        task = RestaurantInventoryTask(days=14, seed=42)
+        ingredient_usage_counts: dict[str, int] = {}
+        for item in task.menu_items:
+            for ingredient_name in item.recipe:
+                ingredient_usage_counts[ingredient_name] = ingredient_usage_counts.get(ingredient_name, 0) + 1
+        self.assertTrue(any(count > 1 for count in ingredient_usage_counts.values()))
+
+    def test_restaurant_policy_evaluation_emits_expected_metric_shape(self):
+        class NoOrderPolicy:
+            def decide_orders(self, observation):
+                return {}
+
+        metrics = RestaurantInventoryTask(days=8, seed=42).evaluate_policy(NoOrderPolicy())
+        self.assertEqual(
+            set(metrics),
+            {
+                "score",
+                "revenue",
+                "service_level",
+                "fulfilled_orders",
+                "lost_orders",
+                "waste_units",
+                "waste_cost",
+                "holding_cost",
+                "order_cost",
+                "stockout_penalty",
+            },
         )
-        self.assertEqual(set(metrics), {"score", "stockouts", "waste_units", "total_orders"})
-        self.assertEqual(metrics["score"], -965.0000000000001)
-        self.assertEqual(metrics["stockouts"], 23.0)
-        self.assertEqual(metrics["waste_units"], 335.0)
-        self.assertEqual(metrics["total_orders"], 26.0)
+        self.assertGreaterEqual(metrics["service_level"], 0.0)
+        self.assertLessEqual(metrics["service_level"], 1.0)
+        self.assertTrue(math.isfinite(metrics["score"]))
 
     def test_restaurant_eval_results_block_format(self):
         rendered = _format_restaurant_results_block(
             {
                 "score": -10.0,
-                "stockouts": 2.0,
+                "service_level": 0.8,
+                "revenue": 100.0,
+                "fulfilled_orders": 20.0,
+                "lost_orders": 5.0,
                 "waste_units": 30.0,
-                "total_orders": 4.0,
+                "waste_cost": 12.0,
+                "holding_cost": 4.0,
+                "order_cost": 50.0,
+                "stockout_penalty": 90.0,
             }
         )
         self.assertIn("--- RESULTS ---", rendered)
         self.assertIn("score", rendered)
-        self.assertIn("stockouts", rendered)
+        self.assertIn("service_level", rendered)
+        self.assertIn("revenue", rendered)
+        self.assertIn("fulfilled_orders", rendered)
+        self.assertIn("lost_orders", rendered)
         self.assertIn("waste_units", rendered)
-        self.assertIn("total_orders", rendered)
+        self.assertIn("stockout_penalty", rendered)
 
-    def test_restaurant_eval_experiment_metrics(self):
+    def test_restaurant_eval_accepts_build_policy_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            experiment_path = Path(tmp) / "temp_policy.py"
+            experiment_path.write_text(
+                "from __future__ import annotations\n"
+                "\n"
+                "class StaticPolicy:\n"
+                "    def __init__(self):\n"
+                "        self.fit_called = False\n"
+                "\n"
+                "    def fit(self, scenarios, task):\n"
+                "        self.fit_called = bool(scenarios) and task.name == 'restaurant_inventory'\n"
+                "\n"
+                "    def decide_orders(self, observation):\n"
+                "        return {name: 0 for name in observation.ingredient_specs}\n"
+                "\n"
+                "def build_policy():\n"
+                "    return StaticPolicy()\n",
+                encoding="utf-8",
+            )
+            metrics = evaluate_restaurant_experiment(experiment_path, days=8, seed=21)
+
+        self.assertIn("score", metrics)
+        self.assertIn("service_level", metrics)
+        self.assertIn("revenue", metrics)
+        self.assertIn("stockout_penalty", metrics)
+        self.assertTrue(math.isfinite(metrics["score"]))
+
+    def test_restaurant_eval_smoke_test_current_mutable_policy(self):
         metrics = evaluate_restaurant_experiment("autoresearch/experiments/restaurant_train.py")
-        self.assertEqual(
-            metrics,
-            {
-                "score": -965.0000000000001,
-                "stockouts": 23.0,
-                "waste_units": 335.0,
-                "total_orders": 26.0,
-            },
-        )
+        self.assertIn("score", metrics)
+        self.assertIn("service_level", metrics)
+        self.assertIn("revenue", metrics)
+        self.assertIn("fulfilled_orders", metrics)
+        self.assertIn("lost_orders", metrics)
+        self.assertGreaterEqual(metrics["service_level"], 0.0)
+        self.assertLessEqual(metrics["service_level"], 1.0)
+        self.assertTrue(math.isfinite(metrics["score"]))
 
     def test_research_brief_loader_restaurant_json(self):
         brief = load_research_brief("research_brief_restaurant.json")
         self.assertEqual(brief.allowed_mutable_files, ["autoresearch/experiments/restaurant_train.py"])
         self.assertIn("autoresearch/tasks.py", brief.immutable_files)
+        self.assertIn("multi-item benchmark", brief.goal)
 
     def test_research_brief_loader_restaurant_yaml(self):
         brief = load_research_brief("research_brief_restaurant.yaml")
         self.assertEqual(brief.constraints["experiment_command"][2], "autoresearch.experiments.restaurant_eval")
+        self.assertIn("scenario integrity", brief.goal)
 
     def test_create_research_branch_creates_autoresearch_prefixed_branch(self):
         with tempfile.TemporaryDirectory() as tmp:

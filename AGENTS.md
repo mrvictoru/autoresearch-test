@@ -6,3 +6,4 @@
 4. Treat evaluator and benchmark-defining files as immutable unless explicitly authorized.
 5. Use `results.tsv` plus git commit history as the optimization frontier.
 6. Run a baseline restaurant evaluation before changing benchmark code.
+7. The mutable file must provide `build_policy()` returning an object with `decide_orders(...)` and optional `fit(...)`.

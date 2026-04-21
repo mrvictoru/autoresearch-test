@@ -1,4 +1,4 @@
-goal: "Improve the restaurant inventory policy while preserving the immutable benchmark."
+goal: "Improve the restaurant inventory policy for the immutable multi-item benchmark while preserving evaluator and scenario integrity."
 constraints:
   experiment_command:
     - "{python}"

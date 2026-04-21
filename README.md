@@ -4,8 +4,8 @@
 
 An external coding agent owns the optimization loop. This repository provides:
 
-- immutable restaurant benchmark logic
-- mutable experiment code for the active policy
+- immutable multi-item restaurant benchmark logic
+- mutable experiment code for the active inventory policy
 - git-frontier helpers for keep/discard decisions
 - a single-run harness helper script
 - documentation for the benchmark contract
@@ -24,9 +24,9 @@ Core files:
 - `AGENTS.md` — harness operating notes
 - `scripts/run_once.sh` — atomic commit → evaluate → ledger → keep/discard helper
 - `autoresearch/frontier.py` — git and `results.tsv` helpers
-- `autoresearch/tasks.py` — immutable restaurant simulation
+- `autoresearch/tasks.py` — immutable restaurant environment with menu overlap, perishability, lead times, and storage limits
 - `autoresearch/experiments/restaurant_eval.py` — immutable evaluator entrypoint
-- `autoresearch/experiments/restaurant_train.py` — mutable policy implementation
+- `autoresearch/experiments/restaurant_train.py` — mutable policy implementation via `build_policy()`
 - `research_brief_restaurant.json` / `.yaml` — machine-readable benchmark contract
 
 ## Quick start
@@ -34,13 +34,13 @@ Core files:
 Run tests:
 
 ```bash
-python -m unittest discover -s tests -v
+docker compose run --rm autoresearch python -m unittest discover -s tests -v
 ```
 
 Run the immutable evaluator against the mutable policy:
 
 ```bash
-python -m autoresearch.experiments.restaurant_eval \
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
   --experiment autoresearch/experiments/restaurant_train.py
 ```
 
@@ -58,6 +58,8 @@ That helper:
 - appends the attempt to `results.tsv`
 - keeps only strict score improvements
 - reverts discarded or crashed candidates
+
+The benchmark score now reflects restaurant operating performance across fixed train and validation scenarios with overlapping ingredients, time-varying demand, perishability, supplier lead times, and storage constraints.
 
 ## Docker
 

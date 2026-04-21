@@ -2,9 +2,16 @@
 
 ## Overview
 
-This repository now supports a single workflow: an external harness iteratively edits `autoresearch/experiments/restaurant_train.py` and evaluates it against the immutable restaurant benchmark.
+This repository supports a single workflow: an external harness iteratively edits `autoresearch/experiments/restaurant_train.py` and evaluates it against an immutable restaurant benchmark.
 
-The repository no longer includes the older parametric runner, Python-owned mutation loop, demo CLI, blackjack example, or neural example paths.
+The benchmark models:
+
+- menu items sharing ingredients
+- lunch and dinner demand periods
+- weekday and late-horizon demand shifts
+- ingredient perishability
+- supplier lead times
+- per-ingredient and total storage limits
 
 ## Architecture
 
@@ -47,6 +54,8 @@ Mutable benchmark file:
 
 - `autoresearch/experiments/restaurant_train.py`
 
+The mutable file must define `build_policy()` and return a policy object with `decide_orders(...)` and optional `fit(...)`.
+
 Immutable benchmark files:
 
 - `autoresearch/experiments/restaurant_eval.py`
@@ -70,14 +79,14 @@ Immutable benchmark files:
 Run the evaluator directly:
 
 ```bash
-python -m autoresearch.experiments.restaurant_eval \
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
   --experiment autoresearch/experiments/restaurant_train.py
 ```
 
 Run the test suite:
 
 ```bash
-python -m unittest discover -s tests -v
+docker compose run --rm autoresearch python -m unittest discover -s tests -v
 ```
 
 ## Docker
