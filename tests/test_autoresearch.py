@@ -368,6 +368,61 @@ class AutoresearchFrameworkTests(unittest.TestCase):
             self.assertEqual(result.history[1].status, ExperimentStatus.KEEP)
             self.assertAlmostEqual(result.best_score, 0.8)
 
+    def test_mutation_runner_uses_wall_time_tie_breaker(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "sleep.txt").write_text("0.20", encoding="utf-8")
+            (root / "eval.py").write_text(
+                "\n".join(
+                    [
+                        "import time",
+                        "from pathlib import Path",
+                        'sleep_seconds = float(Path("sleep.txt").read_text(encoding="utf-8").strip())',
+                        "time.sleep(sleep_seconds)",
+                        'print(\'METRIC_JSON: {"score": 0.5}\')',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            brief = ResearchBrief(
+                goal="prefer faster runs when score ties",
+                constraints={"experiment_command": ["{python}", "eval.py"], "timeout_seconds": 5},
+                allowed_mutable_files=["sleep.txt"],
+                immutable_files=["eval.py"],
+                time_budget_seconds=30,
+                # Canonical brief format expected by tie-breaker parsing:
+                # "Prefer higher score; tie-breaker by lower wall_time_seconds."
+                tie_breaker_policy="Prefer higher score; tie-break by lower wall_time_seconds.",
+            )
+            agent = FakeMutationAgent(
+                [
+                    MutationProposal(
+                        description="same score faster",
+                        target_files=["sleep.txt"],
+                        edits=[FileEdit(path="sleep.txt", operation="replace", content="0.05")],
+                    ),
+                    MutationProposal(
+                        description="same score slower",
+                        target_files=["sleep.txt"],
+                        edits=[FileEdit(path="sleep.txt", operation="replace", content="0.40")],
+                    ),
+                ]
+            )
+            result = MutationRunner(
+                agent=agent,
+                executor=SafeExecutor(timeout_seconds=5),
+            ).run(
+                task_name="mutation_tie_break_test",
+                source_root=root,
+                research_brief=brief,
+                iterations=2,
+            )
+            self.assertEqual(len(result.history), 2)
+            self.assertEqual(result.history[0].status, ExperimentStatus.KEEP)
+            self.assertEqual(result.history[1].status, ExperimentStatus.DISCARD)
+            self.assertAlmostEqual(result.best_score, 0.5)
+
     def test_cli_mutation_help(self):
         completed = subprocess.run(
             [sys.executable, "-m", "autoresearch", "mutation", "--help"],

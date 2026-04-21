@@ -12,6 +12,16 @@ from .mutation_agent import MutationAgent
 from .sandbox import Workspace
 
 
+_CANONICAL_WALL_TIME_TIE_BREAKER_POLICIES = {
+    "prefer higher score; tie-breaker by lower wall_time_seconds.",
+    "prefer higher score; tie-breaker by lower wall time seconds.",
+    "prefer higher score; tie-breaker by lower wall_time.",
+}
+_WALL_TIME_TIE_BREAKER_POLICIES = {
+    policy.lower() for policy in _CANONICAL_WALL_TIME_TIE_BREAKER_POLICIES
+}
+
+
 class MutationRunner:
     def __init__(
         self,
@@ -42,6 +52,7 @@ class MutationRunner:
         if not baseline_result.success or baseline_result.score is None:
             raise RuntimeError("Baseline experiment failed; mutation loop cannot start")
         frontier_score = baseline_result.score
+        frontier_wall_time_seconds = baseline_result.wall_time_seconds
         workspace.promote_candidate(baseline_candidate)
         best_snapshot_id = workspace.next_snapshot_id(
             root=workspace.frontier_root,
@@ -119,8 +130,15 @@ class MutationRunner:
                     )
                     workspace.discard_candidate(candidate_root)
                     continue
-                if result.score > frontier_score:
+                if _should_keep_candidate(
+                    candidate_score=result.score,
+                    frontier_score=frontier_score,
+                    tie_breaker_policy=research_brief.tie_breaker_policy,
+                    candidate_wall_time_seconds=result.wall_time_seconds,
+                    frontier_wall_time_seconds=frontier_wall_time_seconds,
+                ):
                     frontier_score = result.score
+                    frontier_wall_time_seconds = result.wall_time_seconds
                     workspace.promote_candidate(candidate_root)
                     best_snapshot_id = snapshot_id
                     status = ExperimentStatus.KEEP
@@ -224,3 +242,36 @@ def _resolve_experiment_command(brief: ResearchBrief) -> list[str]:
         "--experiment",
         "autoresearch/experiments/neural_train.py",
     ]
+
+
+def _should_keep_candidate(
+    *,
+    candidate_score: float,
+    frontier_score: float,
+    tie_breaker_policy: str,
+    candidate_wall_time_seconds: float | None,
+    frontier_wall_time_seconds: float | None,
+) -> bool:
+    if candidate_score > frontier_score:
+        return True
+    if candidate_score < frontier_score:
+        return False
+    if _uses_lower_wall_time_tie_breaker(tie_breaker_policy):
+        # Missing candidate timing cannot prove an improvement, so do not keep it.
+        if candidate_wall_time_seconds is None:
+            return False
+        # If frontier timing is unavailable but candidate timing exists, allow promotion.
+        if frontier_wall_time_seconds is None:
+            return True
+        return candidate_wall_time_seconds < frontier_wall_time_seconds
+    return False
+
+
+def _uses_lower_wall_time_tie_breaker(policy: str) -> bool:
+    normalized_policy = policy.strip().lower()
+    if normalized_policy in _WALL_TIME_TIE_BREAKER_POLICIES:
+        return True
+    return (
+        ("tie-break" in normalized_policy or "tie-breaker" in normalized_policy)
+        and ("lower wall_time" in normalized_policy or "lower wall time" in normalized_policy)
+    )
