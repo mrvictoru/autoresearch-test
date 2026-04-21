@@ -7,6 +7,7 @@ Additional documentation:
 - `docs/guide.md` for the full usage and architecture guide
 - `docs/components.md` for component-level documentation
 - `docs/mutation_guide.md` for mutation backend usage
+- `docs/restaurant_benchmark.md` for the restaurant benchmark contract
 
 ## What is included
 
@@ -73,6 +74,39 @@ Use a config file:
 
 ```bash
 python -m autoresearch parametric --config experiment.json
+```
+
+## Harness-Driven Mode
+
+Alongside `parametric` and `mutation` CLI modes, this repository also supports a Karpathy-style harness workflow where an external coding agent owns the optimization loop and this repo provides immutable benchmark infrastructure plus mutable experiment code.
+
+Core harness files:
+
+- `program.md`: run protocol, mutable/immutable boundaries, keep/discard rules
+- `AGENTS.md`: agent-operating notes for harness sessions
+- `results.tsv` / `mutation_results.tsv`: frontier ledgers used by harness runs
+- `scripts/`: optional harness helper scripts when present in your environment
+
+In this mode, treat evaluator and benchmark-defining files as immutable, and only mutate files allowed by the active experiment contract.
+
+### Restaurant benchmark quick start
+
+Run immutable restaurant evaluation against mutable train code:
+
+```bash
+python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py
+```
+
+Use the restaurant research brief for mutation runs:
+
+```bash
+python -m autoresearch mutation \
+  --task restaurant_inventory \
+  --brief research_brief_restaurant.json \
+  --agent-endpoint http://localhost:8080 \
+  --agent-model local-model \
+  --iterations 5
 ```
 
 ## Run with Docker

@@ -9,13 +9,14 @@
 5. [Agent Customisation](#agent-customisation)
 6. [CLI and Config Files](#cli-and-config-files)
 7. [Mutation Backend](#mutation-backend)
-8. [Research Brief](#research-brief)
-9. [Component Reference](#component-reference)
-10. [Adding a New Task](#adding-a-new-task)
-11. [Optional Neural-Task Support](#optional-neural-task-support)
-12. [Docker and Docker Compose](#docker-and-docker-compose)
-13. [Running Tests](#running-tests)
-14. [FAQ](#faq)
+8. [Harness-Driven Autonomous Research](#harness-driven-autonomous-research)
+9. [Research Brief](#research-brief)
+10. [Component Reference](#component-reference)
+11. [Adding a New Task](#adding-a-new-task)
+12. [Optional Neural-Task Support](#optional-neural-task-support)
+13. [Docker and Docker Compose](#docker-and-docker-compose)
+14. [Running Tests](#running-tests)
+15. [FAQ](#faq)
 
 ---
 
@@ -279,6 +280,23 @@ Mutation mode adds code-edit experiments while keeping the parameter loop as def
 - `MutationAgent`: structured edit proposals (`patch` or `edits`) with file targets
 - `Workspace`: isolated mutable frontier in temporary workspace
 - `SafeExecutor`: timeout, log capture, metric extraction, failure categorization
+
+---
+
+## Harness-Driven Autonomous Research
+
+This repository also supports a harness-first workflow where the outer coding agent controls the experiment loop and the Python code provides stable infrastructure and evaluators.
+
+The architecture is split into three layers:
+
+1. **Human instruction layer**  
+   `program.md` and `AGENTS.md` define process constraints, mutation boundaries, and optimization protocol.
+2. **Infrastructure layer (immutable)**  
+   Evaluators and benchmark logic (for example `autoresearch/experiments/*_eval.py`, task simulators, runner/executor contracts) remain fixed for fair comparison.
+3. **Mutable experiment layer**  
+   Experiment files (for example `autoresearch/experiments/neural_train.py` or `autoresearch/experiments/restaurant_train.py`) are mutated by the agent.
+
+In harness sessions, frontier tracking is recorded through git history plus TSV ledgers such as `results.tsv` / `mutation_results.tsv` when produced by the active harness.
 
 ---
 

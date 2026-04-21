@@ -51,3 +51,15 @@ Artifacts are written under `artifacts/<task_name>/`:
 - `mutation_results.csv`
 - `mutation_experiments.json`
 - `manifest.json`
+
+## MutationRunner vs harness-driven loop
+
+- **MutationRunner mode (Python-owned loop):**
+  - The loop is orchestrated in-process by `MutationRunner`.
+  - Iteration control, keep/discard/crash decisions, and artifact writing are handled inside the Python runtime.
+  - Best for standard CLI runs (`python -m autoresearch mutation ...`).
+
+- **Harness-driven mode (external-agent-owned loop):**
+  - The outer coding harness owns planning, mutation application cadence, and run bookkeeping.
+  - Python evaluators and benchmark logic remain the immutable scoring infrastructure.
+  - Mutable scope is still constrained by the active experiment contract (`program.md`, `AGENTS.md`, and research brief boundaries).
