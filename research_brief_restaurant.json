@@ -1,0 +1,23 @@
+{
+  "goal": "Improve the restaurant inventory policy for the immutable multi-item benchmark while preserving evaluator and scenario integrity.",
+  "constraints": {
+    "experiment_command": [
+      "{python}",
+      "-m",
+      "autoresearch.experiments.restaurant_eval",
+      "--experiment",
+      "autoresearch/experiments/restaurant_train.py"
+    ]
+  },
+  "allowed_mutable_files": [
+    "autoresearch/experiments/restaurant_train.py"
+  ],
+  "immutable_files": [
+    "autoresearch/experiments/restaurant_eval.py",
+    "autoresearch/tasks.py",
+    "program.md",
+    "AGENTS.md"
+  ],
+  "time_budget_seconds": 1800,
+  "tie_breaker_policy": "Prefer higher score; ties are discarded."
+}
