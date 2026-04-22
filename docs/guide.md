@@ -124,6 +124,18 @@ Run the test suite:
 docker compose run --rm autoresearch python -m unittest discover -s tests -v
 ```
 
+Generate a post-run artifact bundle and static HTML report:
+
+```bash
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py \
+  --report-dir artifacts/reports/latest
+```
+
+This writes a deterministic `run_artifact.json` trace and a browser-openable `report.html` bundle for inspecting order flow, ingredient consumption, inventory behavior, and business metrics after the simulation completes.
+
+If Docker cannot write into the mounted repository on your machine, use a writable path such as `/tmp/report` for a one-off inspection inside the container, or run Docker with a user mapping that can write to the workspace mount.
+
 ## Docker
 
 The Docker image is configured for the same harness-only workflow.

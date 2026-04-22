@@ -106,6 +106,52 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         self.assertLessEqual(metrics["service_level"], 1.0)
         self.assertTrue(math.isfinite(metrics["score"]))
 
+    def test_restaurant_policy_telemetry_keeps_metrics_stable(self):
+        class NoOrderPolicy:
+            def decide_orders(self, observation):
+                return {}
+
+        task = RestaurantInventoryTask(days=6, seed=42)
+        plain_metrics = task.evaluate_policy(NoOrderPolicy())
+        telemetry_metrics, artifact = task.evaluate_policy_with_telemetry(NoOrderPolicy(), policy_name="NoOrderPolicy")
+        self.assertEqual(plain_metrics, telemetry_metrics)
+        self.assertEqual(artifact["schema_version"], "restaurant-trace-v1")
+        self.assertEqual(len(artifact["scenarios"]), len(task.validation_scenarios()))
+        self.assertTrue(all(scenario["events"] for scenario in artifact["scenarios"]))
+
+    def test_restaurant_telemetry_reconciles_costs(self):
+        class NoOrderPolicy:
+            def decide_orders(self, observation):
+                return {}
+
+        task = RestaurantInventoryTask(days=4, seed=42, validation_seeds=(101,))
+        metrics, artifact = task.evaluate_policy_with_telemetry(NoOrderPolicy(), policy_name="NoOrderPolicy")
+        scenario = artifact["scenarios"][0]
+        revenue = sum(
+            event["cash_delta"]
+            for event in scenario["events"]
+            if event["event_type"] == "customer_order" and event["details"]["status"] == "fulfilled"
+        )
+        stockout_penalty = -sum(
+            event["cash_delta"]
+            for event in scenario["events"]
+            if event["event_type"] == "customer_order" and event["details"]["status"] == "lost"
+        )
+        holding_cost = -sum(
+            event["cash_delta"]
+            for event in scenario["events"]
+            if event["event_type"] == "holding_cost"
+        )
+        waste_cost = -sum(
+            event["cash_delta"]
+            for event in scenario["events"]
+            if event["event_type"] == "spoilage"
+        )
+        self.assertAlmostEqual(revenue, metrics["revenue"])
+        self.assertAlmostEqual(stockout_penalty, metrics["stockout_penalty"])
+        self.assertAlmostEqual(holding_cost, metrics["holding_cost"])
+        self.assertAlmostEqual(waste_cost, metrics["waste_cost"])
+
     def test_restaurant_eval_results_block_format(self):
         rendered = _format_restaurant_results_block(
             {
@@ -168,6 +214,23 @@ class AutoresearchFrameworkTests(unittest.TestCase):
         self.assertGreaterEqual(metrics["service_level"], 0.0)
         self.assertLessEqual(metrics["service_level"], 1.0)
         self.assertTrue(math.isfinite(metrics["score"]))
+
+    def test_restaurant_eval_writes_report_bundle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / "report"
+            metrics = evaluate_restaurant_experiment(
+                "autoresearch/experiments/restaurant_train.py",
+                days=4,
+                seed=42,
+                report_dir=out_dir,
+            )
+            artifact_path = out_dir / "run_artifact.json"
+            report_path = out_dir / "report.html"
+            self.assertTrue(artifact_path.exists())
+            self.assertTrue(report_path.exists())
+            artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+            self.assertEqual(artifact["aggregate_metrics"]["score"], metrics["score"])
+            self.assertIn("Business replay and operating report", report_path.read_text(encoding="utf-8"))
 
     def test_research_brief_loader_restaurant_json(self):
         brief = load_research_brief("research_brief_restaurant.json")

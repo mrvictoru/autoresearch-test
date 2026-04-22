@@ -59,9 +59,17 @@ Main type:
 The task produces:
 
 - `score`
-- `stockouts`
+- `service_level`
+- `revenue`
+- `fulfilled_orders`
+- `lost_orders`
 - `waste_units`
-- `total_orders`
+- `waste_cost`
+- `holding_cost`
+- `order_cost`
+- `stockout_penalty`
+
+It can also emit deterministic per-order telemetry and checkpoints for post-run analysis.
 
 ## `autoresearch/experiments/restaurant_eval.py`
 
@@ -70,10 +78,12 @@ Immutable evaluator entrypoint.
 Responsibilities:
 
 - load the mutable train module
-- call `get_model_state()`
+- call `build_policy()`
+- optionally fit the returned policy
 - score it with `RestaurantInventoryTask`
 - print the stable `--- RESULTS ---` block
 - print `METRIC_JSON` for automation compatibility
+- optionally write `run_artifact.json` and `report.html`
 
 ## `autoresearch/experiments/restaurant_train.py`
 
@@ -81,8 +91,18 @@ Mutable benchmark file.
 
 Responsibilities:
 
-- define `get_model_state()`
+- define `build_policy()`
 - return the policy under evaluation
+
+## `autoresearch/reporting.py`
+
+Static post-run report generator.
+
+Responsibilities:
+
+- write `run_artifact.json`
+- render `report.html`
+- rebuild the HTML report from a saved artifact
 
 ## `scripts/run_once.sh`
 

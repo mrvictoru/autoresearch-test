@@ -160,7 +160,7 @@ class RestaurantInventoryTask:
         }
         total_orders = 0.0
         for scenario in active_scenarios:
-            metrics = self._simulate_scenario(policy=policy, scenario=scenario)
+            metrics, _ = self._simulate_scenario(policy=policy, scenario=scenario)
             for key, value in metrics.items():
                 totals[key] += value
             total_orders += metrics["fulfilled_orders"] + metrics["lost_orders"]
@@ -168,6 +168,53 @@ class RestaurantInventoryTask:
             totals["fulfilled_orders"] / total_orders if total_orders else 1.0
         )
         return totals
+
+    def evaluate_policy_with_telemetry(
+        self,
+        policy: RestaurantPolicy,
+        *,
+        scenarios: Sequence[RestaurantScenario] | None = None,
+        experiment_path: str | None = None,
+        policy_name: str | None = None,
+    ) -> tuple[dict[str, float], dict[str, Any]]:
+        active_scenarios = tuple(scenarios or self.validation_scenarios())
+        totals = {
+            "score": 0.0,
+            "revenue": 0.0,
+            "service_level": 0.0,
+            "fulfilled_orders": 0.0,
+            "lost_orders": 0.0,
+            "waste_units": 0.0,
+            "waste_cost": 0.0,
+            "holding_cost": 0.0,
+            "order_cost": 0.0,
+            "stockout_penalty": 0.0,
+        }
+        total_orders = 0.0
+        scenario_traces: list[dict[str, Any]] = []
+        for scenario in active_scenarios:
+            metrics, trace = self._simulate_scenario(policy=policy, scenario=scenario, capture_trace=True)
+            for key, value in metrics.items():
+                totals[key] += value
+            total_orders += metrics["fulfilled_orders"] + metrics["lost_orders"]
+            if trace is not None:
+                scenario_traces.append(trace)
+        totals["service_level"] = (
+            totals["fulfilled_orders"] / total_orders if total_orders else 1.0
+        )
+        artifact = {
+            "schema_version": "restaurant-trace-v1",
+            "benchmark": self.describe_context(),
+            "run": {
+                "days": self.days,
+                "seed": self.seed,
+                "experiment_path": experiment_path,
+                "policy_name": policy_name or type(policy).__name__,
+            },
+            "aggregate_metrics": dict(totals),
+            "scenarios": scenario_traces,
+        }
+        return totals, artifact
 
     def _generate_scenario(self, *, name: str, seed: int) -> RestaurantScenario:
         rng = random.Random(seed)
@@ -201,7 +248,8 @@ class RestaurantInventoryTask:
         *,
         policy: RestaurantPolicy,
         scenario: RestaurantScenario,
-    ) -> dict[str, float]:
+        capture_trace: bool = False,
+    ) -> tuple[dict[str, float], dict[str, Any] | None]:
         inventory = {
             spec.name: _initial_lot_buckets(spec=spec, target_level=max(8, spec.max_storage_units // 3))
             for spec in self.ingredients
@@ -220,11 +268,64 @@ class RestaurantInventoryTask:
             "order_cost": 0.0,
             "stockout_penalty": 0.0,
         }
+        trace: dict[str, Any] | None = None
+        event_index = 0
+        cumulative_cash = 0.0
+        if capture_trace:
+            trace = {
+                "scenario": {
+                    "name": scenario.name,
+                    "seed": scenario.seed,
+                    "days": scenario.days,
+                },
+                "events": [],
+                "checkpoints": [],
+            }
+
+        def append_event(
+            *,
+            event_type: str,
+            day_index: int,
+            period: str | None,
+            details: dict[str, Any],
+            cash_delta: float = 0.0,
+            inventory_before: dict[str, int] | None = None,
+            inventory_after: dict[str, int] | None = None,
+        ) -> None:
+            nonlocal event_index, cumulative_cash
+            if trace is None:
+                return
+            cumulative_cash += cash_delta
+            trace["events"].append(
+                {
+                    "event_index": event_index,
+                    "event_type": event_type,
+                    "day_index": day_index,
+                    "period": period,
+                    "cash_delta": cash_delta,
+                    "cumulative_cash": cumulative_cash,
+                    "inventory_before": inventory_before,
+                    "inventory_after": inventory_after,
+                    "details": details,
+                }
+            )
+            event_index += 1
+
         frames_by_day = _group_frames_by_day(scenario.frames)
         for day_index in range(scenario.days):
             arriving_today = pipeline.pop(day_index, {})
+            inventory_before_arrival = _inventory_snapshot(inventory)
             for ingredient_name, quantity in arriving_today.items():
                 inventory[ingredient_name][-1] += quantity
+            if arriving_today:
+                append_event(
+                    event_type="restock_arrival",
+                    day_index=day_index,
+                    period=None,
+                    details={"quantities": dict(arriving_today)},
+                    inventory_before=inventory_before_arrival,
+                    inventory_after=_inventory_snapshot(inventory),
+                )
 
             observation = RestaurantObservation(
                 day_index=day_index,
@@ -244,6 +345,8 @@ class RestaurantInventoryTask:
                 inventory=inventory,
                 pipeline=pipeline,
             )
+            day_order_cost = 0.0
+            order_details: dict[str, dict[str, int | float]] = {}
             for ingredient_name, quantity in normalized_orders.items():
                 if quantity <= 0:
                     continue
@@ -252,21 +355,91 @@ class RestaurantInventoryTask:
                 pipeline.setdefault(arrival_day, {})[ingredient_name] = (
                     pipeline.setdefault(arrival_day, {}).get(ingredient_name, 0) + quantity
                 )
-                metrics["order_cost"] += quantity * spec.unit_cost + spec.fixed_order_cost
+                ingredient_cost = quantity * spec.unit_cost + spec.fixed_order_cost
+                metrics["order_cost"] += ingredient_cost
+                day_order_cost += ingredient_cost
+                order_details[ingredient_name] = {
+                    "quantity": quantity,
+                    "arrival_day": arrival_day,
+                    "cost": ingredient_cost,
+                }
+            if order_details:
+                append_event(
+                    event_type="restock_order",
+                    day_index=day_index,
+                    period=None,
+                    details={"orders": order_details},
+                    cash_delta=-day_order_cost,
+                    inventory_before=_inventory_snapshot(inventory),
+                    inventory_after=_inventory_snapshot(inventory),
+                )
 
             day_item_demand = {item.name: 0 for item in self.menu_items}
             day_usage = {ingredient.name: 0 for ingredient in self.ingredients}
             for frame in frames_by_day[day_index]:
+                frame_fulfilled = 0.0
+                frame_lost = 0.0
                 for item_name, quantity in frame.demand_by_item.items():
                     day_item_demand[item_name] += quantity
                     item = self._menu_map[item_name]
                     for _ in range(quantity):
+                        inventory_before_order = _inventory_snapshot(inventory)
                         if self._can_fulfill(inventory=inventory, recipe=item.recipe):
                             self._consume_recipe(inventory=inventory, recipe=item.recipe, usage=day_usage)
                             metrics["revenue"] += item.price
                             metrics["fulfilled_orders"] += 1.0
+                            frame_fulfilled += 1.0
+                            append_event(
+                                event_type="customer_order",
+                                day_index=day_index,
+                                period=frame.period,
+                                details={
+                                    "item_name": item_name,
+                                    "status": "fulfilled",
+                                    "consumed_ingredients": dict(item.recipe),
+                                    "missing_ingredients": {},
+                                },
+                                cash_delta=item.price,
+                                inventory_before=inventory_before_order,
+                                inventory_after=_inventory_snapshot(inventory),
+                            )
                         else:
                             metrics["lost_orders"] += 1.0
+                            frame_lost += 1.0
+                            missing_ingredients = {
+                                ingredient_name: units - inventory_before_order.get(ingredient_name, 0)
+                                for ingredient_name, units in item.recipe.items()
+                                if inventory_before_order.get(ingredient_name, 0) < units
+                            }
+                            append_event(
+                                event_type="customer_order",
+                                day_index=day_index,
+                                period=frame.period,
+                                details={
+                                    "item_name": item_name,
+                                    "status": "lost",
+                                    "consumed_ingredients": {},
+                                    "missing_ingredients": missing_ingredients,
+                                },
+                                cash_delta=-self.stockout_penalty_per_order,
+                                inventory_before=inventory_before_order,
+                                inventory_after=inventory_before_order,
+                            )
+
+                if trace is not None:
+                    trace["checkpoints"].append(
+                        {
+                            "checkpoint_type": "period_end",
+                            "day_index": day_index,
+                            "period": frame.period,
+                            "inventory": _inventory_snapshot(inventory),
+                            "incoming_pipeline": _pipeline_totals(pipeline),
+                            "cumulative_cash": cumulative_cash,
+                            "demand_by_item": dict(frame.demand_by_item),
+                            "fulfilled_orders": frame_fulfilled,
+                            "lost_orders": frame_lost,
+                        }
+                    )
 
             recent_item_demands.append(day_item_demand)
             recent_ingredient_usage.append(day_usage)
@@ -275,12 +448,46 @@ class RestaurantInventoryTask:
             if len(recent_ingredient_usage) > 3:
                 recent_ingredient_usage.pop(0)
 
-            metrics["holding_cost"] += sum(
+            holding_cost = sum(
                 _inventory_on_hand(inventory[spec.name]) * spec.holding_cost for spec in self.ingredients
             )
-            expired_units, expired_cost = self._age_and_discard(inventory)
+            metrics["holding_cost"] += holding_cost
+            append_event(
+                event_type="holding_cost",
+                day_index=day_index,
+                period=None,
+                details={"holding_cost": holding_cost},
+                cash_delta=-holding_cost,
+                inventory_before=_inventory_snapshot(inventory),
+                inventory_after=_inventory_snapshot(inventory),
+            )
+            expired_units, expired_cost, expired_by_ingredient = self._age_and_discard(inventory)
             metrics["waste_units"] += expired_units
             metrics["waste_cost"] += expired_cost
+            if expired_units > 0:
+                append_event(
+                    event_type="spoilage",
+                    day_index=day_index,
+                    period=None,
+                    details={"expired_by_ingredient": expired_by_ingredient},
+                    cash_delta=-expired_cost,
+                    inventory_before=_inventory_snapshot_with_aged_tail(inventory, expired_by_ingredient),
+                    inventory_after=_inventory_snapshot(inventory),
+                )
+            if trace is not None:
+                trace["checkpoints"].append(
+                    {
+                        "checkpoint_type": "day_close",
+                        "day_index": day_index,
+                        "period": None,
+                        "inventory": _inventory_snapshot(inventory),
+                        "incoming_pipeline": _pipeline_totals(pipeline),
+                        "cumulative_cash": cumulative_cash,
+                        "day_item_demand": dict(day_item_demand),
+                        "day_ingredient_usage": dict(day_usage),
+                        "metrics": dict(metrics),
+                    }
+                )
 
         metrics["stockout_penalty"] = metrics["lost_orders"] * self.stockout_penalty_per_order
         metrics["score"] = (
@@ -290,7 +497,10 @@ class RestaurantInventoryTask:
             - metrics["waste_cost"]
             - metrics["stockout_penalty"]
         )
-        return metrics
+        if trace is not None:
+            trace["scenario_metrics"] = dict(metrics)
+            trace["final_inventory"] = _inventory_snapshot(inventory)
+        return metrics, trace
 
     def _normalize_orders(
         self,
@@ -334,16 +544,19 @@ class RestaurantInventoryTask:
             _consume_units(inventory[ingredient_name], units)
             usage[ingredient_name] += units
 
-    def _age_and_discard(self, inventory: dict[str, list[int]]) -> tuple[float, float]:
+    def _age_and_discard(self, inventory: dict[str, list[int]]) -> tuple[float, float, dict[str, int]]:
         total_units = 0.0
         total_cost = 0.0
+        expired_by_ingredient: dict[str, int] = {}
         for spec in self.ingredients:
             lots = inventory[spec.name]
             expired = lots[0]
             total_units += float(expired)
             total_cost += float(expired) * spec.waste_cost
+            if expired > 0:
+                expired_by_ingredient[spec.name] = expired
             inventory[spec.name] = lots[1:] + [0]
-        return total_units, total_cost
+        return total_units, total_cost, expired_by_ingredient
 
 
 def _group_frames_by_day(frames: Sequence[DemandFrame]) -> dict[int, list[DemandFrame]]:
@@ -361,6 +574,20 @@ def _initial_lot_buckets(*, spec: IngredientSpec, target_level: int) -> list[int
 
 def _inventory_on_hand(lots: Sequence[int]) -> int:
     return int(sum(lots))
+
+
+def _inventory_snapshot(inventory: dict[str, list[int]]) -> dict[str, int]:
+    return {name: _inventory_on_hand(lots) for name, lots in inventory.items()}
+
+
+def _inventory_snapshot_with_aged_tail(
+    inventory: dict[str, list[int]],
+    expired_by_ingredient: dict[str, int],
+) -> dict[str, int]:
+    snapshot = _inventory_snapshot(inventory)
+    for ingredient_name, quantity in expired_by_ingredient.items():
+        snapshot[ingredient_name] = snapshot.get(ingredient_name, 0) + quantity
+    return snapshot
 
 
 def _consume_units(lots: list[int], quantity: int) -> None:

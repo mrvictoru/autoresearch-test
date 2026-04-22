@@ -8,6 +8,7 @@ An external coding agent owns the optimization loop. This repository provides:
 - mutable experiment code for the active inventory policy
 - git-frontier helpers for keep/discard decisions
 - a single-run harness helper script
+- post-run telemetry artifacts and a static HTML report generator
 - documentation for the benchmark contract
 
 Additional documentation:
@@ -60,6 +61,25 @@ That helper:
 - reverts discarded or crashed candidates
 
 The benchmark score now reflects restaurant operating performance across fixed train and validation scenarios with overlapping ingredients, time-varying demand, perishability, supplier lead times, and storage constraints.
+
+## Post-run report
+
+Generate a trace artifact and interactive HTML report for a completed run:
+
+```bash
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py \
+  --report-dir artifacts/reports/latest
+```
+
+This writes:
+
+- `artifacts/reports/latest/run_artifact.json` — per-order simulation trace plus aggregate metrics
+- `artifacts/reports/latest/report.html` — static interactive replay and business report
+
+Open `report.html` in a browser to inspect order flow, ingredient consumption, inventory movement, and business outcomes for the run.
+
+If your Docker container cannot write back into the mounted workspace, point `--report-dir` at a writable container path such as `/tmp/report` for inspection inside the container, or run Docker with a user mapping that can write to the repo mount.
 
 ## Docker
 

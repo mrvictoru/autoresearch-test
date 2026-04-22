@@ -10,6 +10,7 @@ from .frontier import (
     read_best_result,
     revert_last_commit,
 )
+from .reporting import write_report_bundle
 from .tasks import RestaurantInventoryTask
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "load_research_brief",
     "read_best_result",
     "revert_last_commit",
+    "write_report_bundle",
 ]

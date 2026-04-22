@@ -5,7 +5,11 @@ import importlib.util
 import json
 from pathlib import Path
 
+from ..reporting import write_report_bundle
 from ..tasks import RestaurantInventoryTask
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _load_experiment_module(path: str | Path):
@@ -23,6 +27,7 @@ def evaluate_experiment(
     *,
     days: int = 14,
     seed: int = 42,
+    report_dir: str | Path | None = None,
 ) -> dict[str, float]:
     module = _load_experiment_module(experiment_path)
     build_fn = getattr(module, "build_policy", None)
@@ -37,7 +42,19 @@ def evaluate_experiment(
     fit_fn = getattr(policy, "fit", None)
     if callable(fit_fn):
         fit_fn(task.training_scenarios(), task)
-    metrics = task.evaluate_policy(policy, scenarios=task.validation_scenarios())
+    if report_dir is not None:
+        report_path = Path(report_dir)
+        if not report_path.is_absolute():
+            report_path = REPO_ROOT / report_path
+        metrics, artifact = task.evaluate_policy_with_telemetry(
+            policy,
+            scenarios=task.validation_scenarios(),
+            experiment_path=str(Path(experiment_path).resolve()),
+            policy_name=type(policy).__name__,
+        )
+        write_report_bundle(report_path, artifact)
+    else:
+        metrics = task.evaluate_policy(policy, scenarios=task.validation_scenarios())
     return {key: float(value) for key, value in metrics.items()}
 
 
@@ -73,10 +90,18 @@ def main() -> None:
         default="autoresearch/experiments/restaurant_train.py",
         help="Path to mutable experiment python file.",
     )
+    parser.add_argument(
+        "--report-dir",
+        type=str,
+        default=None,
+        help="Optional directory where run_artifact.json and report.html will be written.",
+    )
     args = parser.parse_args()
-    metrics = evaluate_experiment(args.experiment)
+    metrics = evaluate_experiment(args.experiment, report_dir=args.report_dir)
     print(_format_results_block(metrics))
     print(f"METRIC_JSON: {json.dumps(metrics, sort_keys=True)}")
+    if args.report_dir is not None:
+        print(f"REPORT_DIR: {Path(args.report_dir).resolve()}")
 
 
 if __name__ == "__main__":
