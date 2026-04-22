@@ -351,7 +351,7 @@ def _render_report_html(artifact: dict[str, Any]) -> str:
         eventIndex = eventIndex >= max ? 0 : eventIndex + 1;
         slider.value = eventIndex;
         renderCurrentEvent();
-      }}, 250);
+      }, 250);
     });
     stepButton.addEventListener('click', () => {
       const max = Number(slider.max);
