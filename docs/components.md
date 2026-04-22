@@ -7,6 +7,7 @@ autoresearch/
 ├── __init__.py
 ├── brief.py
 ├── frontier.py
+├── reporting.py
 ├── tasks.py
 └── experiments/
    ├── __init__.py
@@ -22,6 +23,7 @@ Exports:
 
 - `ResearchBrief`
 - `RestaurantInventoryTask`
+- `write_report_bundle(...)`
 - frontier helpers for branch, commit, revert, and `results.tsv`
 - `load_research_brief(...)`
 
@@ -48,6 +50,20 @@ Main APIs:
 - `append_result(...)`
 - `read_best_result(path)`
 
+## `autoresearch/reporting.py`
+
+Static post-run visualization and report generation.
+
+Main API:
+
+- `write_report_bundle(output_dir, artifact)`
+
+Responsibilities:
+
+- write `run_artifact.json`
+- render `report.html`
+- provide a CLI for rebuilding reports from saved artifacts
+
 ## `autoresearch/tasks.py`
 
 Contains the immutable restaurant simulation.
@@ -71,6 +87,8 @@ The task produces:
 
 It can also emit deterministic per-order telemetry and checkpoints for post-run analysis.
 
+Telemetry includes customer-order events, restock orders and arrivals, spoilage, holding cost, inventory snapshots, and cumulative cash for post-run replay.
+
 ## `autoresearch/experiments/restaurant_eval.py`
 
 Immutable evaluator entrypoint.
@@ -85,6 +103,8 @@ Responsibilities:
 - print `METRIC_JSON` for automation compatibility
 - optionally write `run_artifact.json` and `report.html`
 
+The evaluator can run in score-only mode or in report mode via `--report-dir`.
+
 ## `autoresearch/experiments/restaurant_train.py`
 
 Mutable benchmark file.
@@ -94,15 +114,7 @@ Responsibilities:
 - define `build_policy()`
 - return the policy under evaluation
 
-## `autoresearch/reporting.py`
-
-Static post-run report generator.
-
-Responsibilities:
-
-- write `run_artifact.json`
-- render `report.html`
-- rebuild the HTML report from a saved artifact
+The current contract expects a policy object with `decide_orders(...)` and optional `fit(...)`.
 
 ## `scripts/run_once.sh`
 

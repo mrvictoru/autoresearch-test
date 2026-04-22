@@ -136,6 +136,29 @@ This writes a deterministic `run_artifact.json` trace and a browser-openable `re
 
 If Docker cannot write into the mounted repository on your machine, use a writable path such as `/tmp/report` for a one-off inspection inside the container, or run Docker with a user mapping that can write to the workspace mount.
 
+## Visualizer workflow
+
+The saved run artifact is the source of truth for the visualizer. After a completed run, the report reader uses `run_artifact.json` to animate the event log and reconstruct the business state over time.
+
+What the visualizer shows:
+
+- individual customer orders as they arrive and resolve
+- which ingredients each order consumed when it was fulfilled
+- which ingredients caused a lost sale when stock was insufficient
+- inventory bars and aging/spoilage behavior across the run
+- cash flow, order cost, holding cost, waste cost, and stockout penalty trends
+- menu economics and ingredient-level business summaries
+
+How to use it:
+
+1. Run the evaluator with `--report-dir` so the artifact bundle is written.
+2. Open `report.html` in a browser.
+3. Use play, pause, and step controls to animate the log.
+4. Scrub the timeline to jump between events and checkpoints.
+5. Switch ingredients to inspect inventory history for a specific item.
+
+The visualizer is intentionally post-run analysis only. It does not affect the benchmark score or the keep/discard frontier.
+
 ## Docker
 
 The Docker image is configured for the same harness-only workflow.
