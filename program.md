@@ -115,6 +115,46 @@ Once the experiment loop begins, keep iterating until manually stopped.
 
 The expected operating model is unattended autonomous research, not a single-shot manual edit.
 
+## Exploration / Creativity on Plateau
+
+### Detecting a plateau
+
+Treat the current run as plateaued when **any** of the following is true:
+
+- No strict score improvement has been recorded for **5 or more consecutive kept attempts**.
+- The same candidate change has been tried (or an equivalent one) in **3 or more discarded attempts** without a new hypothesis.
+- Every recent attempt ends in a `crash` or `discard` with no clear direction for recovery.
+- Auxiliary diagnostics (service level, waste, stockout penalty) have all stopped moving in the desired direction across the last 5 attempts.
+
+### Permission to explore divergent strategies
+
+When a plateau is detected, **you are explicitly permitted — and encouraged — to try substantially different approaches**, even if they depart from the current best policy design.
+Do not keep refining the same parameter tweaks indefinitely.
+Treat the plateau as a signal to restructure the hypothesis space.
+
+### Concrete experimental tactics to try
+
+Try these tactics in roughly this order of increasing invasiveness; move to the next when the current class of changes stops yielding improvement:
+
+1. **Hyperparameter search** — sweep `safety_factor`, `freshness_bias`, `recent_demand_weight`, `hidden_layer_sizes`, `safety_margin`, oracle look-ahead window, learning rate, and regularization strength over a structured grid or random sample.
+2. **Hybrid rule-based + neural policy** — combine the `AdaptiveRestaurantPolicy` heuristic as a fallback or blended signal inside a neural wrapper: e.g. use the rule-based order as a prior and let a learned residual correct it. This captures the best of both worlds.
+3. **Alternative model architectures** — replace the MLP with gradient-boosted trees (sklearn `GradientBoostingRegressor`), a linear model with polynomial features, or a simple recurrent structure over the last N days of usage history.
+4. **Feature engineering** — add interaction terms, rolling statistics (mean, std over a sliding window), day-of-week × ingredient cross features, demand-trend slope, and capacity-pressure signals.
+5. **Alternative training targets** — instead of oracle future demand, train on actual fulfilled quantities, waste-weighted shortfall, or a composite reward that penalises both stockout and waste.
+6. **Reward / cost shaping** — re-weight the order cost, holding cost, waste cost, and stockout penalty multipliers inside the policy's loss signal to steer learning toward the benchmark's scoring formula.
+7. **Ablation studies** — isolate the contribution of individual components (e.g. disable freshness cap, remove weekday splitting, remove pipeline term) to understand which features drive score vs. which add noise.
+8. **Ensemble / voting policies** — run two or more policies in parallel (e.g. rule-based and neural) and blend their order suggestions, selecting the higher-confidence recommendation per ingredient.
+9. **Different search strategies** — instead of greedy keep-best, try a brief simulated-annealing step: accept a slightly worse score with low probability to escape a local optimum.
+
+### Guardrails during creative exploration
+
+- **Log every attempt** in `results.tsv`, including exploratory ones. Use the `explore` outcome tag (instead of `discard`) when an attempt is intentionally experimental rather than a straightforward incremental change, so plateau-breaking runs can be distinguished from normal iterations. An exploratory attempt that strictly improves the score should still be recorded as `keep`.
+- **Keep changes reversible** — each candidate must be a single commit that can be reverted cleanly. Do not stack unreviewed changes across multiple commits before evaluating.
+- **Timebox each tactic** — spend no more than **3 attempts** on any single new tactic before either adopting it (if it improved score) or moving on to the next tactic in the list above.
+- **Do not touch immutable files** — the evaluator, benchmark, and task definitions remain off-limits even during creative exploration. All changes stay within `autoresearch/experiments/restaurant_train.py`.
+- **Preserve the harness contract** — `build_policy()` must always return a valid `RestaurantPolicy` object. Every exploratory policy must pass the evaluator without crashing before being kept.
+- **Return to stable baseline if exploration fails** — if none of the tactics yield improvement after exhausting the list, revert to the best-known kept commit and document the plateau in `results.tsv` with an `explore_exhausted` note.
+
 ## Crash recovery
 
 1. Inspect the recent log tail.
