@@ -98,6 +98,45 @@ Immutable benchmark files:
 - `program.md`
 - `AGENTS.md`
 
+## Neural network support
+
+The Docker image ships with `numpy` and `scikit-learn` pre-installed.
+`restaurant_train.py` therefore supports MLP-based policies out of the box.
+
+`NeuralNetworkPolicy` (the default) trains a `sklearn.neural_network.MLPRegressor`
+on oracle-labelled rollouts generated from training-scenario frames:
+
+1. **Feature extraction** — cyclic day-of-week encoding, storage utilisation,
+   per-ingredient inventory / pipeline ratios, lead time, shelf life, cost signals.
+2. **Oracle labels** — for each training day the look-ahead demand over the
+   next `lead_time + 2` days is computed from future scenario frames; the
+   resulting order quantities become training targets.
+3. **Capacity post-processing** — MLP raw predictions are clipped to respect
+   per-ingredient and total storage hard limits before being returned.
+
+To switch policies, change the argument in `build_policy()`:
+
+```python
+# MLP policy (default)
+return REGISTRY.build("neural_network")
+
+# Rule-based heuristic fallback
+return REGISTRY.build("adaptive")
+
+# Custom MLP architecture
+return REGISTRY.build("neural_network", hidden_layer_sizes=(256, 128, 64))
+```
+
+To add an entirely new policy class, register it with the `REGISTRY`:
+
+```python
+REGISTRY.register("my_policy", MyCustomPolicy)
+return REGISTRY.build("my_policy")
+```
+
+All registered policies must implement `decide_orders(observation)` and may
+optionally implement `fit(scenarios, task)` for supervised pre-training.
+
 ## Machine-readable brief
 
 `research_brief_restaurant.json` and `research_brief_restaurant.yaml` provide the same restaurant contract in machine-readable form:

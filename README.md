@@ -6,6 +6,7 @@ An external coding agent owns the optimization loop. This repository provides:
 
 - immutable multi-item restaurant benchmark logic
 - mutable experiment code for the active inventory policy
+- neural network support via pre-installed `numpy` and `scikit-learn`
 - git-frontier helpers for keep/discard decisions
 - a single-run harness helper script
 - post-run telemetry artifacts and a static HTML report generator
