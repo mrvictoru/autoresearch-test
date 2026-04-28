@@ -429,9 +429,8 @@ def _record_worker_result(
         current_best = read_best_result(results_path)
         best_score = None if current_best is None else float(current_best["score"])
         decision = default_decision
-        message = non_keep_message.format(
-            best_score="" if best_score is None else best_score
-        )
+        rendered_best_score = "" if best_score is None else best_score
+        message = non_keep_message.format(best_score=rendered_best_score)
         if score is not None and (best_score is None or score > best_score):
             decision = "keep"
             message = keep_message
@@ -638,8 +637,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     add_idea_parser.add_argument("--rationale", required=True)
     add_idea_parser.add_argument("--author-role", default="planner")
 
-    review_parser = subparsers.add_parser("review", help="Review pending ideas for duplication.")
-    _ = review_parser
+    subparsers.add_parser("review", help="Review pending ideas for duplication.")
 
     add_memory_parser = subparsers.add_parser("add-memory", help="Record a durable memory note.")
     add_memory_parser.add_argument("--title", required=True)
