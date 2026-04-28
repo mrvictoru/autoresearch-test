@@ -19,6 +19,18 @@ from autoresearch.frontier import append_result, read_best_result
 
 
 class ControlPlaneTests(unittest.TestCase):
+    def _runner_command(self, score: float, service_level: float) -> list[str]:
+        return [
+            sys.executable,
+            "-c",
+            (
+                "print('--- RESULTS ---'); "
+                f"print('score {score}'); "
+                f"print('service_level {service_level}'); "
+                "print('METRIC_JSON: {}')"
+            ),
+        ]
+
     def _init_repo(self, root: Path) -> None:
         subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
         subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=root, check=True)
@@ -126,11 +138,7 @@ class ControlPlaneTests(unittest.TestCase):
                 root,
                 worker_id=keep_manifest["worker_id"],
                 message="keep candidate",
-                runner_command=[
-                    sys.executable,
-                    "-c",
-                    "print('--- RESULTS ---'); print('score 5.0'); print('service_level 0.5'); print('METRIC_JSON: {}')",
-                ],
+                runner_command=self._runner_command(5.0, 0.5),
             )
 
             self.assertEqual(kept["decision"], "keep")
@@ -156,11 +164,7 @@ class ControlPlaneTests(unittest.TestCase):
                 root,
                 worker_id=discard_manifest["worker_id"],
                 message="discard candidate",
-                runner_command=[
-                    sys.executable,
-                    "-c",
-                    "print('--- RESULTS ---'); print('score 4.0'); print('service_level 0.4'); print('METRIC_JSON: {}')",
-                ],
+                runner_command=self._runner_command(4.0, 0.4),
             )
 
             self.assertEqual(discarded["decision"], "discard")

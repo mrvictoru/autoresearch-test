@@ -436,6 +436,8 @@ def _record_worker_result(
         decision = default_decision
         rendered_best_score = "" if best_score is None else best_score
         message = non_keep_message.format(best_score=rendered_best_score)
+        # The restaurant frontier is score-maximizing, so a worker is promoted
+        # only when it beats the current best kept score.
         if score is not None and (best_score is None or score > best_score):
             decision = "keep"
             message = keep_message
