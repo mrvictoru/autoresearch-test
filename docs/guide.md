@@ -27,7 +27,9 @@ autoresearch/
    └── restaurant_train.py
 
 scripts/
-└── run_once.sh
+├── control_plane.sh
+├── run_once.sh
+└── run_worker.sh
 
 program.md
 AGENTS.md
@@ -47,6 +49,15 @@ research_brief_restaurant.yaml
 8. Keep only strict improvements; otherwise revert.
 
 `./scripts/run_once.sh` packages steps 4–8 into one atomic helper.
+
+For multi-agent operation, the repo also provides a local control plane:
+
+1. `./scripts/control_plane.sh init --max-workers N` creates repo-local state.
+2. Planner ideas are recorded with `add-idea` and screened with `review`.
+3. `launch-worker` creates one isolated git worktree per approved idea.
+4. The experiment worker edits only `autoresearch/experiments/restaurant_train.py` inside that worktree.
+5. `./scripts/run_worker.sh --worker-id ... --message ...` commits, evaluates, records the result in the shared `results.tsv`, and reverts discarded or crashed candidates.
+6. `status` summarizes active workers, recent results, and the best kept frontier entry.
 
 ## Copilot CLI workflow
 
@@ -82,6 +93,7 @@ Typical repo responsibilities in this workflow:
 - enforce the immutable evaluator contract in `autoresearch/experiments/restaurant_eval.py`
 - record frontier history in `results.tsv`
 - provide the atomic helper in `scripts/run_once.sh`
+- provide local control-plane coordination in `autoresearch/control_plane.py`
 
 ## Mutable and immutable files
 
@@ -169,6 +181,13 @@ Generate a post-run artifact bundle and static HTML report:
 docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
   --experiment autoresearch/experiments/restaurant_train.py \
   --report-dir artifacts/reports/latest
+```
+
+Initialize and inspect the control plane:
+
+```bash
+./scripts/control_plane.sh init --max-workers 2
+./scripts/control_plane.sh status
 ```
 
 This writes a deterministic `run_artifact.json` trace and a browser-openable `report.html` bundle for inspecting order flow, ingredient consumption, inventory behavior, and business metrics after the simulation completes.

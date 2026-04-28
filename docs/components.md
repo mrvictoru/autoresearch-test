@@ -6,6 +6,7 @@
 autoresearch/
 ├── __init__.py
 ├── brief.py
+├── control_plane.py
 ├── frontier.py
 ├── reporting.py
 ├── tasks.py
@@ -49,6 +50,29 @@ Main APIs:
 - `init_results_tsv(path)`
 - `append_result(...)`
 - `read_best_result(path)`
+
+## `autoresearch/control_plane.py`
+
+Local multi-agent orchestration helpers layered around the immutable benchmark.
+
+Main APIs:
+
+- `init_control_plane(...)`
+- `add_experiment_idea(...)`
+- `review_experiment_ideas(...)`
+- `launch_experiment_worker(...)`
+- `run_experiment_worker(...)`
+- `promote_experiment_worker(...)`
+- `cleanup_experiment_worker(...)`
+- `summarize_control_plane(...)`
+
+Responsibilities:
+
+- maintain repo-local campaign state in `research/state/`
+- deduplicate planner hypotheses against prior ideas and memory notes
+- create isolated git worktrees for experiment workers
+- run one worker attempt while keeping `results.tsv` as the shared frontier
+- report active/completed worker state and the current best score
 
 ## `autoresearch/reporting.py`
 
@@ -127,3 +151,27 @@ Responsibilities:
 - run the evaluator
 - record `keep`, `discard`, or `crash`
 - revert discarded/crashed commits
+
+## `scripts/control_plane.sh`
+
+Thin shell wrapper for `python -m autoresearch.control_plane`.
+
+Responsibilities:
+
+- initialize campaign state
+- add/review ideas
+- launch workers
+- summarize status
+- promote or clean up worker branches
+
+## `scripts/run_worker.sh`
+
+Worker-facing wrapper for the `run-worker` control-plane command.
+
+Responsibilities:
+
+- validate that only the mutable benchmark file changed
+- commit the candidate in the worker worktree
+- run the Docker evaluator
+- update `results.tsv`
+- revert discarded/crashed candidates

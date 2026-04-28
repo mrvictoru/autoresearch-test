@@ -179,19 +179,8 @@ def _build_evaluation_command(repo_root: Path, runner_command: Sequence[str] | N
 
 
 def _changed_tracked_files(repo_root: Path) -> list[str]:
-    output = _git(repo_root, "status", "--short")
-    changed: list[str] = []
-    for line in output.splitlines():
-        if not line:
-            continue
-        status = line[:2]
-        path_text = line[3:]
-        if status == "??":
-            continue
-        if " -> " in path_text:
-            path_text = path_text.split(" -> ", 1)[1]
-        changed.append(path_text)
-    return sorted(set(changed))
+    output = _git(repo_root, "diff", "--name-only", "--relative", "HEAD")
+    return sorted(path for path in output.splitlines() if path)
 
 
 def _validate_mutable_change_set(repo_root: Path, mutable_file: Path) -> None:
