@@ -261,7 +261,9 @@ def add_experiment_idea(
     init_control_plane(root)
     ideas = _load_ideas(root)
     slug = _slugify(title)
-    fingerprint = hashlib.sha1(f"{title}|{hypothesis}|{policy_family}".encode("utf-8")).hexdigest()[:8]
+    fingerprint = hashlib.sha256(
+        f"{title}|{hypothesis}|{policy_family}".encode("utf-8")
+    ).hexdigest()[:8]
     idea = {
         "idea_id": f"idea-{len(ideas) + 1:04d}-{slug[:20]}-{fingerprint}",
         "title": title,
@@ -297,7 +299,10 @@ def add_memory_note(
     init_control_plane(root)
     notes = _load_memory(root)
     note = {
-        "note_id": f"note-{len(notes) + 1:04d}-{hashlib.sha1(title.encode('utf-8')).hexdigest()[:8]}",
+        "note_id": (
+            f"note-{len(notes) + 1:04d}-"
+            f"{hashlib.sha256(title.encode('utf-8')).hexdigest()[:8]}"
+        ),
         "title": title,
         "body": body,
         "tags": list(tags or []),
@@ -374,7 +379,7 @@ def launch_experiment_worker(
     if idea.get("status") != "approved":
         raise ControlPlaneError(f"Idea {idea_id} is not launchable (status={idea.get('status')})")
     worker_slug = _slugify(idea["title"])[:24]
-    worker_hash = hashlib.sha1(f"{idea_id}|{_utcnow()}".encode("utf-8")).hexdigest()[:8]
+    worker_hash = hashlib.sha256(f"{idea_id}|{_utcnow()}".encode("utf-8")).hexdigest()[:8]
     worker_id = f"worker-{worker_slug}-{worker_hash}"
     branch = f"{campaign['control_plane']['worker_branch_prefix']}/{worker_id}"
     worktree_path = root / DEFAULT_WORKTREE_DIR / worker_id
