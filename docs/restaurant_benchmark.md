@@ -78,3 +78,14 @@ docker compose run --rm autoresearch python -m autoresearch.experiments.restaura
 ```bash
 ./scripts/run_once.sh "adjust restaurant inventory policy"
 ```
+
+Optional multi-agent control-plane flow:
+
+```bash
+./scripts/control_plane.sh init --max-workers 2
+./scripts/control_plane.sh review
+./scripts/control_plane.sh launch-worker --idea-id <idea-id>
+./scripts/run_worker.sh --worker-id <worker-id> --message "one hypothesis"
+```
+
+This wraps the same immutable evaluator with isolated git worktrees, shared `results.tsv` frontier tracking, and checked-in role contracts under `research/agents/`.

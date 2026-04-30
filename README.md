@@ -6,6 +6,7 @@ An external coding agent owns the optimization loop. This repository provides:
 
 - immutable multi-item restaurant benchmark logic
 - mutable experiment code for the active inventory policy
+- local multi-agent control-plane helpers for isolated worker orchestration
 - neural network support via pre-installed `numpy` and `scikit-learn`
 - git-frontier helpers for keep/discard decisions
 - a single-run harness helper script
@@ -25,11 +26,15 @@ Core files:
 - `program.md` — run protocol and mutable/immutable boundaries
 - `AGENTS.md` — harness operating notes
 - `scripts/run_once.sh` — atomic commit → evaluate → ledger → keep/discard helper
+- `scripts/control_plane.sh` — control-plane CLI for idea review, worker launch, and reporting
+- `scripts/run_worker.sh` — worker helper for one isolated benchmark attempt
 - `autoresearch/frontier.py` — git and `results.tsv` helpers
+- `autoresearch/control_plane.py` — planner/reviewer/worker/reporter coordination helpers
 - `autoresearch/tasks.py` — immutable restaurant environment with menu overlap, perishability, lead times, and storage limits
 - `autoresearch/experiments/restaurant_eval.py` — immutable evaluator entrypoint
 - `autoresearch/experiments/restaurant_train.py` — mutable policy implementation via `build_policy()`
 - `research_brief_restaurant.json` / `.yaml` — machine-readable benchmark contract
+- `research/agents/*.md` — checked-in role contracts for the local control plane
 
 ## Quick start
 
@@ -52,6 +57,36 @@ Run one harness attempt:
 ./scripts/run_once.sh "adjust restaurant inventory policy"
 ```
 
+Initialize the local control plane:
+
+```bash
+./scripts/control_plane.sh init --max-workers 2
+```
+
+Record and review hypotheses:
+
+```bash
+./scripts/control_plane.sh add-idea \
+  --title "Lead-time buffer tuning" \
+  --hypothesis "Increase safety stock on long lead ingredients" \
+  --policy-family "heuristic reorder tuning" \
+  --rationale "Reduce stockout penalties on delayed deliveries"
+./scripts/control_plane.sh review
+```
+
+Launch an isolated worker worktree and inspect status:
+
+```bash
+./scripts/control_plane.sh launch-worker --idea-id <idea-id>
+./scripts/control_plane.sh status
+```
+
+After a worker edits only `autoresearch/experiments/restaurant_train.py` inside its worktree, run the native benchmark flow for that worker:
+
+```bash
+./scripts/run_worker.sh --worker-id <worker-id> --message "test one hypothesis"
+```
+
 That helper:
 
 - commits tracked candidate changes
@@ -60,6 +95,8 @@ That helper:
 - appends the attempt to `results.tsv`
 - keeps only strict score improvements
 - reverts discarded or crashed candidates
+
+The control plane keeps `results.tsv` as the numeric frontier, stores worker state in `research/state/`, uses isolated git worktrees under `artifacts/control-plane/worktrees/`, and leaves the benchmark/evaluator stack unchanged.
 
 The benchmark score now reflects restaurant operating performance across fixed train and validation scenarios with overlapping ingredients, time-varying demand, perishability, supplier lead times, and storage constraints.
 

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autoresearch and Multi-Agent Autoresearch</title>
+  <style>
+    :root {
+      --bg: #081120;
+      --panel: rgba(11, 21, 39, 0.82);
+      --panel-strong: rgba(16, 30, 56, 0.95);
+      --text: #e8eefc;
+      --muted: #a8b7d8;
+      --accent: #7dd3fc;
+      --accent-2: #a78bfa;
+      --accent-3: #34d399;
+      --warn: #fbbf24;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.16), transparent 24%),
+        linear-gradient(160deg, #050b16 0%, #0a1427 48%, #07101d 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 3.5rem 4.25rem 4.75rem;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      opacity: 0;
+      transform: translateX(60px) scale(0.98);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      line-height: 1.02;
+      max-width: 12ch;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.08;
+      margin-bottom: 1rem;
+    }
+
+    .lede {
+      font-size: clamp(1.08rem, 1.7vw, 1.45rem);
+      line-height: 1.5;
+      color: var(--muted);
+      max-width: 70ch;
+    }
+
+    .hero,
+    .content-grid,
+    .two-col,
+    .steps,
+    .repo-grid,
+    .summary-grid {
+      display: grid;
+      gap: 1.25rem;
+      align-content: start;
+    }
+
+    .hero {
+      grid-template-columns: 1.15fr 0.85fr;
+      margin-top: 1.5rem;
+    }
+
+    .content-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 1.5rem;
+    }
+
+    .two-col,
+    .repo-grid,
+    .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 1.5rem;
+    }
+
+    .steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(168, 183, 216, 0.16);
+      border-radius: 24px;
+      padding: 1.2rem 1.25rem;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .card.strong { background: var(--panel-strong); }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.7rem;
+      color: #f8fbff;
+    }
+
+    .card p,
+    .card li,
+    .card code {
+      font-size: 0.98rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    li + li { margin-top: 0.45rem; }
+
+    .big-list li {
+      margin-top: 0.7rem;
+      font-size: 1.03rem;
+    }
+
+    .stat {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(125, 211, 252, 0.12);
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      color: #d8f4ff;
+      border-radius: 999px;
+      padding: 0.34rem 0.7rem;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .diagram {
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 0.4rem;
+    }
+
+    .diagram .node {
+      position: relative;
+      padding: 0.95rem 1rem;
+      border-radius: 18px;
+      background: rgba(11, 21, 39, 0.9);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      color: var(--text);
+    }
+
+    .diagram .node::after {
+      content: "↓";
+      position: absolute;
+      left: 50%;
+      bottom: -1.15rem;
+      transform: translateX(-50%);
+      color: rgba(232, 238, 252, 0.55);
+      font-size: 1.1rem;
+    }
+
+    .diagram .node:last-child::after { content: none; }
+
+    .callout {
+      border-left: 4px solid var(--accent-3);
+      padding-left: 1rem;
+      margin-top: 1rem;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .command {
+      background: rgba(4, 10, 20, 0.88);
+      border: 1px solid rgba(168, 183, 216, 0.14);
+      border-radius: 18px;
+      padding: 1rem;
+      font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: #dff6ff;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      color: rgba(232, 238, 252, 0.72);
+      font-size: 0.92rem;
+    }
+
+    .progress {
+      display: flex;
+      gap: 0.45rem;
+    }
+
+    .dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: rgba(232, 238, 252, 0.18);
+      border: 1px solid rgba(232, 238, 252, 0.2);
+    }
+
+    .dot.active { background: var(--accent); }
+
+    .accent { color: var(--accent); }
+    .accent-2 { color: var(--accent-2); }
+    .accent-3 { color: var(--accent-3); }
+    .warn { color: var(--warn); }
+
+    .small { font-size: 0.88rem; }
+
+    @media (max-width: 1100px) {
+      body { overflow: auto; }
+      .deck { height: auto; min-height: 100vh; }
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .hero,
+      .content-grid,
+      .two-col,
+      .repo-grid,
+      .summary-grid,
+      .steps { grid-template-columns: 1fr; }
+      .footer { margin-top: 1rem; }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111827;
+        overflow: visible;
+      }
+      .deck { height: auto; }
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        page-break-after: always;
+        opacity: 1 !important;
+        transform: none !important;
+        color: #111827;
+      }
+      .card, .command, .diagram .node {
+        background: #f8fafc;
+        color: #111827;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+      .card p, .card li, .lede, .footer { color: #334155; }
+      .pill { color: #0f172a; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+    <section class="slide active">
+      <header>
+        <div class="eyebrow">Autoresearch · Agent Harness · Restaurant Benchmark</div>
+        <h1>From <span class="accent">autoresearch</span> to <span class="accent-2">multi-agent autoresearch</span></h1>
+        <p class="lede">A plain-language walkthrough for people who want to use an agent harness without needing to track every recent LLM trend.</p>
+      </header>
+      <div class="hero">
+        <div class="card strong">
+          <h3>The simple idea</h3>
+          <p>Autoresearch treats model-assisted coding like a repeatable experiment loop:</p>
+          <ul class="big-list">
+            <li><span class="accent">Read the rules</span> of the benchmark.</li>
+            <li><span class="accent">Change one safe thing</span> in the allowed file.</li>
+            <li><span class="accent">Run the evaluator</span> the same way every time.</li>
+            <li><span class="accent">Keep only better results</span> and log everything else.</li>
+          </ul>
+          <div class="callout">You can think of it as <strong>scientific method for code changes</strong>: hypothesis → experiment → score → keep or discard.</div>
+        </div>
+        <div class="card">
+          <h3>Why people care</h3>
+          <ul>
+            <li>It reduces random trial-and-error.</li>
+            <li>It makes agent work auditable and reproducible.</li>
+            <li>It gives teams a way to let agents iterate without giving them unlimited freedom.</li>
+          </ul>
+          <div class="stat">
+            <span class="pill">Controlled edits</span>
+            <span class="pill">Repeatable scoring</span>
+            <span class="pill">History in <code>results.tsv</code></span>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Use arrow keys or space to move through slides.</span>
+        <div class="progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="eyebrow">Evolution</div>
+        <h2>Why it evolved into a <span class="accent-2">multi-agent</span> system</h2>
+        <p class="lede">Single-agent autoresearch is strong for one experiment at a time. Multi-agent autoresearch adds a control plane so several specialized assistants can coordinate safely.</p>
+      </header>
+      <div class="content-grid">
+        <div class="card">
+          <h3>Single-agent mode</h3>
+          <ul>
+            <li>One assistant proposes, edits, runs, and judges.</li>
+            <li>Works well for focused iteration.</li>
+            <li>Starts to bottleneck when you want parallel experiments or better review.</li>
+          </ul>
+        </div>
+        <div class="card strong">
+          <h3>Multi-agent mode</h3>
+          <ul>
+            <li><strong>Planner</strong> suggests hypotheses.</li>
+            <li><strong>Reviewer</strong> rejects duplicates or weak ideas.</li>
+            <li><strong>Experiment workers</strong> run isolated trials.</li>
+            <li><strong>Reporter + memory keeper</strong> summarize progress and record lessons.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>What changed in practice</h3>
+          <ul>
+            <li>The benchmark stayed the same.</li>
+            <li>The orchestration around it became smarter.</li>
+            <li>Worktrees let many workers edit the same mutable file without collisions.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Key mental model</h3>
+          <p>“Agent” here does <em>not</em> mean magic intelligence. It means a tool-driven helper with a narrow job, explicit rules, and a clear handoff.</p>
+        </div>
+        <div class="card">
+          <h3>Why this matters to non-experts</h3>
+          <p>You do not need to understand every model family. The important part is the <span class="accent-3">operating system around the agents</span>: permissions, isolation, logging, and evaluation discipline.</p>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Multi-agent autoresearch = specialized helpers around one shared benchmark.</span>
+        <div class="progress"><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="eyebrow">This repository</div>
+        <h2>How the code in <span class="accent">this repo</span> works</h2>
+        <p class="lede">This repository is intentionally narrow: it is a harness-only restaurant inventory benchmark with a fixed simulator, a fixed evaluator, and one approved place for experiment changes.</p>
+      </header>
+      <div class="repo-grid">
+        <div class="card strong">
+          <h3>Benchmark core</h3>
+          <div class="diagram">
+            <div class="node"><strong><code>autoresearch/tasks.py</code></strong><br/>Immutable restaurant simulator: demand, perishability, lead times, storage limits, shared ingredients.</div>
+            <div class="node"><strong><code>autoresearch/experiments/restaurant_eval.py</code></strong><br/>Immutable evaluator: loads the policy, optionally fits it, runs the task, prints metrics.</div>
+            <div class="node"><strong><code>autoresearch/experiments/restaurant_train.py</code></strong><br/>Mutable policy file: the experiment surface. It must expose <code>build_policy()</code>.</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Control plane and bookkeeping</h3>
+          <ul>
+            <li><code>autoresearch/frontier.py</code>: manages branch, commit, revert, and <code>results.tsv</code>.</li>
+            <li><code>autoresearch/control_plane.py</code>: planner/reviewer/worker/reporter helpers.</li>
+            <li><code>scripts/run_once.sh</code>: one atomic experiment attempt.</li>
+            <li><code>scripts/control_plane.sh</code>: local multi-agent CLI.</li>
+            <li><code>scripts/run_worker.sh</code>: runs one isolated worker attempt.</li>
+          </ul>
+          <div class="callout">The design goal is <strong>control-plane upgrade, not benchmark rewrite</strong>.</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>What stays fixed</h3>
+          <ul>
+            <li>Docker-first execution path</li>
+            <li>Evaluator contract and metric format</li>
+            <li>Restaurant simulation rules</li>
+            <li><code>results.tsv</code> as the frontier ledger</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>What changes during research</h3>
+          <ul>
+            <li>The policy logic in <code>restaurant_train.py</code></li>
+            <li>Hypotheses in the local control plane</li>
+            <li>Worker notes, logs, and kept/discarded outcomes</li>
+          </ul>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>In short: the repo gives agents a safe playground with strong boundaries.</span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="eyebrow">Usage</div>
+        <h2>How to use this repo with an <span class="accent-3">agent harness</span></h2>
+        <p class="lede">The workflow is intentionally repetitive. That is a feature, not a bug: it keeps experiments comparable and easy to audit.</p>
+      </header>
+      <div class="steps">
+        <div class="card">
+          <h3>1. Read the rules</h3>
+          <p>Start with <code>program.md</code>, <code>README.md</code>, and <code>docs/guide.md</code> so the agent knows what is mutable and what is not.</p>
+        </div>
+        <div class="card">
+          <h3>2. Run the baseline</h3>
+          <p>Run the evaluator before changing anything so the agent has a reference score and known-good behavior.</p>
+        </div>
+        <div class="card">
+          <h3>3. Try one change</h3>
+          <p>Edit only <code>autoresearch/experiments/restaurant_train.py</code> for benchmark experiments.</p>
+        </div>
+        <div class="card strong">
+          <h3>4. Keep or discard</h3>
+          <p>Run the evaluator, parse the score, append to <code>results.tsv</code>, and keep only strict improvements.</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Useful commands</h3>
+          <div class="command">docker compose run --rm autoresearch python -m unittest discover -s tests -v
+
+docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py
+
+./scripts/run_once.sh "short experiment note"</div>
+        </div>
+        <div class="card">
+          <h3>Multi-agent control plane commands</h3>
+          <div class="command">./scripts/control_plane.sh init --max-workers 2
+./scripts/control_plane.sh add-idea --title "Lead-time buffer" \
+  --hypothesis "Increase safety stock for long lead ingredients" \
+  --policy-family "heuristic reorder tuning" \
+  --rationale "Reduce stockout penalties"
+./scripts/control_plane.sh review
+./scripts/control_plane.sh launch-worker --idea-id &lt;idea-id&gt;
+./scripts/run_worker.sh --worker-id &lt;worker-id&gt; --message "test one hypothesis"
+./scripts/control_plane.sh status</div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Small controlled loops beat big untracked changes.</span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header>
+        <div class="eyebrow">Takeaways</div>
+        <h2>What to remember</h2>
+        <p class="lede">If you are new to agent harnesses, the most important lesson is that success usually comes from good process design, not from chasing the newest model buzzword.</p>
+      </header>
+      <div class="summary-grid">
+        <div class="card strong">
+          <h3>Autoresearch in one sentence</h3>
+          <p>Use agents to run disciplined, logged, score-driven software experiments.</p>
+          <h3 style="margin-top: 1rem;">Multi-agent autoresearch in one sentence</h3>
+          <p>Split that loop into specialized roles so multiple experiments can be proposed, reviewed, executed, and summarized safely.</p>
+        </div>
+        <div class="card">
+          <h3>Why this repo is a good teaching example</h3>
+          <ul>
+            <li>It has a clear boundary between mutable and immutable code.</li>
+            <li>It uses Docker for repeatability.</li>
+            <li>It keeps a plain-text frontier ledger.</li>
+            <li>It shows how a control plane can grow around a stable benchmark.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>Best audience takeaway</h3>
+          <p>You do not need “AI magic.” You need a workflow that makes automated changes <span class="accent">safe to try</span>, <span class="accent-2">easy to compare</span>, and <span class="accent-3">cheap to reject</span>.</p>
+        </div>
+        <div class="card">
+          <h3>Open this file locally</h3>
+          <p class="small">Path: <code>/home/runner/work/autoresearch-test/autoresearch-test/docs/autoresearch_agent_harness_slides.html</code></p>
+          <p class="small">It is fully self-contained: no external CSS, JavaScript, fonts, or images.</p>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>End of deck.</span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+      </footer>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const dotsPerSlide = slides.map((slide) => Array.from(slide.querySelectorAll('.dot')));
+      let index = 0;
+
+      const render = () => {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === index);
+          const deckDots = dotsPerSlide[i] || [];
+          deckDots.forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === index));
+        });
+      };
+
+      const next = () => {
+        index = Math.min(index + 1, slides.length - 1);
+        render();
+      };
+
+      const previous = () => {
+        index = Math.max(index - 1, 0);
+        render();
+      };
+
+      document.addEventListener('keydown', (event) => {
+        if (window.innerWidth <= 1100) return;
+        if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+          event.preventDefault();
+          next();
+        }
+        if (["ArrowLeft", "PageUp"].includes(event.key)) {
+          event.preventDefault();
+          previous();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (window.innerWidth <= 1100) return;
+        const leftHalf = event.clientX < window.innerWidth / 2;
+        if (leftHalf) {
+          previous();
+        } else {
+          next();
+        }
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

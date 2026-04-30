@@ -76,9 +76,19 @@ The evaluator should be able to run unattended from Docker and should write repo
 3. Commit the candidate state.
 4. Run the immutable evaluator.
 5. Parse `score` from stdout.
-6. Append the attempt to `results.tsv`.
-7. Keep only strict improvements; otherwise revert.
-8. Repeat the loop without asking the human whether to continue.
+6. **Inspect policy behavior** — before deciding keep/discard, analyse what the policy actually did:
+   - Which ingredients were stockedout most frequently? Which menu items lost the most orders?
+   - Which ingredients accumulated the most waste, and why (over-ordering, short shelf life)?
+   - What was the average order quantity per ingredient vs. daily consumption rate?
+   - Did the policy respond correctly to demand spikes (weekends, late-horizon days)?
+   - Was holding cost driven by over-ordering on long-shelf-life items or by pipeline blind spots?
+   - Did the pipeline (in-transit orders) cause the policy to under-order or over-order?
+   - **Capacity-budget check**: did any ingredient receive a clipped order (the policy requested more than the simulator delivered)? If so, which ingredients were crowded out, and which over-stocked items consumed the available global capacity? Use this to identify ingredients the policy should order less of to free space for at-risk items.
+   Use the auxiliary metrics (`service_level`, `waste_cost`, `holding_cost`, `stockout_penalty`) and any available trace/log output to build this picture.
+7. Append the attempt to `results.tsv`. Include a short behavioral note in the `notes` field (e.g. `"tomato stockout 40% days; lettuce waste high"`).
+8. **Base the next hypothesis on the behavioral inspection**, not just on score direction. If stockout_penalty is the dominant cost, investigate which ingredients and fix the ordering logic for them. If waste_cost is dominant, tighten safety stock for the offending perishables. If holding_cost is dominant, reduce the safety factor for long-shelf-life items.
+9. Keep only strict improvements; otherwise revert.
+10. Repeat the loop without asking the human whether to continue.
 
 Within `autoresearch/experiments/restaurant_train.py`, you may change the policy logic, features, heuristics, and optional training procedure. Do not change evaluator or benchmark files during normal research iterations.
 
@@ -155,7 +165,20 @@ Try these tactics in roughly this order of increasing invasiveness; move to the 
 - **Preserve the harness contract** — `build_policy()` must always return a valid `RestaurantPolicy` object. Every exploratory policy must pass the evaluator without crashing before being kept.
 - **Return to stable baseline if exploration fails** — if none of the tactics yield improvement after exhausting the list, revert to the best-known kept commit and document the plateau in `results.tsv` with an `explore_exhausted` note.
 
-## Crash recovery
+## Capacity budgeting awareness
+
+The simulator's `_normalize_orders` loop caps orders against a shared global storage capacity. Orders are processed ingredient by ingredient; any ingredient whose combined on-hand + pipeline stock is low relative to its `max_storage_units` cap is served first (urgency-first ordering). Despite this, the global cap can still silently clip your requests when the warehouse is nearly full.
+
+When writing a policy, always self-budget before submitting orders:
+
+1. Compute available global space: `free = total_storage_capacity - current_storage_units - sum(incoming_pipeline.values())`.
+2. For each ingredient, compute a shortfall: how many units are needed to reach a safe target (lead_time × daily_usage × safety_factor), minus what is already on hand and in the pipeline.
+3. If the sum of all shortfalls exceeds `free`, scale each ingredient's request proportionally by its shortfall — lowest-coverage ingredients first — rather than requesting the full target for every ingredient at once.
+4. Requesting far more than `free` for any single ingredient leaves no room for other critical ingredients.
+
+Ignoring this budget means the simulator may silently zero out orders for the most critical items while fulfilling requests for already well-stocked items.
+
+
 
 1. Inspect the recent log tail.
 2. Retry once if the failure is trivial.
