@@ -36,6 +36,7 @@ from autoresearch.tasks import (
     RestaurantObservation,
     RestaurantPolicy,
     RestaurantScenario,
+    _average_recent_maps,
 )
 
 # ---------------------------------------------------------------------------
@@ -51,10 +52,16 @@ class AdaptiveRestaurantPolicy(RestaurantPolicy):
         safety_factor: float = 1.35,
         freshness_bias: float = 0.95,
         recent_demand_weight: float = 0.35,
+        ingredient_safety_multipliers: dict[str, float] | None = None,
+        ingredient_freshness_multipliers: dict[str, float] | None = None,
+        ingredient_priority_multipliers: dict[str, float] | None = None,
     ) -> None:
         self.safety_factor = safety_factor
         self.freshness_bias = freshness_bias
         self.recent_demand_weight = recent_demand_weight
+        self.ingredient_safety_multipliers = dict(ingredient_safety_multipliers or {})
+        self.ingredient_freshness_multipliers = dict(ingredient_freshness_multipliers or {})
+        self.ingredient_priority_multipliers = dict(ingredient_priority_multipliers or {})
         self.average_usage_by_weekday: dict[int, dict[str, float]] = {}
         self.global_average_usage: dict[str, float] = {}
 
@@ -98,41 +105,43 @@ class AdaptiveRestaurantPolicy(RestaurantPolicy):
         }
 
     def decide_orders(self, observation: RestaurantObservation) -> dict[str, int]:
-        current_total = observation.current_storage_units + sum(observation.incoming_pipeline.values())
-        remaining_total_capacity = max(0, observation.total_storage_capacity - current_total)
         recent_usage = observation.recent_ingredient_usage
         learned_usage = self.average_usage_by_weekday.get(
             observation.day_of_week,
             self.global_average_usage,
         )
-        orders: dict[str, int] = {}
-        for ingredient_name, spec in sorted(
-            observation.ingredient_specs.items(),
-            key=lambda item: item[1].lead_time_days,
-            reverse=True,
-        ):
+        desired_orders: dict[str, float] = {}
+        for ingredient_name, spec in observation.ingredient_specs.items():
             baseline_daily = learned_usage.get(ingredient_name, self.global_average_usage.get(ingredient_name, 0.0))
             observed_daily = recent_usage.get(ingredient_name, baseline_daily)
             blended_daily = (
                 (1.0 - self.recent_demand_weight) * baseline_daily
                 + self.recent_demand_weight * observed_daily
             )
+            safety_multiplier = self.ingredient_safety_multipliers.get(ingredient_name, 1.0)
+            freshness_multiplier = self.ingredient_freshness_multipliers.get(ingredient_name, 1.0)
             coverage_days = max(1.0, float(spec.lead_time_days + 1))
-            target_stock = blended_daily * coverage_days + self.safety_factor * math.sqrt(max(1.0, blended_daily))
-            freshness_cap = blended_daily * max(1.0, (spec.shelf_life_days - 0.25) * self.freshness_bias)
+            target_stock = (
+                blended_daily * coverage_days
+                + (self.safety_factor * safety_multiplier) * math.sqrt(max(1.0, blended_daily))
+            )
+            freshness_cap = (
+                blended_daily
+                * max(1.0, (spec.shelf_life_days - 0.25) * self.freshness_bias * freshness_multiplier)
+            )
             desired_units = min(spec.max_storage_units, int(round(max(target_stock, freshness_cap))))
-            available_units = observation.inventory_on_hand.get(ingredient_name, 0) + observation.incoming_pipeline.get(ingredient_name, 0)
+            available_units = (
+                observation.inventory_on_hand.get(ingredient_name, 0)
+                + observation.incoming_pipeline.get(ingredient_name, 0)
+            )
             shortage = max(0, desired_units - available_units)
-            if shortage <= 0 or remaining_total_capacity <= 0:
-                continue
-            order_multiple = max(1, spec.order_multiple)
-            suggested = int(math.ceil(shortage / order_multiple) * order_multiple)
-            allowed = min(suggested, spec.max_storage_units - available_units, remaining_total_capacity)
-            if allowed <= 0:
-                continue
-            orders[ingredient_name] = allowed
-            remaining_total_capacity = max(0, remaining_total_capacity - allowed)
-        return orders
+            if shortage > 0:
+                desired_orders[ingredient_name] = float(shortage)
+        return _budget_order_requests(
+            observation,
+            desired_orders,
+            priority_multipliers=self.ingredient_priority_multipliers,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -177,6 +186,114 @@ def _extract_features(
             float(spec.waste_cost) / 5.0,
         ])
     return features
+
+
+def _extract_features_with_reference_orders(
+    observation: RestaurantObservation,
+    ingredient_names: list[str],
+    reference_orders: dict[str, int],
+) -> list[float]:
+    features = _extract_features(observation, ingredient_names)
+    for name in ingredient_names:
+        spec = observation.ingredient_specs[name]
+        features.append(reference_orders.get(name, 0) / max(1, spec.max_storage_units))
+    return features
+
+
+def _budget_order_requests(
+    observation: RestaurantObservation,
+    desired_orders: dict[str, float],
+    *,
+    priority_multipliers: dict[str, float] | None = None,
+) -> dict[str, int]:
+    current_total = observation.current_storage_units + sum(observation.incoming_pipeline.values())
+    free_capacity = max(0, observation.total_storage_capacity - current_total)
+    if free_capacity <= 0:
+        return {}
+    priorities = priority_multipliers or {}
+    prepared: list[dict[str, float | int | str]] = []
+    total_requested = 0
+    for ingredient_name, requested_raw in desired_orders.items():
+        spec = observation.ingredient_specs[ingredient_name]
+        available = (
+            observation.inventory_on_hand.get(ingredient_name, 0)
+            + observation.incoming_pipeline.get(ingredient_name, 0)
+        )
+        headroom = max(0, spec.max_storage_units - available)
+        if headroom <= 0:
+            continue
+        order_multiple = max(1, spec.order_multiple)
+        requested_units = max(0, int(round(float(requested_raw))))
+        if requested_units <= 0:
+            continue
+        full_request = min(headroom, requested_units)
+        if order_multiple > 1:
+            full_request = min(headroom, int(math.ceil(full_request / order_multiple) * order_multiple))
+        if full_request <= 0:
+            continue
+        target_units = available + full_request
+        coverage_ratio = available / max(1.0, float(target_units))
+        weight = full_request * (2.0 - min(1.0, coverage_ratio)) * priorities.get(ingredient_name, 1.0)
+        prepared.append(
+            {
+                "name": ingredient_name,
+                "request": full_request,
+                "headroom": headroom,
+                "order_multiple": order_multiple,
+                "coverage_ratio": coverage_ratio,
+                "weight": weight,
+            }
+        )
+        total_requested += full_request
+    if not prepared:
+        return {}
+    ordered_prepared = sorted(
+        prepared,
+        key=lambda item: (
+            float(item["coverage_ratio"]),
+            -int(item["request"]),
+            str(item["name"]),
+        ),
+    )
+    if total_requested <= free_capacity:
+        return {str(item["name"]): int(item["request"]) for item in ordered_prepared}
+
+    total_weight = sum(float(item["weight"]) for item in ordered_prepared) or float(len(ordered_prepared))
+    orders = {str(item["name"]): 0 for item in ordered_prepared}
+    remaining = free_capacity
+
+    for item in ordered_prepared:
+        step = int(item["order_multiple"])
+        proportional_share = free_capacity * float(item["weight"]) / total_weight
+        capped_share = min(float(item["request"]), proportional_share)
+        if step == 1:
+            allocated = min(int(item["request"]), int(round(capped_share)), remaining)
+        else:
+            allocated = min(int(item["request"]), int(capped_share // step) * step, remaining)
+        if allocated <= 0:
+            continue
+        orders[str(item["name"])] = allocated
+        remaining -= allocated
+
+    while remaining > 0:
+        progress = False
+        for item in ordered_prepared:
+            name = str(item["name"])
+            step = int(item["order_multiple"])
+            outstanding = int(item["request"]) - orders[name]
+            if outstanding <= 0 or step > remaining:
+                continue
+            increment = min(step, outstanding, remaining)
+            if step > 1 and increment < step:
+                continue
+            orders[name] += increment
+            remaining -= increment
+            progress = True
+            if remaining <= 0:
+                break
+        if not progress:
+            break
+    return {name: quantity for name, quantity in orders.items() if quantity > 0}
 
 
 def _oracle_orders_for_day(
@@ -443,39 +560,209 @@ class NeuralNetworkPolicy(RestaurantPolicy):
         X_scaled = self._scaler.transform(X)
         raw: list[float] = self._model.predict(X_scaled)[0].tolist()
 
-        # Apply safety margin then enforce capacity hard constraints
-        current_total = (
-            observation.current_storage_units
-            + sum(observation.incoming_pipeline.values())
-        )
-        remaining_capacity = max(0, observation.total_storage_capacity - current_total)
+        desired_orders = {
+            name: max(0.0, float(raw[index])) * (1.0 + self.safety_margin)
+            for index, name in enumerate(self.ingredient_names)
+        }
+        return _budget_order_requests(observation, desired_orders)
 
-        orders: dict[str, int] = {}
-        # Process in descending lead-time order (same as evaluator's _normalize_orders)
-        sorted_ingredients = sorted(
-            self.ingredient_names,
-            key=lambda n: observation.ingredient_specs[n].lead_time_days,
-            reverse=True,
+
+class RewardShapedNeuralPolicy(NeuralNetworkPolicy):
+    """Train an MLP on reward-shaped residual targets over a strong heuristic baseline."""
+
+    def __init__(
+        self,
+        *,
+        hidden_layer_sizes: tuple[int, ...] = (96, 48),
+        max_iter: int = 400,
+        random_state: int = 42,
+        oracle_mix: float = 0.45,
+        shortage_bonus: float = 0.9,
+        waste_aversion: float = 0.35,
+        base_policy_kwargs: dict[str, float | dict[str, float]] | None = None,
+    ) -> None:
+        super().__init__(
+            hidden_layer_sizes=hidden_layer_sizes,
+            max_iter=max_iter,
+            random_state=random_state,
+            safety_margin=0.0,
         )
-        for name in sorted_ingredients:
-            spec = observation.ingredient_specs[name]
-            idx = self.ingredient_names.index(name)
-            predicted = max(0.0, float(raw[idx])) * (1.0 + self.safety_margin)
-            available = (
-                observation.inventory_on_hand.get(name, 0)
-                + observation.incoming_pipeline.get(name, 0)
-            )
-            headroom = spec.max_storage_units - available
-            if headroom <= 0 or remaining_capacity <= 0:
-                continue
-            order_multiple = max(1, spec.order_multiple)
-            suggested = int(math.ceil(predicted / order_multiple) * order_multiple)
-            allowed = min(suggested, headroom, remaining_capacity)
-            if allowed <= 0:
-                continue
-            orders[name] = allowed
-            remaining_capacity -= allowed
-        return orders
+        self.oracle_mix = oracle_mix
+        self.shortage_bonus = shortage_bonus
+        self.waste_aversion = waste_aversion
+        self.base_policy_kwargs = dict(base_policy_kwargs or {})
+        self._fallback = AdaptiveRestaurantPolicy(**self.base_policy_kwargs)
+
+    def fit(
+        self,
+        scenarios: Sequence[RestaurantScenario],
+        task: RestaurantInventoryTask,
+    ) -> None:
+        try:
+            import numpy as np
+            from sklearn.neural_network import MLPRegressor
+            from sklearn.preprocessing import StandardScaler
+        except ImportError as exc:
+            raise RuntimeError(
+                "RewardShapedNeuralPolicy requires numpy and scikit-learn.  "
+                "Install them with: pip install numpy scikit-learn"
+            ) from exc
+
+        self._fallback.fit(scenarios, task)
+        self.ingredient_names = sorted(spec.name for spec in task.ingredients)
+        ingredient_specs = {spec.name: spec for spec in task.ingredients}
+
+        X_rows: list[list[float]] = []
+        y_rows: list[list[float]] = []
+
+        for scenario in scenarios:
+            inventory_on_hand = {
+                spec.name: max(8, spec.max_storage_units // 3)
+                for spec in task.ingredients
+            }
+            incoming_pipeline: dict[int, dict[str, int]] = {}
+            frames_by_day: dict[int, list[dict[str, int]]] = {}
+            recent_item_demands: list[dict[str, int]] = []
+            recent_ingredient_usage: list[dict[str, int]] = []
+            for frame in scenario.frames:
+                frames_by_day.setdefault(frame.day_index, []).append(frame.demand_by_item)
+
+            for day_index in range(scenario.days):
+                arriving = incoming_pipeline.pop(day_index, {})
+                for name, quantity in arriving.items():
+                    inventory_on_hand[name] = inventory_on_hand.get(name, 0) + quantity
+
+                pipeline_totals: dict[str, int] = {}
+                for deliveries in incoming_pipeline.values():
+                    for name, quantity in deliveries.items():
+                        pipeline_totals[name] = pipeline_totals.get(name, 0) + quantity
+
+                observation = RestaurantObservation(
+                    day_index=day_index,
+                    day_of_week=day_index % 7,
+                    inventory_on_hand=dict(inventory_on_hand),
+                    incoming_pipeline=dict(pipeline_totals),
+                    recent_item_demand=_average_recent_maps(recent_item_demands),
+                    recent_ingredient_usage=_average_recent_maps(recent_ingredient_usage),
+                    ingredient_specs=ingredient_specs,
+                    menu_items={item.name: item for item in task.menu_items},
+                    current_storage_units=sum(inventory_on_hand.values()),
+                    total_storage_capacity=task.total_storage_capacity,
+                )
+                base_orders = self._fallback.decide_orders(observation)
+                oracle_orders = _oracle_orders_for_day(
+                    day_index=day_index,
+                    scenario=scenario,
+                    ingredient_specs=ingredient_specs,
+                    task=task,
+                    inventory_on_hand=dict(inventory_on_hand),
+                    incoming_pipeline=dict(pipeline_totals),
+                    total_storage_capacity=task.total_storage_capacity,
+                )
+                desired_orders: dict[str, float] = {}
+                for ingredient_name, spec in ingredient_specs.items():
+                    base_order = float(base_orders.get(ingredient_name, 0))
+                    oracle_order = float(oracle_orders.get(ingredient_name, 0))
+                    available = inventory_on_hand.get(ingredient_name, 0) + pipeline_totals.get(ingredient_name, 0)
+                    recent_usage = observation.recent_ingredient_usage.get(ingredient_name, 0.0)
+                    forecast_cover = recent_usage * max(1.0, float(spec.lead_time_days + 1))
+                    reward_target = max(oracle_order, forecast_cover)
+                    shaped_order = (1.0 - self.oracle_mix) * base_order + self.oracle_mix * reward_target
+                    shaped_order += self.shortage_bonus * max(0.0, oracle_order - base_order)
+                    if spec.shelf_life_days <= 3:
+                        shaped_order -= self.waste_aversion * max(0.0, base_order - oracle_order)
+                    desired_orders[ingredient_name] = max(0.0, shaped_order)
+                target_orders = _budget_order_requests(
+                    observation,
+                    desired_orders,
+                    priority_multipliers=self._fallback.ingredient_priority_multipliers,
+                )
+                X_rows.append(
+                    _extract_features_with_reference_orders(
+                        observation,
+                        self.ingredient_names,
+                        base_orders,
+                    )
+                )
+                y_rows.append([float(target_orders.get(name, 0)) for name in self.ingredient_names])
+
+                for ingredient_name, quantity in target_orders.items():
+                    spec = ingredient_specs[ingredient_name]
+                    arrival_day = day_index + spec.lead_time_days
+                    day_pipeline = incoming_pipeline.setdefault(arrival_day, {})
+                    day_pipeline[ingredient_name] = day_pipeline.get(ingredient_name, 0) + quantity
+
+                daily_frames = frames_by_day.get(day_index, [])
+                combined_demand: dict[str, int] = {}
+                for demand_by_item in daily_frames:
+                    for item_name, quantity in demand_by_item.items():
+                        combined_demand[item_name] = combined_demand.get(item_name, 0) + quantity
+                usage = task.ingredient_usage_from_demand(combined_demand)
+                consumed_usage = {spec.name: 0 for spec in task.ingredients}
+                for ingredient_name, used in usage.items():
+                    available = inventory_on_hand.get(ingredient_name, 0)
+                    consumed = min(available, used)
+                    inventory_on_hand[ingredient_name] = max(0, available - consumed)
+                    consumed_usage[ingredient_name] = consumed
+                for spec in task.ingredients:
+                    on_hand = inventory_on_hand.get(spec.name, 0)
+                    daily_decay = on_hand // max(1, spec.shelf_life_days)
+                    inventory_on_hand[spec.name] = max(0, on_hand - daily_decay)
+                recent_item_demands.append(combined_demand)
+                recent_ingredient_usage.append(consumed_usage)
+                if len(recent_item_demands) > 5:
+                    recent_item_demands.pop(0)
+                if len(recent_ingredient_usage) > 5:
+                    recent_ingredient_usage.pop(0)
+
+        if not X_rows:
+            return
+
+        X = np.array(X_rows, dtype=float)
+        y = np.array(y_rows, dtype=float)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        model = MLPRegressor(
+            hidden_layer_sizes=self.hidden_layer_sizes,
+            activation="relu",
+            solver="adam",
+            max_iter=self.max_iter,
+            random_state=self.random_state,
+            early_stopping=True,
+            validation_fraction=0.15,
+            n_iter_no_change=20,
+            tol=1e-4,
+        )
+        model.fit(X_scaled, y)
+        self._scaler = scaler
+        self._model = model
+        self._trained = True
+
+    def decide_orders(self, observation: RestaurantObservation) -> dict[str, int]:
+        if not self._trained or self._model is None or self._scaler is None:
+            return self._fallback.decide_orders(observation)
+        try:
+            import numpy as np
+        except ImportError:
+            return self._fallback.decide_orders(observation)
+        base_orders = self._fallback.decide_orders(observation)
+        features = _extract_features_with_reference_orders(
+            observation,
+            self.ingredient_names,
+            base_orders,
+        )
+        X = np.array([features], dtype=float)
+        X_scaled = self._scaler.transform(X)
+        raw: list[float] = self._model.predict(X_scaled)[0].tolist()
+        desired_orders = {
+            name: max(0.0, float(raw[index]))
+            for index, name in enumerate(self.ingredient_names)
+        }
+        return _budget_order_requests(
+            observation,
+            desired_orders,
+            priority_multipliers=self._fallback.ingredient_priority_multipliers,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -489,6 +776,7 @@ class _PolicyRegistry:
         self._factories: dict[str, type[RestaurantPolicy]] = {
             "adaptive": AdaptiveRestaurantPolicy,
             "neural_network": NeuralNetworkPolicy,
+            "reward_shaped_neural": RewardShapedNeuralPolicy,
         }
 
     def register(self, name: str, policy_class: type[RestaurantPolicy]) -> None:
@@ -519,11 +807,12 @@ def build_policy() -> RestaurantPolicy:
 
         REGISTRY.build("neural_network")   — MLP policy (default)
         REGISTRY.build("adaptive")         — rule-based heuristic
+        REGISTRY.build("reward_shaped_neural") — reward-shaped residual MLP
         REGISTRY.build("neural_network", hidden_layer_sizes=(256, 128, 64))
     """
     return REGISTRY.build(
         "adaptive",
-        safety_factor=1.8,
-        freshness_bias=0.7,
-        recent_demand_weight=0.55,
+        safety_factor=1.75,
+        freshness_bias=0.50,
+        recent_demand_weight=0.72,
     )
