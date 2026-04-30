@@ -4,6 +4,12 @@
 
 This repository supports a single workflow: an external harness iteratively edits `autoresearch/experiments/restaurant_train.py` and evaluates it against an immutable restaurant benchmark.
 
+Recent autoresearch run:
+
+- branch: `autoresearch/20260430-start`
+- best kept score: `3866.29`
+- report artifacts: `artifacts/reports/best-20260430-service-cashflow/`
+
 The benchmark models:
 
 - menu items sharing ingredients

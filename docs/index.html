@@ -6,42 +6,72 @@
   <title>Autoresearch and Multi-Agent Autoresearch</title>
   <style>
     :root {
-      --bg: #081120;
-      --panel: rgba(11, 21, 39, 0.82);
-      --panel-strong: rgba(16, 30, 56, 0.95);
-      --text: #e8eefc;
-      --muted: #a8b7d8;
+      --bg: #050816;
+      --panel: rgba(11, 20, 38, 0.78);
+      --panel-strong: rgba(16, 27, 50, 0.94);
+      --panel-soft: rgba(9, 16, 31, 0.65);
+      --text: #eef4ff;
+      --muted: #b5c4e6;
       --accent: #7dd3fc;
       --accent-2: #a78bfa;
       --accent-3: #34d399;
       --warn: #fbbf24;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --shadow: 0 26px 72px rgba(0, 0, 0, 0.38);
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Aptos", "Segoe UI Variable Text", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 26%),
-        radial-gradient(circle at top right, rgba(167, 139, 250, 0.16), transparent 24%),
-        linear-gradient(160deg, #050b16 0%, #0a1427 48%, #07101d 100%);
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.16), transparent 22%),
+        radial-gradient(circle at 50% 120%, rgba(52, 211, 153, 0.12), transparent 30%),
+        linear-gradient(160deg, #050816 0%, #091426 48%, #07111d 100%);
       color: var(--text);
       min-height: 100vh;
       overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      border-radius: 999px;
+      pointer-events: none;
+      filter: blur(12px);
+      opacity: 0.5;
+    }
+
+    body::before {
+      width: 24rem;
+      height: 24rem;
+      left: -7rem;
+      top: -6rem;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.22), transparent 68%);
+    }
+
+    body::after {
+      width: 28rem;
+      height: 28rem;
+      right: -9rem;
+      bottom: -10rem;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.18), transparent 68%);
     }
 
     .deck {
       position: relative;
       width: 100vw;
       height: 100vh;
+      isolation: isolate;
     }
 
     .slide {
       position: absolute;
       inset: 0;
-      padding: 3.5rem 4.25rem 4.75rem;
+      padding: clamp(2rem, 3.6vw, 4rem) clamp(2rem, 4.2vw, 4.75rem) clamp(2rem, 3.8vw, 4.5rem);
       display: grid;
       grid-template-rows: auto 1fr auto;
       opacity: 0;
@@ -63,6 +93,16 @@
       font-size: 0.8rem;
       font-weight: 700;
       margin-bottom: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 2.4rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.95));
     }
 
     h1, h2, h3, p { margin: 0; }
@@ -72,19 +112,21 @@
       line-height: 1.02;
       max-width: 12ch;
       margin-bottom: 1rem;
+      letter-spacing: -0.045em;
     }
 
     h2 {
       font-size: clamp(2rem, 4vw, 3rem);
       line-height: 1.08;
       margin-bottom: 1rem;
+      letter-spacing: -0.035em;
     }
 
     .lede {
       font-size: clamp(1.08rem, 1.7vw, 1.45rem);
       line-height: 1.5;
       color: var(--muted);
-      max-width: 70ch;
+      max-width: 62ch;
     }
 
     .hero,
@@ -101,6 +143,7 @@
     .hero {
       grid-template-columns: 1.15fr 0.85fr;
       margin-top: 1.5rem;
+      align-items: stretch;
     }
 
     .content-grid {
@@ -123,18 +166,37 @@
     .card {
       background: var(--panel);
       border: 1px solid rgba(168, 183, 216, 0.16);
-      border-radius: 24px;
-      padding: 1.2rem 1.25rem;
+      border-radius: 28px;
+      padding: 1.25rem 1.35rem;
       box-shadow: var(--shadow);
+      position: relative;
       backdrop-filter: blur(10px);
     }
 
-    .card.strong { background: var(--panel-strong); }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 30%);
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    .card > * { position: relative; z-index: 1; }
+
+    .card.strong {
+      background:
+        linear-gradient(160deg, rgba(19, 34, 63, 0.95), rgba(13, 24, 46, 0.92)),
+        var(--panel-strong);
+      border-color: rgba(125, 211, 252, 0.18);
+    }
 
     .card h3 {
       font-size: 1.05rem;
       margin-bottom: 0.7rem;
       color: #f8fbff;
+      letter-spacing: -0.02em;
     }
 
     .card p,
@@ -170,13 +232,53 @@
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      background: rgba(125, 211, 252, 0.12);
-      border: 1px solid rgba(125, 211, 252, 0.22);
-      color: #d8f4ff;
+      background: rgba(125, 211, 252, 0.14);
+      border: 1px solid rgba(125, 211, 252, 0.24);
+      color: #e4f7ff;
       border-radius: 999px;
       padding: 0.34rem 0.7rem;
       font-size: 0.86rem;
       font-weight: 600;
+    }
+
+    .results-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .result-tile {
+      background: linear-gradient(180deg, rgba(8, 15, 30, 0.92), rgba(10, 17, 33, 0.82));
+      border: 1px solid rgba(168, 183, 216, 0.16);
+      border-radius: 20px;
+      padding: 0.95rem 1rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .result-label {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .result-value {
+      display: block;
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .result-note {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.45;
     }
 
     .diagram {
@@ -259,6 +361,41 @@
 
     .small { font-size: 0.88rem; }
 
+    .meta-line {
+      margin-top: 0.75rem;
+      color: rgba(232, 238, 252, 0.78);
+      font-size: 0.94rem;
+    }
+
+    .deck-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .deck-title .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.32rem 0.68rem;
+      border-radius: 999px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.22);
+      color: #d9ffe9;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .deck-title .tag.alt {
+      background: rgba(167, 139, 250, 0.12);
+      border-color: rgba(167, 139, 250, 0.24);
+      color: #f0e7ff;
+    }
+
     @media (max-width: 1100px) {
       body { overflow: auto; }
       .deck { height: auto; min-height: 100vh; }
@@ -274,7 +411,8 @@
       .two-col,
       .repo-grid,
       .summary-grid,
-      .steps { grid-template-columns: 1fr; }
+      .steps,
+      .results-strip { grid-template-columns: 1fr; }
       .footer { margin-top: 1rem; }
     }
 
@@ -308,9 +446,13 @@
   <div class="deck" id="deck">
     <section class="slide active">
       <header>
-        <div class="eyebrow">Autoresearch · Agent Harness · Restaurant Benchmark</div>
+        <div class="deck-title">
+          <div class="eyebrow">Autoresearch · Agent Harness · Restaurant Benchmark</div>
+          <span class="tag">Latest run kept</span>
+          <span class="tag alt">Branch: autoresearch/20260430-start</span>
+        </div>
         <h1>From <span class="accent">autoresearch</span> to <span class="accent-2">multi-agent autoresearch</span></h1>
-        <p class="lede">A plain-language walkthrough for people who want to use an agent harness without needing to track every recent LLM trend.</p>
+        <p class="lede">A clean, presentation-ready walkthrough for people who want to use an agent harness without needing to track every recent LLM trend.</p>
       </header>
       <div class="hero">
         <div class="card strong">
@@ -323,6 +465,23 @@
             <li><span class="accent">Keep only better results</span> and log everything else.</li>
           </ul>
           <div class="callout">You can think of it as <strong>scientific method for code changes</strong>: hypothesis → experiment → score → keep or discard.</div>
+          <div class="results-strip">
+            <div class="result-tile">
+              <span class="result-label">Branch</span>
+              <span class="result-value">autoresearch/20260430-start</span>
+              <span class="result-note">The current branch was pushed to GitHub as its own trial run.</span>
+            </div>
+            <div class="result-tile">
+              <span class="result-label">Best kept score</span>
+              <span class="result-value">3866.29</span>
+              <span class="result-note">A service/cashflow hybrid kept the best improvement from the session.</span>
+            </div>
+            <div class="result-tile">
+              <span class="result-label">Artifacts</span>
+              <span class="result-value">best-20260430-service-cashflow</span>
+              <span class="result-note">Saved report bundle for replay, inspection, and presentation.</span>
+            </div>
+          </div>
         </div>
         <div class="card">
           <h3>Why people care</h3>
@@ -336,6 +495,7 @@
             <span class="pill">Repeatable scoring</span>
             <span class="pill">History in <code>results.tsv</code></span>
           </div>
+          <p class="meta-line">The current repo snapshot already includes a completed harness run and preserved report artifacts.</p>
         </div>
       </div>
       <footer class="footer">
@@ -530,6 +690,7 @@ docker compose run --rm autoresearch python -m autoresearch.experiments.restaura
           <h3>Open this file locally</h3>
           <p class="small">Path: <code>/home/runner/work/autoresearch-test/autoresearch-test/docs/autoresearch_agent_harness_slides.html</code></p>
           <p class="small">It is fully self-contained: no external CSS, JavaScript, fonts, or images.</p>
+          <p class="small">Use it as a slide deck for explaining the harness, the branch outcome, and the report artifacts in one room.</p>
         </div>
       </div>
       <footer class="footer">

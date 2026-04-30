@@ -1,7 +1,5 @@
 __pycache__/
 *.py[cod]
-artifacts/
-results.tsv
 .results.tsv.lock
 research/state/
 .ipynb_checkpoints/

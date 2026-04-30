@@ -1,0 +1,7 @@
+timestamp	branch	sha	score	decision	message
+2026-04-30T10:07:07.352706+00:00	autoresearch/20260430-start	5c64f4c24bd3c5481274e17560ed36996f9b2d98	-28735.04	keep	baseline via docker run; compose blocked by nvidia runtime mismatch
+2026-04-30T10:14:16.624229+00:00	autoresearch/20260430-start	646a3d84d58be2979742369f210cf50c1f11dcc2	-19458.59	keep	adaptive heuristic improves service and cuts waste; tomato-led stockouts remain high
+2026-04-30T10:16:07.438103+00:00	autoresearch/20260430-start	0abf41af50cd6448fb6cd17da5d331d90ddcc37d	-6157.12	keep	tuned adaptive raises service to 0.635; tomato stockouts reduced sharply and waste collapses
+2026-04-30T10:35:39.227105+00:00	autoresearch/20260430-start	fe869cc80e26cf66b7afc5daa1c47958a0bb7cc4	3419.6	keep	budget-aware adaptive policy with spike-sensitive config; RL-style residual NN explored but far worse
+2026-04-30T12:24:48.091047+00:00	autoresearch/20260430-start	a57e1ac0d074e76f161635d0bf4e47fd84dfd8b9	3687.32	keep	focused residual hybrid improves cheese/onion/lettuce/pasta ordering on top of budget-aware heuristic
+2026-04-30T13:21:38.953247+00:00	autoresearch/20260430-start	85e83ea9938b613979d042fef964b4957492a1f1	3866.29	keep	service/cashflow hybrid pass: higher service with focused cheese/onion/lettuce/pasta priority and lower holding cost

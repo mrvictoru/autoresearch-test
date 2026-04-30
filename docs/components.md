@@ -16,6 +16,12 @@ autoresearch/
    └── restaurant_train.py
 ```
 
+Recent harness result:
+
+- branch `autoresearch/20260430-start` completed an autoresearch run through the agent harness
+- the best kept score reached `3866.29`
+- the latest preserved report bundle lives in `artifacts/reports/best-20260430-service-cashflow/`
+
 ## `autoresearch/__init__.py`
 
 Defines the public harness-facing package surface.

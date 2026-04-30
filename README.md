@@ -13,6 +13,9 @@ An external coding agent owns the optimization loop. This repository provides:
 - post-run telemetry artifacts and a static HTML report generator
 - documentation for the benchmark contract
 
+This repository has recently completed an autoresearch optimization run on branch `autoresearch/20260430-start`.
+The agent harness explored candidate policy changes in `autoresearch/experiments/restaurant_train.py`, kept the best score at `3866.29`, and produced report artifacts under `artifacts/reports/best-20260430-service-cashflow/`.
+
 Additional documentation:
 
 - `docs/guide.md` for the harness workflow
