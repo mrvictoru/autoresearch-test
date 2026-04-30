@@ -86,7 +86,7 @@ class RestaurantInventoryTask:
         self.days = days
         self.seed = seed
         self.periods = ("lunch", "dinner")
-        self.total_storage_capacity = 520
+        self.total_storage_capacity = 1000
         self.stockout_penalty_per_order = 18.0
         self.ingredients = tuple(_default_ingredients())
         self.menu_items = tuple(_default_menu_items())
@@ -624,13 +624,13 @@ def _default_ingredients() -> list[IngredientSpec]:
         IngredientSpec("beef_patty", unit_cost=2.4, waste_cost=1.2, holding_cost=0.12, shelf_life_days=3, lead_time_days=2, max_storage_units=70, fixed_order_cost=2.5),
         IngredientSpec("chicken", unit_cost=1.9, waste_cost=0.9, holding_cost=0.09, shelf_life_days=3, lead_time_days=2, max_storage_units=65, fixed_order_cost=2.0),
         IngredientSpec("tortilla", unit_cost=0.6, waste_cost=0.2, holding_cost=0.04, shelf_life_days=5, lead_time_days=1, max_storage_units=60, fixed_order_cost=1.0),
-        IngredientSpec("lettuce", unit_cost=0.5, waste_cost=0.35, holding_cost=0.05, shelf_life_days=2, lead_time_days=1, max_storage_units=55, fixed_order_cost=1.2),
-        IngredientSpec("tomato", unit_cost=0.4, waste_cost=0.28, holding_cost=0.04, shelf_life_days=3, lead_time_days=1, max_storage_units=70, fixed_order_cost=1.1),
-        IngredientSpec("cheese", unit_cost=0.9, waste_cost=0.35, holding_cost=0.05, shelf_life_days=5, lead_time_days=2, max_storage_units=85, fixed_order_cost=1.3),
+        IngredientSpec("lettuce", unit_cost=0.5, waste_cost=0.35, holding_cost=0.05, shelf_life_days=2, lead_time_days=1, max_storage_units=130, fixed_order_cost=1.2),
+        IngredientSpec("tomato", unit_cost=0.4, waste_cost=0.28, holding_cost=0.04, shelf_life_days=3, lead_time_days=1, max_storage_units=320, fixed_order_cost=1.1),
+        IngredientSpec("cheese", unit_cost=0.9, waste_cost=0.35, holding_cost=0.05, shelf_life_days=5, lead_time_days=2, max_storage_units=210, fixed_order_cost=1.3),
         IngredientSpec("dough", unit_cost=1.0, waste_cost=0.45, holding_cost=0.05, shelf_life_days=3, lead_time_days=1, max_storage_units=45, fixed_order_cost=1.4),
-        IngredientSpec("pasta", unit_cost=0.7, waste_cost=0.2, holding_cost=0.03, shelf_life_days=6, lead_time_days=2, max_storage_units=75, fixed_order_cost=1.1),
+        IngredientSpec("pasta", unit_cost=0.7, waste_cost=0.2, holding_cost=0.03, shelf_life_days=6, lead_time_days=2, max_storage_units=90, fixed_order_cost=1.1),
         IngredientSpec("broth", unit_cost=0.6, waste_cost=0.18, holding_cost=0.03, shelf_life_days=6, lead_time_days=2, max_storage_units=65, fixed_order_cost=1.0),
-        IngredientSpec("onion", unit_cost=0.25, waste_cost=0.1, holding_cost=0.02, shelf_life_days=7, lead_time_days=2, max_storage_units=60, fixed_order_cost=0.8),
+        IngredientSpec("onion", unit_cost=0.25, waste_cost=0.1, holding_cost=0.02, shelf_life_days=7, lead_time_days=2, max_storage_units=160, fixed_order_cost=0.8),
         IngredientSpec("croutons", unit_cost=0.3, waste_cost=0.08, holding_cost=0.02, shelf_life_days=10, lead_time_days=2, max_storage_units=40, fixed_order_cost=0.6),
     ]
 
