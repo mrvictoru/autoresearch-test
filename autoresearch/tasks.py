@@ -443,9 +443,9 @@ class RestaurantInventoryTask:
 
             recent_item_demands.append(day_item_demand)
             recent_ingredient_usage.append(day_usage)
-            if len(recent_item_demands) > 3:
+            if len(recent_item_demands) > 5:
                 recent_item_demands.pop(0)
-            if len(recent_ingredient_usage) > 3:
+            if len(recent_ingredient_usage) > 5:
                 recent_ingredient_usage.pop(0)
 
             holding_cost = sum(
@@ -514,7 +514,10 @@ class RestaurantInventoryTask:
         normalized = {spec.name: 0 for spec in self.ingredients}
         current_total = sum(on_hand.values()) + sum(incoming.values())
         remaining_total_capacity = max(0, self.total_storage_capacity - current_total)
-        for spec in sorted(self.ingredients, key=lambda item: item.lead_time_days, reverse=True):
+        for spec in sorted(
+            self.ingredients,
+            key=lambda s: (on_hand[s.name] + incoming.get(s.name, 0)) / max(1, s.max_storage_units),
+        ):
             raw_value = requested_orders.get(spec.name, 0)
             requested = max(0, int(round(float(raw_value))))
             if requested <= 0:
@@ -623,7 +626,7 @@ def _default_ingredients() -> list[IngredientSpec]:
         IngredientSpec("bun", unit_cost=0.8, waste_cost=0.3, holding_cost=0.05, shelf_life_days=4, lead_time_days=1, max_storage_units=80, fixed_order_cost=1.5),
         IngredientSpec("beef_patty", unit_cost=2.4, waste_cost=1.2, holding_cost=0.12, shelf_life_days=3, lead_time_days=2, max_storage_units=70, fixed_order_cost=2.5),
         IngredientSpec("chicken", unit_cost=1.9, waste_cost=0.9, holding_cost=0.09, shelf_life_days=3, lead_time_days=2, max_storage_units=65, fixed_order_cost=2.0),
-        IngredientSpec("tortilla", unit_cost=0.6, waste_cost=0.2, holding_cost=0.04, shelf_life_days=5, lead_time_days=1, max_storage_units=60, fixed_order_cost=1.0),
+        IngredientSpec("tortilla", unit_cost=0.6, waste_cost=0.2, holding_cost=0.04, shelf_life_days=5, lead_time_days=1, max_storage_units=120, fixed_order_cost=1.0),
         IngredientSpec("lettuce", unit_cost=0.5, waste_cost=0.35, holding_cost=0.05, shelf_life_days=2, lead_time_days=1, max_storage_units=130, fixed_order_cost=1.2),
         IngredientSpec("tomato", unit_cost=0.4, waste_cost=0.28, holding_cost=0.04, shelf_life_days=3, lead_time_days=1, max_storage_units=320, fixed_order_cost=1.1),
         IngredientSpec("cheese", unit_cost=0.9, waste_cost=0.35, holding_cost=0.05, shelf_life_days=5, lead_time_days=2, max_storage_units=210, fixed_order_cost=1.3),
