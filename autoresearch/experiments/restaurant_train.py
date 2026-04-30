@@ -521,4 +521,9 @@ def build_policy() -> RestaurantPolicy:
         REGISTRY.build("adaptive")         — rule-based heuristic
         REGISTRY.build("neural_network", hidden_layer_sizes=(256, 128, 64))
     """
-    return REGISTRY.build("adaptive")
+    return REGISTRY.build(
+        "adaptive",
+        safety_factor=1.8,
+        freshness_bias=0.7,
+        recent_demand_weight=0.55,
+    )
