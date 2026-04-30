@@ -765,6 +765,205 @@ class RewardShapedNeuralPolicy(NeuralNetworkPolicy):
         )
 
 
+class FocusResidualHybridPolicy(NeuralNetworkPolicy):
+    """Apply small learned positive residuals on top of a strong heuristic base."""
+
+    def __init__(
+        self,
+        *,
+        focus_ingredients: tuple[str, ...] = ("cheese", "onion", "lettuce", "pasta"),
+        oracle_mix: float = 0.38,
+        residual_scale: float = 0.60,
+        hidden_layer_sizes: tuple[int, ...] = (48, 24),
+        max_iter: int = 300,
+        random_state: int = 42,
+        base_policy_kwargs: dict[str, float | dict[str, float]] | None = None,
+    ) -> None:
+        super().__init__(
+            hidden_layer_sizes=hidden_layer_sizes,
+            max_iter=max_iter,
+            random_state=random_state,
+            safety_margin=0.0,
+        )
+        self.focus_ingredients = tuple(focus_ingredients)
+        self.oracle_mix = oracle_mix
+        self.residual_scale = residual_scale
+        self.base_policy_kwargs = dict(base_policy_kwargs or {})
+        self._fallback = AdaptiveRestaurantPolicy(**self.base_policy_kwargs)
+
+    def fit(
+        self,
+        scenarios: Sequence[RestaurantScenario],
+        task: RestaurantInventoryTask,
+    ) -> None:
+        try:
+            import numpy as np
+            from sklearn.neural_network import MLPRegressor
+            from sklearn.preprocessing import StandardScaler
+        except ImportError as exc:
+            raise RuntimeError(
+                "FocusResidualHybridPolicy requires numpy and scikit-learn.  "
+                "Install them with: pip install numpy scikit-learn"
+            ) from exc
+
+        self._fallback.fit(scenarios, task)
+        self.ingredient_names = sorted(spec.name for spec in task.ingredients)
+        ingredient_specs = {spec.name: spec for spec in task.ingredients}
+        focus_set = set(self.focus_ingredients)
+        X_rows: list[list[float]] = []
+        y_rows: list[list[float]] = []
+
+        for scenario in scenarios:
+            inventory_on_hand = {
+                spec.name: max(8, spec.max_storage_units // 3)
+                for spec in task.ingredients
+            }
+            incoming_pipeline: dict[int, dict[str, int]] = {}
+            frames_by_day: dict[int, list[dict[str, int]]] = {}
+            recent_item_demands: list[dict[str, int]] = []
+            recent_ingredient_usage: list[dict[str, int]] = []
+            for frame in scenario.frames:
+                frames_by_day.setdefault(frame.day_index, []).append(frame.demand_by_item)
+
+            for day_index in range(scenario.days):
+                arriving = incoming_pipeline.pop(day_index, {})
+                for name, quantity in arriving.items():
+                    inventory_on_hand[name] = inventory_on_hand.get(name, 0) + quantity
+
+                pipeline_totals: dict[str, int] = {}
+                for deliveries in incoming_pipeline.values():
+                    for name, quantity in deliveries.items():
+                        pipeline_totals[name] = pipeline_totals.get(name, 0) + quantity
+
+                observation = RestaurantObservation(
+                    day_index=day_index,
+                    day_of_week=day_index % 7,
+                    inventory_on_hand=dict(inventory_on_hand),
+                    incoming_pipeline=dict(pipeline_totals),
+                    recent_item_demand=_average_recent_maps(recent_item_demands),
+                    recent_ingredient_usage=_average_recent_maps(recent_ingredient_usage),
+                    ingredient_specs=ingredient_specs,
+                    menu_items={item.name: item for item in task.menu_items},
+                    current_storage_units=sum(inventory_on_hand.values()),
+                    total_storage_capacity=task.total_storage_capacity,
+                )
+                base_orders = self._fallback.decide_orders(observation)
+                oracle_orders = _oracle_orders_for_day(
+                    day_index=day_index,
+                    scenario=scenario,
+                    ingredient_specs=ingredient_specs,
+                    task=task,
+                    inventory_on_hand=dict(inventory_on_hand),
+                    incoming_pipeline=dict(pipeline_totals),
+                    total_storage_capacity=task.total_storage_capacity,
+                )
+                target_orders = dict(base_orders)
+                for ingredient_name in self.focus_ingredients:
+                    target_orders[ingredient_name] = (
+                        (1.0 - self.oracle_mix) * float(base_orders.get(ingredient_name, 0))
+                        + self.oracle_mix
+                        * max(
+                            float(base_orders.get(ingredient_name, 0)),
+                            float(oracle_orders.get(ingredient_name, 0)),
+                        )
+                    )
+                target_orders = _budget_order_requests(observation, target_orders)
+                X_rows.append(
+                    _extract_features_with_reference_orders(
+                        observation,
+                        self.ingredient_names,
+                        base_orders,
+                    )
+                )
+                y_rows.append(
+                    [
+                        max(0.0, float(target_orders.get(name, 0)) - float(base_orders.get(name, 0)))
+                        if name in focus_set
+                        else 0.0
+                        for name in self.ingredient_names
+                    ]
+                )
+
+                for ingredient_name, quantity in target_orders.items():
+                    spec = ingredient_specs[ingredient_name]
+                    arrival_day = day_index + spec.lead_time_days
+                    day_pipeline = incoming_pipeline.setdefault(arrival_day, {})
+                    day_pipeline[ingredient_name] = day_pipeline.get(ingredient_name, 0) + quantity
+
+                combined_demand: dict[str, int] = {}
+                for demand_by_item in frames_by_day.get(day_index, []):
+                    for item_name, quantity in demand_by_item.items():
+                        combined_demand[item_name] = combined_demand.get(item_name, 0) + quantity
+                usage = task.ingredient_usage_from_demand(combined_demand)
+                consumed_usage = {spec.name: 0 for spec in task.ingredients}
+                for ingredient_name, used in usage.items():
+                    available = inventory_on_hand.get(ingredient_name, 0)
+                    consumed = min(available, used)
+                    inventory_on_hand[ingredient_name] = max(0, available - consumed)
+                    consumed_usage[ingredient_name] = consumed
+                for spec in task.ingredients:
+                    on_hand = inventory_on_hand.get(spec.name, 0)
+                    daily_decay = on_hand // max(1, spec.shelf_life_days)
+                    inventory_on_hand[spec.name] = max(0, on_hand - daily_decay)
+                recent_item_demands.append(combined_demand)
+                recent_ingredient_usage.append(consumed_usage)
+                if len(recent_item_demands) > 5:
+                    recent_item_demands.pop(0)
+                if len(recent_ingredient_usage) > 5:
+                    recent_ingredient_usage.pop(0)
+
+        if not X_rows:
+            return
+
+        X = np.array(X_rows, dtype=float)
+        y = np.array(y_rows, dtype=float)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        model = MLPRegressor(
+            hidden_layer_sizes=self.hidden_layer_sizes,
+            activation="relu",
+            solver="adam",
+            max_iter=self.max_iter,
+            random_state=self.random_state,
+            early_stopping=True,
+            validation_fraction=0.15,
+            n_iter_no_change=15,
+            tol=1e-4,
+        )
+        model.fit(X_scaled, y)
+        self._scaler = scaler
+        self._model = model
+        self._trained = True
+
+    def decide_orders(self, observation: RestaurantObservation) -> dict[str, int]:
+        base_orders = self._fallback.decide_orders(observation)
+        if not self._trained or self._model is None or self._scaler is None:
+            return base_orders
+        try:
+            import numpy as np
+        except ImportError:
+            return base_orders
+
+        features = _extract_features_with_reference_orders(
+            observation,
+            self.ingredient_names,
+            base_orders,
+        )
+        X = np.array([features], dtype=float)
+        X_scaled = self._scaler.transform(X)
+        raw: list[float] = self._model.predict(X_scaled)[0].tolist()
+        focus_set = set(self.focus_ingredients)
+        desired_orders = {
+            name: float(base_orders.get(name, 0))
+            for name in self.ingredient_names
+        }
+        for index, name in enumerate(self.ingredient_names):
+            if name not in focus_set:
+                continue
+            desired_orders[name] += max(0.0, float(raw[index]) * self.residual_scale)
+        return _budget_order_requests(observation, desired_orders)
+
+
 # ---------------------------------------------------------------------------
 # Policy registry — change ``build_policy`` to switch active policy
 # ---------------------------------------------------------------------------
@@ -777,6 +976,7 @@ class _PolicyRegistry:
             "adaptive": AdaptiveRestaurantPolicy,
             "neural_network": NeuralNetworkPolicy,
             "reward_shaped_neural": RewardShapedNeuralPolicy,
+            "focus_residual_hybrid": FocusResidualHybridPolicy,
         }
 
     def register(self, name: str, policy_class: type[RestaurantPolicy]) -> None:
@@ -808,11 +1008,19 @@ def build_policy() -> RestaurantPolicy:
         REGISTRY.build("neural_network")   — MLP policy (default)
         REGISTRY.build("adaptive")         — rule-based heuristic
         REGISTRY.build("reward_shaped_neural") — reward-shaped residual MLP
+        REGISTRY.build("focus_residual_hybrid") — heuristic with focused NN residuals
         REGISTRY.build("neural_network", hidden_layer_sizes=(256, 128, 64))
     """
     return REGISTRY.build(
-        "adaptive",
-        safety_factor=1.75,
-        freshness_bias=0.50,
-        recent_demand_weight=0.72,
+        "focus_residual_hybrid",
+        base_policy_kwargs={
+            "safety_factor": 1.75,
+            "freshness_bias": 0.50,
+            "recent_demand_weight": 0.72,
+        },
+        focus_ingredients=("cheese", "onion", "lettuce", "pasta"),
+        oracle_mix=0.38,
+        residual_scale=0.60,
+        hidden_layer_sizes=(48, 24),
+        max_iter=300,
     )
