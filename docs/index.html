@@ -3,33 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Autoresearch and Multi-Agent Autoresearch</title>
+  <title>Auto-research · Presentation deck</title>
   <style>
     :root {
-      --bg: #081120;
-      --panel: rgba(11, 21, 39, 0.82);
-      --panel-strong: rgba(16, 30, 56, 0.95);
-      --text: #e8eefc;
-      --muted: #a8b7d8;
-      --accent: #7dd3fc;
-      --accent-2: #a78bfa;
-      --accent-3: #34d399;
-      --warn: #fbbf24;
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --bg: #f8fbff;
+      --ink: #0f172a;
+      --muted: #42546e;
+      --line: rgba(148, 163, 184, 0.28);
+      --card: rgba(255, 255, 255, 0.94);
+      --card-strong: rgba(255, 255, 255, 0.985);
+      --sky: #0ea5e9;
+      --violet: #7c3aed;
+      --pink: #ec4899;
+      --teal: #0f766e;
+      --gold: #f59e0b;
+      --shadow: 0 32px 70px rgba(15, 23, 42, 0.1);
     }
 
     * { box-sizing: border-box; }
 
+    html { background: var(--bg); }
+
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(125, 211, 252, 0.18), transparent 26%),
-        radial-gradient(circle at top right, rgba(167, 139, 250, 0.16), transparent 24%),
-        linear-gradient(160deg, #050b16 0%, #0a1427 48%, #07101d 100%);
-      color: var(--text);
       min-height: 100vh;
       overflow: hidden;
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.24), transparent 22%),
+        radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.18), transparent 20%),
+        radial-gradient(circle at 92% 82%, rgba(236, 72, 153, 0.15), transparent 18%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 48%, #f2f7ff 100%);
+    }
+
+    body[data-theme="dark"] {
+      --bg: #08111f;
+      --ink: #e5eefc;
+      --muted: #a8bad4;
+      --line: rgba(148, 163, 184, 0.2);
+      --card: rgba(9, 18, 34, 0.82);
+      --card-strong: rgba(10, 22, 40, 0.94);
+      --shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.18), transparent 22%),
+        radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.18), transparent 20%),
+        radial-gradient(circle at 92% 82%, rgba(236, 72, 153, 0.12), transparent 18%),
+        linear-gradient(180deg, #08111f 0%, #0b1425 50%, #0c1730 100%);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .deck {
@@ -41,225 +66,417 @@
     .slide {
       position: absolute;
       inset: 0;
-      padding: 3.5rem 4.25rem 4.75rem;
       display: grid;
       grid-template-rows: auto 1fr auto;
+      gap: 1.25rem;
+      padding: clamp(1.45rem, 3vw, 3rem);
       opacity: 0;
-      transform: translateX(60px) scale(0.98);
-      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateY(16px) scale(0.99);
+      transition: opacity 180ms ease, transform 180ms ease;
       pointer-events: none;
     }
 
     .slide.active {
       opacity: 1;
-      transform: translateX(0) scale(1);
+      transform: translateY(0) scale(1);
       pointer-events: auto;
     }
 
+    .topline,
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .topline {
+      padding-right: 7.5rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.05rem;
+    }
+
+    .mark {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--sky), var(--violet), var(--pink));
+      box-shadow: 0 0 0 7px rgba(14, 165, 233, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .meta,
+    .footer {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .slide > div {
+      min-height: 0;
+      overflow: auto;
+      padding-right: 0.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(14, 165, 233, 0.3) transparent;
+    }
+
+    .slide > div::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .slide > div::-webkit-scrollbar-thumb {
+      background: rgba(14, 165, 233, 0.26);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
     .eyebrow {
-      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: var(--sky);
       text-transform: uppercase;
       letter-spacing: 0.18em;
-      font-size: 0.8rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-bottom: 0.95rem;
     }
 
-    h1, h2, h3, p { margin: 0; }
+    .eyebrow::before {
+      content: "";
+      width: 2.3rem;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.5;
+    }
 
-    h1 {
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
+    .hero-title,
+    .section-title {
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      letter-spacing: -0.05em;
       line-height: 1.02;
-      max-width: 12ch;
-      margin-bottom: 1rem;
+      text-wrap: balance;
     }
 
-    h2 {
-      font-size: clamp(2rem, 4vw, 3rem);
-      line-height: 1.08;
-      margin-bottom: 1rem;
+    .hero-title {
+      font-size: clamp(2.35rem, 4.4vw, 4.6rem);
+      max-width: 16ch;
+      margin-bottom: 0.8rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.95rem, 3.25vw, 3.05rem);
+      max-width: 20ch;
+      margin-bottom: 0.8rem;
     }
 
     .lede {
-      font-size: clamp(1.08rem, 1.7vw, 1.45rem);
-      line-height: 1.5;
-      color: var(--muted);
-      max-width: 70ch;
+      max-width: 52ch;
+      font-size: clamp(1.02rem, 1.35vw, 1.24rem);
+      line-height: 1.45;
+      color: #334155;
+      font-weight: 500;
     }
 
-    .hero,
-    .content-grid,
-    .two-col,
-    .steps,
-    .repo-grid,
-    .summary-grid {
+    body[data-theme="dark"] .lede {
+      color: #c7d6ec;
+    }
+
+    .accent { color: var(--sky); }
+    .accent-2 { color: var(--teal); }
+    .accent-3 { color: var(--gold); }
+    .accent-4 { color: var(--pink); }
+
+    .hero-grid,
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .result-grid {
       display: grid;
-      gap: 1.25rem;
+      gap: 1.1rem;
       align-content: start;
     }
 
-    .hero {
-      grid-template-columns: 1.15fr 0.85fr;
-      margin-top: 1.5rem;
-    }
+    .hero-grid { grid-template-columns: 1.18fr 0.82fr; }
+    .grid-2,
+    .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
-    .content-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      margin-top: 1.5rem;
-    }
-
-    .two-col,
-    .repo-grid,
-    .summary-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      margin-top: 1.5rem;
-    }
-
-    .steps {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-top: 1.5rem;
+    .card,
+    .metric,
+    .node,
+    .result-row {
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
     }
 
     .card {
-      background: var(--panel);
-      border: 1px solid rgba(168, 183, 216, 0.16);
-      border-radius: 24px;
-      padding: 1.2rem 1.25rem;
-      box-shadow: var(--shadow);
+      background: var(--card);
+      border-radius: 30px;
+      padding: 1.2rem 1.3rem;
       backdrop-filter: blur(10px);
     }
 
-    .card.strong { background: var(--panel-strong); }
+    .card.strong {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(240, 249, 255, 0.96)),
+        linear-gradient(135deg, rgba(14, 165, 233, 0.03), rgba(124, 58, 237, 0.03));
+      border-color: rgba(14, 165, 233, 0.24);
+    }
+
+    body[data-theme="dark"] .card.strong {
+      background:
+        linear-gradient(180deg, rgba(14, 24, 42, 0.96), rgba(10, 22, 40, 0.92)),
+        linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(124, 58, 237, 0.06));
+      border-color: rgba(14, 165, 233, 0.2);
+    }
 
     .card h3 {
-      font-size: 1.05rem;
-      margin-bottom: 0.7rem;
-      color: #f8fbff;
+      font-size: 1.16rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
     }
 
     .card p,
     .card li,
     .card code {
-      font-size: 0.98rem;
-      line-height: 1.5;
       color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .card p strong,
+    .card li strong {
+      color: var(--ink);
     }
 
     ul {
       margin: 0;
-      padding-left: 1.1rem;
+      padding-left: 1.15rem;
     }
 
-    li + li { margin-top: 0.45rem; }
+    li + li { margin-top: 0.48rem; }
 
-    .big-list li {
-      margin-top: 0.7rem;
-      font-size: 1.03rem;
-    }
-
-    .stat {
-      font-size: 1rem;
-      color: var(--muted);
+    .hero-bullets {
+      display: grid;
+      gap: 0.82rem;
       margin-top: 0.9rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: rgba(125, 211, 252, 0.12);
-      border: 1px solid rgba(125, 211, 252, 0.22);
-      color: #d8f4ff;
-      border-radius: 999px;
-      padding: 0.34rem 0.7rem;
-      font-size: 0.86rem;
-      font-weight: 600;
+    .bullet {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.8rem;
+      align-items: start;
+    }
+
+    .bullet-mark {
+      color: var(--sky);
+      font-weight: 900;
+      font-size: 1.08rem;
+    }
+
+    .callout {
+      margin-top: 1rem;
+      padding: 1.05rem 1.15rem;
+      border-left: 4px solid var(--pink);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.8), rgba(252, 231, 243, 0.58));
+      color: var(--ink);
+      font-size: 1.08rem;
+      line-height: 1.48;
+    }
+
+    body[data-theme="dark"] .callout {
+      background: linear-gradient(135deg, rgba(8, 27, 49, 0.9), rgba(59, 18, 48, 0.5));
     }
 
     .diagram {
       display: grid;
-      gap: 0.85rem;
-      margin-top: 0.4rem;
+      gap: 0.9rem;
     }
 
-    .diagram .node {
+    .node {
       position: relative;
-      padding: 0.95rem 1rem;
-      border-radius: 18px;
-      background: rgba(11, 21, 39, 0.9);
-      border: 1px solid rgba(167, 139, 250, 0.2);
-      color: var(--text);
+      padding: 1.08rem 1.14rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.985);
     }
 
-    .diagram .node::after {
+    body[data-theme="dark"] .node {
+      background: rgba(12, 23, 41, 0.96);
+    }
+
+    .node::after {
       content: "↓";
       position: absolute;
       left: 50%;
-      bottom: -1.15rem;
+      bottom: -1rem;
       transform: translateX(-50%);
-      color: rgba(232, 238, 252, 0.55);
-      font-size: 1.1rem;
+      color: rgba(71, 85, 105, 0.5);
     }
 
-    .diagram .node:last-child::after { content: none; }
-
-    .callout {
-      border-left: 4px solid var(--accent-3);
-      padding-left: 1rem;
-      margin-top: 1rem;
-      color: var(--text);
-      font-size: 1rem;
-      line-height: 1.55;
-    }
+    .node:last-child::after { content: none; }
 
     .command {
-      background: rgba(4, 10, 20, 0.88);
-      border: 1px solid rgba(168, 183, 216, 0.14);
-      border-radius: 18px;
-      padding: 1rem;
-      font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 0.92rem;
-      line-height: 1.55;
-      color: #dff6ff;
+      margin-top: 0.95rem;
+      border-radius: 22px;
+      padding: 1.18rem 1.22rem;
+      background: #0f172a;
+      color: #dbeafe;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 1rem;
+      line-height: 1.5;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
+      box-shadow: 0 24px 50px rgba(15, 23, 42, 0.18);
     }
 
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    body[data-theme="dark"] .command {
+      background: linear-gradient(180deg, #030712 0%, #0b1220 100%);
+      color: #e0f2fe;
+      border-color: rgba(56, 189, 248, 0.32);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.38);
+    }
+
+    .result-summary,
+    .result-list {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+    }
+
+    .metric {
+      padding: 1.2rem;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.99), rgba(224, 231, 255, 0.88), rgba(240,249,255,0.96));
+      border-color: rgba(124, 58, 237, 0.16);
+    }
+
+    body[data-theme="dark"] .metric {
+      background: linear-gradient(135deg, rgba(14, 24, 42, 0.97), rgba(24, 28, 58, 0.9), rgba(8, 25, 48, 0.95));
+      border-color: rgba(124, 58, 237, 0.2);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+    }
+
+    .metric .value {
+      margin-top: 0.35rem;
+      font-size: clamp(2.3rem, 4.2vw, 3.7rem);
+      line-height: 1;
+      letter-spacing: -0.06em;
+      font-weight: 900;
+    }
+
+    .metric .sub {
+      margin-top: 0.55rem;
+      font-size: 1.04rem;
+      line-height: 1.46;
+      color: var(--muted);
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 1.25fr 0.9fr 1.85fr;
+      gap: 0.85rem;
+      align-items: start;
+      border-radius: 20px;
+      padding: 1rem 1.05rem;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body[data-theme="dark"] .result-row {
+      background: rgba(10, 22, 40, 0.9);
+    }
+
+    .result-row .score {
+      font-variant-numeric: tabular-nums;
+      font-weight: 900;
+      color: var(--ink);
+      font-size: 1.08rem;
+    }
+
+    .result-row .note {
+      color: var(--muted);
+      line-height: 1.42;
+      font-size: 0.98rem;
+    }
+
+    .result-row.good {
+      background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 249, 255, 0.98));
+      border-color: rgba(15, 118, 110, 0.2);
+    }
+
+    body[data-theme="dark"] .result-row.good {
+      background: linear-gradient(135deg, rgba(10, 46, 42, 0.95), rgba(9, 32, 54, 0.96));
+    }
+
+    .stack {
+      display: grid;
       gap: 1rem;
-      color: rgba(232, 238, 252, 0.72);
-      font-size: 0.92rem;
+      align-content: start;
     }
 
     .progress {
       display: flex;
-      gap: 0.45rem;
+      gap: 0.44rem;
     }
 
     .dot {
-      width: 0.7rem;
-      height: 0.7rem;
+      width: 0.72rem;
+      height: 0.72rem;
       border-radius: 999px;
-      background: rgba(232, 238, 252, 0.18);
-      border: 1px solid rgba(232, 238, 252, 0.2);
+      border: 1px solid rgba(14, 165, 233, 0.24);
+      background: rgba(14, 165, 233, 0.12);
     }
 
-    .dot.active { background: var(--accent); }
+    .dot.active {
+      background: linear-gradient(135deg, var(--sky), var(--violet), var(--pink));
+      border-color: transparent;
+    }
 
-    .accent { color: var(--accent); }
-    .accent-2 { color: var(--accent-2); }
-    .accent-3 { color: var(--accent-3); }
-    .warn { color: var(--warn); }
+    .mini { font-size: 1rem; }
 
-    .small { font-size: 0.88rem; }
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 20;
+      border: 1px solid rgba(14, 165, 233, 0.22);
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.58rem 0.9rem;
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(10px);
+    }
 
-    @media (max-width: 1100px) {
+    body[data-theme="dark"] .theme-toggle {
+      background: rgba(8, 18, 34, 0.9);
+      color: #e5eefc;
+      border-color: rgba(14, 165, 233, 0.18);
+    }
+
+    @media (max-width: 1120px) {
       body { overflow: auto; }
       .deck { height: auto; min-height: 100vh; }
       .slide {
@@ -269,288 +486,368 @@
         transform: none;
         pointer-events: auto;
       }
-      .hero,
-      .content-grid,
-      .two-col,
-      .repo-grid,
-      .summary-grid,
-      .steps { grid-template-columns: 1fr; }
-      .footer { margin-top: 1rem; }
+      .hero-grid,
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .result-grid,
+      .result-row {
+        grid-template-columns: 1fr;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .topline {
+        padding-right: 0;
+      }
+      .theme-toggle {
+        top: auto;
+        right: 0.8rem;
+        bottom: 0.8rem;
+      }
     }
 
     @media print {
-      body {
-        background: #fff;
-        color: #111827;
-        overflow: visible;
-      }
+      body { overflow: visible; background: #fff; }
       .deck { height: auto; }
       .slide {
         position: relative;
         min-height: 100vh;
-        page-break-after: always;
         opacity: 1 !important;
         transform: none !important;
-        color: #111827;
+        page-break-after: always;
       }
-      .card, .command, .diagram .node {
-        background: #f8fafc;
-        color: #111827;
+      .card,
+      .metric,
+      .node,
+      .result-row,
+      .command {
         box-shadow: none;
-        backdrop-filter: none;
       }
-      .card p, .card li, .lede, .footer { color: #334155; }
-      .pill { color: #0f172a; }
     }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
   <div class="deck" id="deck">
     <section class="slide active">
-      <header>
-        <div class="eyebrow">Autoresearch · Agent Harness · Restaurant Benchmark</div>
-        <h1>From <span class="accent">autoresearch</span> to <span class="accent-2">multi-agent autoresearch</span></h1>
-        <p class="lede">A plain-language walkthrough for people who want to use an agent harness without needing to track every recent LLM trend.</p>
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Auto-research</div>
+        <div class="meta">Overview</div>
       </header>
-      <div class="hero">
-        <div class="card strong">
-          <h3>The simple idea</h3>
-          <p>Autoresearch treats model-assisted coding like a repeatable experiment loop:</p>
-          <ul class="big-list">
-            <li><span class="accent">Read the rules</span> of the benchmark.</li>
-            <li><span class="accent">Change one safe thing</span> in the allowed file.</li>
-            <li><span class="accent">Run the evaluator</span> the same way every time.</li>
-            <li><span class="accent">Keep only better results</span> and log everything else.</li>
-          </ul>
-          <div class="callout">You can think of it as <strong>scientific method for code changes</strong>: hypothesis → experiment → score → keep or discard.</div>
-        </div>
-        <div class="card">
-          <h3>Why people care</h3>
-          <ul>
-            <li>It reduces random trial-and-error.</li>
-            <li>It makes agent work auditable and reproducible.</li>
-            <li>It gives teams a way to let agents iterate without giving them unlimited freedom.</li>
-          </ul>
-          <div class="stat">
-            <span class="pill">Controlled edits</span>
-            <span class="pill">Repeatable scoring</span>
-            <span class="pill">History in <code>results.tsv</code></span>
+
+      <div>
+        <div class="eyebrow">Overview</div>
+        <h1 class="hero-title">Auto-research turns model iteration into a <span class="accent">repeatable research loop</span>.</h1>
+        <p class="lede">Instead of prompting for isolated edits, the agent runs bounded experiments, keeps strict improvements, and leaves an auditable frontier.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>Core idea</h3>
+            <div class="hero-bullets">
+              <div class="bullet"><span class="bullet-mark">1.</span><span><strong>Human defines the objective</strong> and the allowed surface.</span></div>
+              <div class="bullet"><span class="bullet-mark">2.</span><span><strong>Agent proposes and implements</strong> a small experiment.</span></div>
+              <div class="bullet"><span class="bullet-mark">3.</span><span><strong>Evaluator scores the result</strong> under a fixed benchmark.</span></div>
+              <div class="bullet"><span class="bullet-mark">4.</span><span><strong>Only better outcomes ratchet forward.</strong></span></div>
+            </div>
+            <div class="callout">Auto-research matters because it converts trial-and-error into a closed loop with explicit constraints.</div>
+          </div>
+
+          <div class="card">
+            <h3>Why it matters</h3>
+            <ul>
+              <li>More experiments can run than a manual loop can support.</li>
+              <li>Human effort shifts from execution to framing and review.</li>
+              <li>Every accepted improvement is visible in the frontier history.</li>
+            </ul>
           </div>
         </div>
       </div>
+
       <footer class="footer">
-        <span>Use arrow keys or space to move through slides.</span>
-        <div class="progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <span>Use arrows, PageUp/PageDown, space, or click left and right.</span>
+        <div class="progress">
+          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
       </footer>
     </section>
 
     <section class="slide">
-      <header>
-        <div class="eyebrow">Evolution</div>
-        <h2>Why it evolved into a <span class="accent-2">multi-agent</span> system</h2>
-        <p class="lede">Single-agent autoresearch is strong for one experiment at a time. Multi-agent autoresearch adds a control plane so several specialized assistants can coordinate safely.</p>
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Auto-research</div>
+        <div class="meta">Framing</div>
       </header>
-      <div class="content-grid">
-        <div class="card">
-          <h3>Single-agent mode</h3>
-          <ul>
-            <li>One assistant proposes, edits, runs, and judges.</li>
-            <li>Works well for focused iteration.</li>
-            <li>Starts to bottleneck when you want parallel experiments or better review.</li>
-          </ul>
-        </div>
-        <div class="card strong">
-          <h3>Multi-agent mode</h3>
-          <ul>
-            <li><strong>Planner</strong> suggests hypotheses.</li>
-            <li><strong>Reviewer</strong> rejects duplicates or weak ideas.</li>
-            <li><strong>Experiment workers</strong> run isolated trials.</li>
-            <li><strong>Reporter + memory keeper</strong> summarize progress and record lessons.</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>What changed in practice</h3>
-          <ul>
-            <li>The benchmark stayed the same.</li>
-            <li>The orchestration around it became smarter.</li>
-            <li>Worktrees let many workers edit the same mutable file without collisions.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Key mental model</h3>
-          <p>“Agent” here does <em>not</em> mean magic intelligence. It means a tool-driven helper with a narrow job, explicit rules, and a clear handoff.</p>
-        </div>
-        <div class="card">
-          <h3>Why this matters to non-experts</h3>
-          <p>You do not need to understand every model family. The important part is the <span class="accent-3">operating system around the agents</span>: permissions, isolation, logging, and evaluation discipline.</p>
-        </div>
-      </div>
-      <footer class="footer">
-        <span>Multi-agent autoresearch = specialized helpers around one shared benchmark.</span>
-        <div class="progress"><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-      </footer>
-    </section>
 
-    <section class="slide">
-      <header>
-        <div class="eyebrow">This repository</div>
-        <h2>How the code in <span class="accent">this repo</span> works</h2>
-        <p class="lede">This repository is intentionally narrow: it is a harness-only restaurant inventory benchmark with a fixed simulator, a fixed evaluator, and one approved place for experiment changes.</p>
-      </header>
-      <div class="repo-grid">
-        <div class="card strong">
-          <h3>Benchmark core</h3>
-          <div class="diagram">
-            <div class="node"><strong><code>autoresearch/tasks.py</code></strong><br/>Immutable restaurant simulator: demand, perishability, lead times, storage limits, shared ingredients.</div>
-            <div class="node"><strong><code>autoresearch/experiments/restaurant_eval.py</code></strong><br/>Immutable evaluator: loads the policy, optionally fits it, runs the task, prints metrics.</div>
-            <div class="node"><strong><code>autoresearch/experiments/restaurant_train.py</code></strong><br/>Mutable policy file: the experiment surface. It must expose <code>build_policy()</code>.</div>
+      <div>
+        <div class="eyebrow">From prompt to process</div>
+        <h2 class="section-title">The progression is <span class="accent-4">vibe coding</span> → agentic engineering → <span class="accent-2">auto-research</span>.</h2>
+        <p class="lede">The human role moves upward: from writing edits, to supervising tools, to setting the research frame and judging the frontier.</p>
+
+        <div class="grid-3" style="margin-top: 1rem;">
+          <div class="card">
+            <h3>Vibe coding</h3>
+            <p>Ask for code, review it, and steer each edit manually.</p>
+          </div>
+          <div class="card strong">
+            <h3>Agentic engineering</h3>
+            <p>Use tools and automation, but keep the human in the loop at each step.</p>
+          </div>
+          <div class="card">
+            <h3>Auto-research</h3>
+            <p>Set the rules once, then let the agent iterate inside the sandbox.</p>
           </div>
         </div>
-        <div class="card">
-          <h3>Control plane and bookkeeping</h3>
-          <ul>
-            <li><code>autoresearch/frontier.py</code>: manages branch, commit, revert, and <code>results.tsv</code>.</li>
-            <li><code>autoresearch/control_plane.py</code>: planner/reviewer/worker/reporter helpers.</li>
-            <li><code>scripts/run_once.sh</code>: one atomic experiment attempt.</li>
-            <li><code>scripts/control_plane.sh</code>: local multi-agent CLI.</li>
-            <li><code>scripts/run_worker.sh</code>: runs one isolated worker attempt.</li>
-          </ul>
-          <div class="callout">The design goal is <strong>control-plane upgrade, not benchmark rewrite</strong>.</div>
-        </div>
       </div>
-      <div class="two-col">
-        <div class="card">
-          <h3>What stays fixed</h3>
-          <ul>
-            <li>Docker-first execution path</li>
-            <li>Evaluator contract and metric format</li>
-            <li>Restaurant simulation rules</li>
-            <li><code>results.tsv</code> as the frontier ledger</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>What changes during research</h3>
-          <ul>
-            <li>The policy logic in <code>restaurant_train.py</code></li>
-            <li>Hypotheses in the local control plane</li>
-            <li>Worker notes, logs, and kept/discarded outcomes</li>
-          </ul>
-        </div>
-      </div>
+
       <footer class="footer">
-        <span>In short: the repo gives agents a safe playground with strong boundaries.</span>
-        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+        <span>The human sets direction; the system handles disciplined iteration.</span>
+        <div class="progress">
+          <span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
       </footer>
     </section>
 
     <section class="slide">
-      <header>
-        <div class="eyebrow">Usage</div>
-        <h2>How to use this repo with an <span class="accent-3">agent harness</span></h2>
-        <p class="lede">The workflow is intentionally repetitive. That is a feature, not a bug: it keeps experiments comparable and easy to audit.</p>
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Method</div>
+        <div class="meta">Ratchet loop</div>
       </header>
-      <div class="steps">
-        <div class="card">
-          <h3>1. Read the rules</h3>
-          <p>Start with <code>program.md</code>, <code>README.md</code>, and <code>docs/guide.md</code> so the agent knows what is mutable and what is not.</p>
+
+      <div>
+        <div class="eyebrow">The loop</div>
+        <h2 class="section-title">Propose. Run. Score. Keep. Repeat.</h2>
+        <div class="grid-4" style="margin-top: 1rem;">
+          <div class="card">
+            <h3>1. Propose</h3>
+            <p>Read the brief and form a concrete hypothesis.</p>
+          </div>
+          <div class="card">
+            <h3>2. Run</h3>
+            <p>Apply the change and execute the same evaluator.</p>
+          </div>
+          <div class="card strong">
+            <h3>3. Score</h3>
+            <p>Use one scalar objective to decide whether the change wins.</p>
+          </div>
+          <div class="card">
+            <h3>4. Ratchet</h3>
+            <p>Keep strict improvements; revert everything else.</p>
+          </div>
         </div>
-        <div class="card">
-          <h3>2. Run the baseline</h3>
-          <p>Run the evaluator before changing anything so the agent has a reference score and known-good behavior.</p>
-        </div>
-        <div class="card">
-          <h3>3. Try one change</h3>
-          <p>Edit only <code>autoresearch/experiments/restaurant_train.py</code> for benchmark experiments.</p>
-        </div>
-        <div class="card strong">
-          <h3>4. Keep or discard</h3>
-          <p>Run the evaluator, parse the score, append to <code>results.tsv</code>, and keep only strict improvements.</p>
+
+        <div class="grid-2" style="margin-top: 1rem;">
+          <div class="card">
+            <h3>The three-part structure</h3>
+            <ul>
+              <li><code>program.md</code>: goal and constraints</li>
+              <li>immutable evaluator and benchmark</li>
+              <li>one mutable training or policy file</li>
+            </ul>
+          </div>
+          <div class="card strong">
+            <h3>Why it is reliable</h3>
+            <ul>
+              <li>fixed benchmark</li>
+              <li>narrow edit surface</li>
+              <li>frontier log of every attempt</li>
+            </ul>
+          </div>
         </div>
       </div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Useful commands</h3>
-          <div class="command">docker compose run --rm autoresearch python -m unittest discover -s tests -v
 
-docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
+      <footer class="footer">
+        <span>Auto-research is powerful because autonomy is paired with a ratchet.</span>
+        <div class="progress">
+          <span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>This repository</div>
+        <div class="meta">Implementation</div>
+      </header>
+
+      <div>
+        <div class="eyebrow">Repo implementation</div>
+        <h2 class="section-title">This repository instantiates the loop on a restaurant inventory benchmark.</h2>
+        <p class="lede">The benchmark is fixed. The agent gets one approved place to change behavior.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>Core files</h3>
+            <div class="diagram">
+              <div class="node"><strong><code>autoresearch/tasks.py</code></strong><br />Immutable simulator: demand, perishability, lead times, storage limits, and shared ingredients.</div>
+              <div class="node"><strong><code>autoresearch/experiments/restaurant_eval.py</code></strong><br />Immutable evaluator: loads the policy and reports the score and metrics.</div>
+              <div class="node"><strong><code>autoresearch/experiments/restaurant_train.py</code></strong><br />Mutable surface: <code>build_policy()</code> returns the policy being tested.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Operational contract</h3>
+            <ul>
+              <li>Read <code>program.md</code> first.</li>
+              <li>Edit only <code>restaurant_train.py</code>.</li>
+              <li>Append outcomes to <code>results.tsv</code>.</li>
+            </ul>
+            <div class="command">docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
   --experiment autoresearch/experiments/restaurant_train.py
 
 ./scripts/run_once.sh "short experiment note"</div>
-        </div>
-        <div class="card">
-          <h3>Multi-agent control plane commands</h3>
-          <div class="command">./scripts/control_plane.sh init --max-workers 2
-./scripts/control_plane.sh add-idea --title "Lead-time buffer" \
-  --hypothesis "Increase safety stock for long lead ingredients" \
-  --policy-family "heuristic reorder tuning" \
-  --rationale "Reduce stockout penalties"
-./scripts/control_plane.sh review
-./scripts/control_plane.sh launch-worker --idea-id &lt;idea-id&gt;
-./scripts/run_worker.sh --worker-id &lt;worker-id&gt; --message "test one hypothesis"
-./scripts/control_plane.sh status</div>
+            <p class="mini" style="margin-top: 0.9rem; color: var(--muted);">Same evaluator, same benchmark, comparable outcomes.</p>
+          </div>
         </div>
       </div>
+
       <footer class="footer">
-        <span>Small controlled loops beat big untracked changes.</span>
-        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
+        <span>One simulator. One evaluator. One mutable policy.</span>
+        <div class="progress">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+        </div>
       </footer>
     </section>
 
     <section class="slide">
-      <header>
-        <div class="eyebrow">Takeaways</div>
-        <h2>What to remember</h2>
-        <p class="lede">If you are new to agent harnesses, the most important lesson is that success usually comes from good process design, not from chasing the newest model buzzword.</p>
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Results</div>
+        <div class="meta">Frontier</div>
       </header>
-      <div class="summary-grid">
-        <div class="card strong">
-          <h3>Autoresearch in one sentence</h3>
-          <p>Use agents to run disciplined, logged, score-driven software experiments.</p>
-          <h3 style="margin-top: 1rem;">Multi-agent autoresearch in one sentence</h3>
-          <p>Split that loop into specialized roles so multiple experiments can be proposed, reviewed, executed, and summarized safely.</p>
-        </div>
-        <div class="card">
-          <h3>Why this repo is a good teaching example</h3>
-          <ul>
-            <li>It has a clear boundary between mutable and immutable code.</li>
-            <li>It uses Docker for repeatability.</li>
-            <li>It keeps a plain-text frontier ledger.</li>
-            <li>It shows how a control plane can grow around a stable benchmark.</li>
-          </ul>
+
+      <div>
+        <div class="eyebrow">Recorded outcome</div>
+        <h2 class="section-title">The branch moves from heavy loss to a <span class="accent-2">positive operating score</span>.</h2>
+
+        <div class="result-grid" style="margin-top: 1rem;">
+          <div class="result-summary">
+            <div class="metric">
+              <div class="label">Baseline to best kept</div>
+              <div class="value">-28,735.04 → 3,866.29</div>
+              <div class="sub">A lift of <strong>32,601.33</strong> on the frontier branch <code>autoresearch/20260430-start</code>.</div>
+            </div>
+
+            <div class="card">
+              <h3>Interpretation</h3>
+              <p>The repo demonstrates the central auto-research claim: performance improved through many bounded experiments, not one lucky jump.</p>
+            </div>
+          </div>
+
+          <div class="card strong">
+            <h3>Frontier milestones</h3>
+            <div class="result-list">
+              <div class="result-row">
+                <div><strong>Baseline</strong></div>
+                <div class="score">-28,735.04</div>
+                <div class="note">Starting point on the branch.</div>
+              </div>
+              <div class="result-row">
+                <div><strong>Heuristic pass</strong></div>
+                <div class="score">-19,458.59</div>
+                <div class="note">Service improves and waste falls.</div>
+              </div>
+              <div class="result-row">
+                <div><strong>Tuned heuristic</strong></div>
+                <div class="score">-6,157.12</div>
+                <div class="note">Tomato stockouts drop sharply; service reaches 0.635.</div>
+              </div>
+              <div class="result-row">
+                <div><strong>Budget-aware policy</strong></div>
+                <div class="score">3,419.60</div>
+                <div class="note">Crosses into positive territory by respecting shared storage.</div>
+              </div>
+              <div class="result-row">
+                <div><strong>Residual hybrid</strong></div>
+                <div class="score">3,687.32</div>
+                <div class="note">Improves ingredient-level prioritization.</div>
+              </div>
+              <div class="result-row good">
+                <div><strong>Final kept</strong></div>
+                <div class="score">3,866.29</div>
+                <div class="note">Best kept score with higher service and lower holding cost.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="two-col">
-        <div class="card">
-          <h3>Best audience takeaway</h3>
-          <p>You do not need “AI magic.” You need a workflow that makes automated changes <span class="accent">safe to try</span>, <span class="accent-2">easy to compare</span>, and <span class="accent-3">cheap to reject</span>.</p>
-        </div>
-        <div class="card">
-          <h3>Open this file locally</h3>
-          <p class="small">Path: <code>/home/runner/work/autoresearch-test/autoresearch-test/docs/autoresearch_agent_harness_slides.html</code></p>
-          <p class="small">It is fully self-contained: no external CSS, JavaScript, fonts, or images.</p>
-        </div>
-      </div>
+
       <footer class="footer">
-        <span>End of deck.</span>
-        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+        <span>Actual frontier data from the repo, not a synthetic example.</span>
+        <div class="progress">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span>
+        </div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Takeaways</div>
+        <div class="meta">Lessons</div>
+      </header>
+
+      <div>
+        <div class="eyebrow">What the repo teaches</div>
+        <h2 class="section-title">The winning pattern is <span class="accent">constraint-first autonomy</span>.</h2>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>What actually moved the score</h3>
+            <ul>
+              <li><strong>Better demand coverage</strong> for long lead-time ingredients</li>
+              <li><strong>Budget-aware ordering</strong> under shared warehouse capacity</li>
+              <li><strong>Selective hybridization</strong> after the baseline heuristic was already strong</li>
+            </ul>
+          </div>
+
+          <div class="stack">
+            <div class="card">
+              <h3>Why this is a strong demo</h3>
+              <ul>
+                <li>The benchmark is fixed.</li>
+                <li>The mutation surface is explicit.</li>
+                <li>The frontier is visible and auditable.</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Plain-language takeaway</h3>
+              <p>Auto-research is not “let the model guess harder.” It is <strong>define the right loop, then let the system compound improvements</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span>Good automation comes from structure, not from removing discipline.</span>
+        <div class="progress">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span>
+        </div>
       </footer>
     </section>
   </div>
 
   <script>
     (() => {
+      const body = document.body;
       const slides = Array.from(document.querySelectorAll('.slide'));
-      const dotsPerSlide = slides.map((slide) => Array.from(slide.querySelectorAll('.dot')));
+      const themeToggle = document.getElementById('theme-toggle');
       let index = 0;
 
+      const storedTheme = localStorage.getItem('deck-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+
+      const syncThemeLabel = () => {
+        if (!themeToggle) return;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        themeToggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+      };
+
       const render = () => {
-        slides.forEach((slide, i) => {
-          slide.classList.toggle('active', i === index);
-          const deckDots = dotsPerSlide[i] || [];
-          deckDots.forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === index));
-        });
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
       };
 
       const next = () => {
@@ -564,27 +861,36 @@ docker compose run --rm autoresearch python -m autoresearch.experiments.restaura
       };
 
       document.addEventListener('keydown', (event) => {
-        if (window.innerWidth <= 1100) return;
+        if (window.innerWidth <= 1120) return;
         if (["ArrowRight", "PageDown", " "].includes(event.key)) {
           event.preventDefault();
           next();
-        }
-        if (["ArrowLeft", "PageUp"].includes(event.key)) {
+        } else if (["ArrowLeft", "PageUp"].includes(event.key)) {
           event.preventDefault();
           previous();
         }
       });
 
       document.addEventListener('click', (event) => {
-        if (window.innerWidth <= 1100) return;
-        const leftHalf = event.clientX < window.innerWidth / 2;
-        if (leftHalf) {
-          previous();
-        } else {
-          next();
-        }
+        if (window.innerWidth <= 1120) return;
+        if (event.clientX < window.innerWidth / 2) previous();
+        else next();
       });
 
+      themeToggle?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          body.removeAttribute('data-theme');
+          localStorage.setItem('deck-theme', 'light');
+        } else {
+          body.setAttribute('data-theme', 'dark');
+          localStorage.setItem('deck-theme', 'dark');
+        }
+        syncThemeLabel();
+      });
+
+      syncThemeLabel();
       render();
     })();
   </script>
