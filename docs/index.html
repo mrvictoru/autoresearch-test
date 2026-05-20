@@ -431,6 +431,110 @@
       align-content: start;
     }
 
+    .chart-wrap {
+      margin-top: 1rem;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--card-strong);
+      box-shadow: var(--shadow);
+      padding: 0.78rem;
+    }
+
+    .chart-grid-layout {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 0.8rem;
+      align-items: start;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 400px;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(14, 165, 233, 0.05), rgba(255, 255, 255, 0.94));
+    }
+
+    body[data-theme="dark"] .chart-svg {
+      background:
+        linear-gradient(180deg, rgba(14, 165, 233, 0.07), rgba(10, 22, 40, 0.96));
+    }
+
+    .chart-grid {
+      stroke: rgba(148, 163, 184, 0.38);
+      stroke-width: 1;
+    }
+
+    .chart-axis {
+      stroke: rgba(71, 85, 105, 0.86);
+      stroke-width: 1.4;
+    }
+
+    .chart-line {
+      fill: none;
+      stroke: #0ea5e9;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .chart-point {
+      fill: #ffffff;
+      stroke: #0ea5e9;
+      stroke-width: 3;
+    }
+
+    body[data-theme="dark"] .chart-point {
+      fill: #08111f;
+    }
+
+    .chart-score {
+      fill: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-label {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .chart-point-id {
+      fill: var(--ink);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .message-list {
+      display: grid;
+      gap: 0.52rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+      max-height: 400px;
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .message-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.55rem;
+      align-items: start;
+    }
+
+    .message-tag {
+      color: var(--sky);
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
     .report-host {
       margin-top: 1rem;
       height: min(74vh, 760px);
@@ -516,6 +620,15 @@
         flex-direction: column;
         align-items: flex-start;
       }
+
+      .chart-grid-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .message-list {
+        max-height: none;
+      }
+
       .topline {
         padding-right: 0;
       }
@@ -798,6 +911,84 @@
         <div class="progress">
           <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span>
         </div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Progress graph</div>
+        <div class="meta">Iteration trend</div>
+      </header>
+
+      <div>
+        <div class="eyebrow">Results.tsv visualization</div>
+        <h2 class="section-title">Line graph of each kept iteration with the associated improvement message.</h2>
+        <p class="lede">Every point is one frontier row from <code>results.tsv</code>, ordered by time, with score lift shown directly on the curve.</p>
+
+        <div class="chart-wrap">
+          <div class="chart-grid-layout">
+            <svg class="chart-svg" viewBox="0 0 1040 420" role="img" aria-label="Frontier score progression from baseline to final kept score">
+              <line class="chart-grid" x1="90" y1="56" x2="980" y2="56"></line>
+              <line class="chart-grid" x1="90" y1="126" x2="980" y2="126"></line>
+              <line class="chart-grid" x1="90" y1="196" x2="980" y2="196"></line>
+              <line class="chart-grid" x1="90" y1="266" x2="980" y2="266"></line>
+              <line class="chart-grid" x1="90" y1="336" x2="980" y2="336"></line>
+
+              <line class="chart-axis" x1="90" y1="336" x2="980" y2="336"></line>
+              <line class="chart-axis" x1="90" y1="40" x2="90" y2="336"></line>
+
+              <text class="chart-label" x="20" y="60">4k</text>
+              <text class="chart-label" x="16" y="130">-4k</text>
+              <text class="chart-label" x="12" y="200">-12k</text>
+              <text class="chart-label" x="12" y="270">-20k</text>
+              <text class="chart-label" x="10" y="340">-28k</text>
+
+              <text class="chart-label" x="90" y="360">1</text>
+              <text class="chart-label" x="268" y="360">2</text>
+              <text class="chart-label" x="446" y="360">3</text>
+              <text class="chart-label" x="624" y="360">4</text>
+              <text class="chart-label" x="802" y="360">5</text>
+              <text class="chart-label" x="972" y="360">6</text>
+
+              <polyline class="chart-line" points="90,320 268,236 446,115 624,28 802,26 980,24"></polyline>
+
+              <circle class="chart-point" cx="90" cy="320" r="6"></circle>
+              <circle class="chart-point" cx="268" cy="236" r="6"></circle>
+              <circle class="chart-point" cx="446" cy="115" r="6"></circle>
+              <circle class="chart-point" cx="624" cy="28" r="6"></circle>
+              <circle class="chart-point" cx="802" cy="26" r="6"></circle>
+              <circle class="chart-point" cx="980" cy="24" r="6"></circle>
+
+              <text class="chart-point-id" x="84" y="324">1</text>
+              <text class="chart-point-id" x="262" y="240">2</text>
+              <text class="chart-point-id" x="440" y="119">3</text>
+              <text class="chart-point-id" x="618" y="32">4</text>
+              <text class="chart-point-id" x="796" y="30">5</text>
+              <text class="chart-point-id" x="974" y="28">6</text>
+
+              <text class="chart-score" x="96" y="306">-28,735</text>
+              <text class="chart-score" x="274" y="222">-19,459</text>
+              <text class="chart-score" x="452" y="101">-6,157</text>
+              <text class="chart-score" x="596" y="50">3,420</text>
+              <text class="chart-score" x="774" y="48">3,687</text>
+              <text class="chart-score" x="950" y="46">3,866</text>
+            </svg>
+
+            <div class="message-list">
+              <div class="message-item"><span class="message-tag">1</span><span>Baseline via docker run; compose blocked by nvidia runtime mismatch</span></div>
+              <div class="message-item"><span class="message-tag">2</span><span>Adaptive heuristic improves service and cuts waste; tomato-led stockouts remain high</span></div>
+              <div class="message-item"><span class="message-tag">3</span><span>Tuned adaptive raises service to 0.635; tomato stockouts reduced sharply and waste collapses</span></div>
+              <div class="message-item"><span class="message-tag">4</span><span>Budget-aware adaptive policy with spike-sensitive config; RL-style residual NN explored but far worse</span></div>
+              <div class="message-item"><span class="message-tag">5</span><span>Focused residual hybrid improves cheese/onion/lettuce/pasta ordering on top of budget-aware heuristic</span></div>
+              <div class="message-item"><span class="message-tag">6</span><span>Service/cashflow hybrid pass: higher service with focused cheese/onion/lettuce/pasta priority and lower holding cost</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span>Trend and message annotations are directly mapped from kept entries in results.tsv.</span>
+        <div class="progress"></div>
       </footer>
     </section>
 
