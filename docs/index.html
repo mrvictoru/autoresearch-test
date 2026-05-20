@@ -679,7 +679,7 @@
           <div class="card strong">
             <h3>Core files</h3>
             <div class="diagram">
-              <div class="node"><strong><code>autoresearch/tasks.py</code></strong><br /><code>RestaurantPolicy</code> protocol: <code>decide_orders(...)</code> and optional <code>fit(...)</code>.</div>
+              <div class="node"><strong><code>autoresearch/tasks.py</code></strong><br /><code>RestaurantPolicy</code> protocol: <code>build_policy()</code> must return an object with <code>decide_orders(...)</code> and optional <code>fit(...)</code>.</div>
               <div class="node"><strong><code>autoresearch/experiments/restaurant_eval.py</code></strong><br />Loads module, calls <code>build_policy()</code>, optionally runs <code>fit(...)</code>, prints <code>METRIC_JSON</code>.</div>
               <div class="node"><strong><code>autoresearch/experiments/restaurant_train.py</code></strong><br />Mutable policy file with <code>build_policy()</code> returning the active strategy.</div>
             </div>
@@ -696,8 +696,9 @@
   --experiment autoresearch/experiments/restaurant_train.py
 
 --- RESULTS ---
-score              ...
-METRIC_JSON: {...}</div>
+score              -28735.040000
+service_level      0.390830
+METRIC_JSON: {"score": -28735.04, "service_level": 0.39082969432314413, ...}</div>
             <p class="mini" style="margin-top: 0.9rem; color: var(--muted);">Same benchmark + same evaluator output contract = comparable runs.</p>
           </div>
         </div>
