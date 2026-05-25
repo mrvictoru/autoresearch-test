@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Inventory AI · Presentation deck</title>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --ink: #0f172a;
+      --muted: #42546e;
+      --line: rgba(148, 163, 184, 0.28);
+      --card: rgba(255, 255, 255, 0.94);
+      --card-strong: rgba(255, 255, 255, 0.985);
+      --sky: #0ea5e9;
+      --violet: #7c3aed;
+      --pink: #ec4899;
+      --teal: #0f766e;
+      --gold: #f59e0b;
+      --shadow: 0 32px 70px rgba(15, 23, 42, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.24), transparent 22%),
+        radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.18), transparent 20%),
+        radial-gradient(circle at 92% 82%, rgba(236, 72, 153, 0.15), transparent 18%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbff 48%, #f2f7ff 100%);
+    }
+
+    body[data-theme="dark"] {
+      --bg: #08111f;
+      --ink: #e5eefc;
+      --muted: #a8bad4;
+      --line: rgba(148, 163, 184, 0.2);
+      --card: rgba(9, 18, 34, 0.82);
+      --card-strong: rgba(10, 22, 40, 0.94);
+      --shadow: 0 28px 70px rgba(0, 0, 0, 0.28);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.18), transparent 22%),
+        radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.18), transparent 20%),
+        radial-gradient(circle at 92% 82%, rgba(236, 72, 153, 0.12), transparent 18%),
+        linear-gradient(180deg, #08111f 0%, #0b1425 50%, #0c1730 100%);
+    }
+
+    .lang { display: none; }
+    body[data-lang="en"] .lang.en,
+    body[data-lang="zh"] .lang.zh { display: revert; }
+
+    body[data-lang="en"] {
+      font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 1.25rem;
+      padding: clamp(1.45rem, 3vw, 3rem);
+      opacity: 0;
+      transform: translateY(16px) scale(0.99);
+      transition: opacity 180ms ease, transform 180ms ease;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .topline,
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .topline {
+      padding-right: 7.5rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.05rem;
+    }
+
+    .mark {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--sky), var(--violet), var(--pink));
+      box-shadow: 0 0 0 7px rgba(14, 165, 233, 0.12);
+      flex: 0 0 auto;
+    }
+
+    .meta,
+    .footer {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .slide > div {
+      min-height: 0;
+      overflow: auto;
+      padding-right: 0.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(14, 165, 233, 0.3) transparent;
+    }
+
+    .slide > div::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .slide > div::-webkit-scrollbar-thumb {
+      background: rgba(14, 165, 233, 0.26);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: var(--sky);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-bottom: 0.95rem;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 2.3rem;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.5;
+    }
+
+    .hero-title,
+    .section-title {
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      letter-spacing: -0.05em;
+      line-height: 1.02;
+      text-wrap: balance;
+    }
+
+    .hero-title {
+      font-size: clamp(2.35rem, 4.4vw, 4.6rem);
+      max-width: 16ch;
+      margin-bottom: 0.8rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.95rem, 3.25vw, 3.05rem);
+      max-width: 20ch;
+      margin-bottom: 0.8rem;
+    }
+
+    .lede {
+      max-width: 52ch;
+      font-size: clamp(1.02rem, 1.35vw, 1.24rem);
+      line-height: 1.45;
+      color: #334155;
+      font-weight: 500;
+    }
+
+    body[data-theme="dark"] .lede {
+      color: #c7d6ec;
+    }
+
+    .accent { color: var(--sky); }
+    .accent-2 { color: var(--teal); }
+    .accent-3 { color: var(--gold); }
+    .accent-4 { color: var(--pink); }
+
+    .hero-grid,
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .result-grid {
+      display: grid;
+      gap: 1.1rem;
+      align-content: start;
+    }
+
+    .hero-grid { grid-template-columns: 1.18fr 0.82fr; }
+    .grid-2,
+    .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card,
+    .metric,
+    .node,
+    .result-row {
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 30px;
+      padding: 1.2rem 1.3rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .card.strong {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(240, 249, 255, 0.96)),
+        linear-gradient(135deg, rgba(14, 165, 233, 0.03), rgba(124, 58, 237, 0.03));
+      border-color: rgba(14, 165, 233, 0.24);
+    }
+
+    body[data-theme="dark"] .card.strong {
+      background:
+        linear-gradient(180deg, rgba(14, 24, 42, 0.96), rgba(10, 22, 40, 0.92)),
+        linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(124, 58, 237, 0.06));
+      border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    .card h3 {
+      font-size: 1.16rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .card p,
+    .card li,
+    .card code {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .card p strong,
+    .card li strong {
+      color: var(--ink);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.15rem;
+    }
+
+    li + li { margin-top: 0.48rem; }
+
+    .hero-bullets {
+      display: grid;
+      gap: 0.82rem;
+      margin-top: 0.9rem;
+    }
+
+    .bullet {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.8rem;
+      align-items: start;
+    }
+
+    .bullet-mark {
+      color: var(--sky);
+      font-weight: 900;
+      font-size: 1.08rem;
+    }
+
+    .callout {
+      margin-top: 1rem;
+      padding: 1.05rem 1.15rem;
+      border-left: 4px solid var(--pink);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.8), rgba(252, 231, 243, 0.58));
+      color: var(--ink);
+      font-size: 1.08rem;
+      line-height: 1.48;
+    }
+
+    body[data-theme="dark"] .callout {
+      background: linear-gradient(135deg, rgba(8, 27, 49, 0.9), rgba(59, 18, 48, 0.5));
+    }
+
+    .diagram {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .node {
+      position: relative;
+      padding: 1.08rem 1.14rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.985);
+    }
+
+    body[data-theme="dark"] .node {
+      background: rgba(12, 23, 41, 0.96);
+    }
+
+    .node::after {
+      content: "↓";
+      position: absolute;
+      left: 50%;
+      bottom: -1rem;
+      transform: translateX(-50%);
+      color: rgba(71, 85, 105, 0.5);
+    }
+
+    .node:last-child::after { content: none; }
+
+    .command {
+      margin-top: 0.95rem;
+      border-radius: 22px;
+      padding: 1.18rem 1.22rem;
+      background: #0f172a;
+      color: #dbeafe;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 1rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      box-shadow: 0 24px 50px rgba(15, 23, 42, 0.18);
+    }
+
+    body[data-theme="dark"] .command {
+      background: linear-gradient(180deg, #030712 0%, #0b1220 100%);
+      color: #e0f2fe;
+      border-color: rgba(56, 189, 248, 0.32);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.38);
+    }
+
+    .result-summary,
+    .result-list {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+    }
+
+    .metric {
+      padding: 1.2rem;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.99), rgba(224, 231, 255, 0.88), rgba(240,249,255,0.96));
+      border-color: rgba(124, 58, 237, 0.16);
+    }
+
+    body[data-theme="dark"] .metric {
+      background: linear-gradient(135deg, rgba(14, 24, 42, 0.97), rgba(24, 28, 58, 0.9), rgba(8, 25, 48, 0.95));
+      border-color: rgba(124, 58, 237, 0.2);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+    }
+
+    .metric .value {
+      margin-top: 0.35rem;
+      font-size: clamp(2.3rem, 4.2vw, 3.7rem);
+      line-height: 1;
+      letter-spacing: -0.06em;
+      font-weight: 900;
+    }
+
+    .metric .sub {
+      margin-top: 0.55rem;
+      font-size: 1.04rem;
+      line-height: 1.46;
+      color: var(--muted);
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: 1.25fr 0.9fr 1.85fr;
+      gap: 0.85rem;
+      align-items: start;
+      border-radius: 20px;
+      padding: 1rem 1.05rem;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body[data-theme="dark"] .result-row {
+      background: rgba(10, 22, 40, 0.9);
+    }
+
+    .result-row .score {
+      font-variant-numeric: tabular-nums;
+      font-weight: 900;
+      color: var(--ink);
+      font-size: 1.08rem;
+    }
+
+    .result-row .note {
+      color: var(--muted);
+      line-height: 1.42;
+      font-size: 0.98rem;
+    }
+
+    .result-row.good {
+      background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 249, 255, 0.98));
+      border-color: rgba(15, 118, 110, 0.2);
+    }
+
+    body[data-theme="dark"] .result-row.good {
+      background: linear-gradient(135deg, rgba(10, 46, 42, 0.95), rgba(9, 32, 54, 0.96));
+    }
+
+    .stack {
+      display: grid;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .chart-wrap {
+      margin-top: 1rem;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--card-strong);
+      box-shadow: var(--shadow);
+      padding: 0.78rem;
+    }
+
+    .chart-grid-layout {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 0.8rem;
+      align-items: start;
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-height: 400px;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(14, 165, 233, 0.05), rgba(255, 255, 255, 0.94));
+    }
+
+    body[data-theme="dark"] .chart-svg {
+      background:
+        linear-gradient(180deg, rgba(14, 165, 233, 0.07), rgba(10, 22, 40, 0.96));
+    }
+
+    .chart-grid {
+      stroke: rgba(148, 163, 184, 0.38);
+      stroke-width: 1;
+    }
+
+    .chart-axis {
+      stroke: rgba(71, 85, 105, 0.86);
+      stroke-width: 1.4;
+    }
+
+    .chart-line {
+      fill: none;
+      stroke: #0ea5e9;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .chart-point {
+      fill: #ffffff;
+      stroke: #0ea5e9;
+      stroke-width: 3;
+    }
+
+    body[data-theme="dark"] .chart-point {
+      fill: #08111f;
+    }
+
+    .chart-score {
+      fill: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-label {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .chart-point-id {
+      fill: var(--ink);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .message-list {
+      display: grid;
+      gap: 0.52rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+      max-height: 400px;
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .message-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.55rem;
+      align-items: start;
+    }
+
+    .message-tag {
+      color: var(--sky);
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
+    .report-host {
+      margin-top: 1rem;
+      height: min(74vh, 760px);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--card-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .report-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #ffffff;
+    }
+
+    .progress {
+      display: flex;
+      gap: 0.44rem;
+    }
+
+    .dot {
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(14, 165, 233, 0.24);
+      background: rgba(14, 165, 233, 0.12);
+    }
+
+    .dot.active {
+      background: linear-gradient(135deg, var(--sky), var(--violet), var(--pink));
+      border-color: transparent;
+    }
+
+    .mini { font-size: 1rem; }
+
+    .theme-toggle,
+    .language-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 20;
+      border: 1px solid rgba(14, 165, 233, 0.22);
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.58rem 0.9rem;
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .language-toggle { right: 11rem; }
+
+    body[data-theme="dark"] .theme-toggle,
+    body[data-theme="dark"] .language-toggle {
+      background: rgba(8, 18, 34, 0.9);
+      color: #e5eefc;
+      border-color: rgba(14, 165, 233, 0.18);
+    }
+
+    @media (max-width: 1120px) {
+      body { overflow: auto; }
+      .deck { height: auto; min-height: 100vh; }
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .hero-grid,
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .result-grid,
+      .result-row {
+        grid-template-columns: 1fr;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .chart-grid-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .message-list {
+        max-height: none;
+      }
+
+      .topline {
+        padding-right: 0;
+      }
+      .theme-toggle {
+        top: auto;
+        right: 0.8rem;
+        bottom: 0.8rem;
+      }
+      .language-toggle {
+        top: auto;
+        right: 10rem;
+        bottom: 0.8rem;
+      }
+
+      .report-host {
+        height: 80vh;
+      }
+    }
+
+    @media print {
+      body { overflow: visible; background: #fff; }
+      .deck { height: auto; }
+      .slide {
+        position: relative;
+        min-height: 100vh;
+        opacity: 1 !important;
+        transform: none !important;
+        page-break-after: always;
+      }
+      .card,
+      .metric,
+      .node,
+      .result-row,
+      .command {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="language-toggle" id="language-toggle" type="button" aria-label="Toggle language">中文</button>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
+  <div class="deck" id="deck">
+    <section class="slide active">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Overview</span><span class="lang zh">項目核心痛點</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">AI-Driven Inventory Intelligence · Project Presentation 2026</span>
+          <span class="lang zh">AI 驅動的智慧庫存管理 · 2026 項目展示</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="lang en">Building an <span class="accent">AI-driven self-improving inventory management system</span> that lifts restaurant profit.</span>
+          <span class="lang zh">打造一套能持續自我優化的<span class="accent">AI 智慧庫存管理系統</span>，幫餐廳提升營運利潤。</span>
+        </h1>
+        <p class="lede">
+          <span class="lang en">This deck shows how AI can reduce waste, improve service, and automate restocking for restaurants with a practical business workflow.</span>
+          <span class="lang zh">這份簡報說明如何用 AI 降低浪費、提升服務率，並以可落地的商業流程，協助餐廳自動補貨。</span>
+        </p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3><span class="lang en">Project Pain Points</span><span class="lang zh">項目痛點</span></h3>
+            <div class="hero-bullets">
+              <div class="bullet"><span class="bullet-mark">1.</span><span class="lang en"><strong>Fragmented information:</strong> ticketing, supplier, transport, and demand data live in different places.</span><span class="lang zh"><strong>資訊碎片化：</strong>訂單、供應商、運輸與需求資料分散在不同系統，難以整合。</span></div>
+              <div class="bullet"><span class="bullet-mark">2.</span><span class="lang en"><strong>Waste and stockouts:</strong> restaurants lose money when ingredients expire or run out at peak hours.</span><span class="lang zh"><strong>浪費與缺貨：</strong>食材過期或尖峰時段缺料，都會直接傷害餐廳營收。</span></div>
+              <div class="bullet"><span class="bullet-mark">3.</span><span class="lang en"><strong>Manual planning is slow:</strong> staff must balance demand, shelf life, storage limits, and replenishment timing by hand.</span><span class="lang zh"><strong>人工規劃太慢：</strong>員工要手動同時兼顧需求、保存期限、倉儲上限和補貨時機。</span></div>
+              <div class="bullet"><span class="bullet-mark">4.</span><span class="lang en"><strong>Bottom-line pressure:</strong> the system must increase service while lowering waste, labor effort, and holding cost.</span><span class="lang zh"><strong>直接影響獲利：</strong>系統必須在提升服務率的同時，降低浪費、人力負擔和持有成本。</span></div>
+            </div>
+            <div class="callout">
+              <span class="lang en">The goal is to turn restaurant inventory into a repeatable AI workflow that improves profit instead of relying on guesswork.</span>
+              <span class="lang zh">目標是把餐廳庫存管理變成可重複的 AI 工作流程，讓系統靠數據提升利潤，而不是憑感覺下決定。</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><span class="lang en">Target Audience</span><span class="lang zh">目標受眾</span></h3>
+            <ul>
+              <li><span class="lang en"><strong>Primary market:</strong> restaurants, cafés, and multi-branch food operators that need tighter inventory control.</span><span class="lang zh"><strong>主要市場：</strong>需要更精準庫存控制的餐廳、咖啡店與連鎖餐飲業者。</span></li>
+              <li><span class="lang en"><strong>Who benefits most:</strong> small teams that manage orders manually and want fewer stock surprises.</span><span class="lang zh"><strong>最有感的族群：</strong>目前仍靠人工下單、希望減少缺貨驚喜的小型團隊。</span></li>
+              <li><span class="lang en"><strong>Class presentation angle:</strong> show how AI solves a real business pain point instead of a toy demo.</span><span class="lang zh"><strong>簡報角度：</strong>展示 AI 如何解決真實商業痛點，而不是只做一個玩具示範。</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">Designed for a restaurant project brief in both English and Chinese.</span><span class="lang zh">為餐廳專案簡報打造的中英雙語版本。</span></span>
+        <div class="progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Framing</span><span class="lang zh">項目定位</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Positioning the restaurant inventory solution</span>
+          <span class="lang zh">餐廳庫存解決方案的項目定位</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">From scattered operations to a structured <span class="accent-2">AI inventory management system</span>.</span>
+          <span class="lang zh">從零散營運流程，走向有結構的<span class="accent-2">AI 智慧庫存管理系統</span>。</span>
+        </h2>
+        <p class="lede">
+          <span class="lang en">The solution uses AI as an operational assistant that connects orders, demand, and replenishment into one business workflow.</span>
+          <span class="lang zh">這套方案把 AI 當成營運助手，把訂單、需求與補貨串成同一個商業流程。</span>
+        </p>
+
+        <div class="grid-3" style="margin-top: 1rem;">
+          <div class="card">
+            <h3><span class="lang en">1. Data integration</span><span class="lang zh">1. 資料整合</span></h3>
+            <p><span class="lang en">Pull restaurant order history, supplier data, menu demand, and expiry records into one agent workflow.</span><span class="lang zh">把餐廳訂單紀錄、供應商資料、菜單需求與到期紀錄整合到同一個智能體流程。</span></p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><span class="lang en"><strong>Value:</strong> reduce information fragmentation and make decisions faster.</span><span class="lang zh"><strong>價值：</strong>減少資訊碎片化，讓決策更快。</span></p>
+          </div>
+          <div class="card strong">
+            <h3><span class="lang en">2. AI agent</span><span class="lang zh">2. AI 智能體</span></h3>
+            <p><span class="lang en">The agent interprets demand signals, recommends reorder quantities, and learns from the results.</span><span class="lang zh">智能體會理解需求訊號、建議補貨數量，並根據結果持續學習。</span></p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><span class="lang en"><strong>Value:</strong> move from rule-based ordering to AI-assisted decisions.</span><span class="lang zh"><strong>價值：</strong>從規則式下單，走向 AI 輔助決策。</span></p>
+          </div>
+          <div class="card">
+            <h3><span class="lang en">3. Business outcome</span><span class="lang zh">3. 商業成效</span></h3>
+            <p><span class="lang en">A self-improving inventory loop reduces waste, improves stock availability, and protects gross margin.</span><span class="lang zh">自我優化的庫存循環可以減少浪費、提高備貨率，並守住毛利。</span></p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><span class="lang en"><strong>Value:</strong> show that AI can directly improve the bottom line.</span><span class="lang zh"><strong>價值：</strong>證明 AI 可以直接改善底線獲利。</span></p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">The best project stories show a real business problem, a clear AI workflow, and a measurable gain.</span><span class="lang zh">好的專案故事要同時交代真實商業問題、清楚的 AI 流程，以及可衡量的成效。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Method</span><span class="lang zh">做法</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">What &amp; How</span>
+          <span class="lang zh">項目內容與實現方式</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">What the system does: one AI agent, one restaurant workflow, one measurable bottom-line goal.</span>
+          <span class="lang zh">系統要做什麼：一個 AI 智能體、一條餐廳工作流程、一個可衡量的獲利目標。</span>
+        </h2>
+
+        <div class="grid-4" style="margin-top: 1rem;">
+          <div class="card">
+            <h3><span class="lang en">One-stop restaurant info</span><span class="lang zh">餐廳資訊一站整合</span></h3>
+            <p><span class="lang en">Bring orders, stock levels, supplier lead times, menu demand, and expiry status into one view.</span><span class="lang zh">把訂單、庫存、供應商交期、菜單需求與到期狀況整合到同一畫面。</span></p>
+          </div>
+          <div class="card">
+            <h3><span class="lang en">Smart restocking</span><span class="lang zh">智能補貨</span></h3>
+            <p><span class="lang en">Recommend how much to reorder based on demand, storage room, and product shelf life.</span><span class="lang zh">根據需求、儲存空間與產品保存期限，建議每次補貨數量。</span></p>
+          </div>
+          <div class="card strong">
+            <h3><span class="lang en">Customer experience</span><span class="lang zh">顧客體驗</span></h3>
+            <p><span class="lang en">Keep popular items available while lowering out-of-stock incidents during peak hours.</span><span class="lang zh">在尖峰時段維持熱門品項供應，降低缺貨情況。</span></p>
+          </div>
+          <div class="card">
+            <h3><span class="lang en">Business metrics</span><span class="lang zh">商業指標</span></h3>
+            <p><span class="lang en">Track waste, service rate, gross margin, holding cost, and labor effort in every run.</span><span class="lang zh">每次運行都追蹤浪費、服務率、毛利、持有成本與人力負擔。</span></p>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 1rem;">
+          <div class="card">
+            <h3><span class="lang en">Core features</span><span class="lang zh">核心功能</span></h3>
+            <ul>
+              <li><span class="lang en"><strong>Concierge-style planning:</strong> combine dining demand, stock status, and replenishment timing.</span><span class="lang zh"><strong>顧問式規劃：</strong>結合用餐需求、庫存狀態與補貨時間。</span></li>
+              <li><span class="lang en"><strong>AI-generated recommendations:</strong> produce restocking suggestions the manager can review quickly.</span><span class="lang zh"><strong>AI 建議輸出：</strong>快速產出可供經理審核的補貨建議。</span></li>
+            </ul>
+          </div>
+          <div class="card strong">
+            <h3><span class="lang en">Technical implementation</span><span class="lang zh">技術實現</span></h3>
+            <ul>
+              <li><span class="lang en">Prompt design turns a few simple inputs into a structured restaurant recommendation.</span><span class="lang zh">透過提示詞設計，把少量輸入轉成結構化的餐廳建議。</span></li>
+              <li><span class="lang en">Agent logic decides what to look up, what to rank, and what to return.</span><span class="lang zh">智能體邏輯負責決定要查什麼、怎麼排序、最後回傳什麼。</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">The system turns restaurant inventory into a measurable business workflow.</span><span class="lang zh">這套系統把餐廳庫存管理變成可衡量的商業流程。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Orchestration</span><span class="lang zh">編排</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Data, prompt, agent, and skills</span>
+          <span class="lang zh">資料、提示詞、智能體、技能</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">How the AI system turns raw restaurant data into a clear inventory recommendation.</span>
+          <span class="lang zh">AI 系統如何把餐廳原始資料轉成清楚的庫存建議。</span>
+        </h2>
+        <p class="lede">
+          <span class="lang en">The workflow combines prompt optimization, an agent layer, and task-specific tools to produce accurate and concise output.</span>
+          <span class="lang zh">這套流程結合提示詞優化、智能體邏輯與專用工具，輸出準確又簡潔的結果。</span>
+        </p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3><span class="lang en">Data sources</span><span class="lang zh">資料來源</span></h3>
+            <div class="diagram">
+              <div class="node"><strong><span class="lang en">Concert / event info</span><span class="lang zh">演唱會與活動資訊</span></strong><br /><span class="lang en">Pull dates, venues, and time windows that affect dining demand.</span><span class="lang zh">抓取日期、場地與時間區間，判斷哪些時段會帶動餐飲需求。</span></div>
+              <div class="node"><strong><span class="lang en">Restaurant operations data</span><span class="lang zh">餐廳營運資料</span></strong><br /><span class="lang en">Use sales history, stock levels, shelf life, and supplier lead times.</span><span class="lang zh">使用銷售紀錄、庫存水位、保存期限與供應商交期。</span></div>
+              <div class="node"><strong><span class="lang en">Open travel and location data</span><span class="lang zh">公開交通與地點資料</span></strong><br /><span class="lang en">Add transport, nearby demand trends, and local operating constraints.</span><span class="lang zh">加入交通、周邊需求趨勢與在地營運限制。</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><span class="lang en">Agent structure</span><span class="lang zh">智能體架構</span></h3>
+            <ul>
+              <li><span class="lang en"><strong>Prompt:</strong> guide the model to answer in a compact, business-focused format.</span><span class="lang zh"><strong>提示詞：</strong>引導模型以簡潔、聚焦商業需求的格式回答。</span></li>
+              <li><span class="lang en"><strong>Agent:</strong> decide whether to recommend restocking, where to source data, and how to prioritize items.</span><span class="lang zh"><strong>智能體：</strong>決定是否補貨、去哪裡查資料，以及品項優先順序。</span></li>
+              <li><span class="lang en"><strong>Skills / tools:</strong> call the right data retrieval tools for tickets, routes, and restaurant planning.</span><span class="lang zh"><strong>技能／工具：</strong>呼叫正確的資料查詢工具，整合票務、路線與餐廳規劃資訊。</span></li>
+            </ul>
+            <div class="command"><span class="lang en">python -m autoresearch.experiments.inventory_eval \
+  --experiment autoresearch/experiments/inventory_policy.py
+
+./scripts/run_once.sh "restaurant pilot note"</span><span class="lang zh">python -m autoresearch.experiments.inventory_eval \
+  --experiment autoresearch/experiments/inventory_policy.py
+
+./scripts/run_once.sh "餐廳專案註記"</span></div>
+            <p class="mini"><span class="lang en">Same architecture, but now the goal is restaurant planning and profit improvement.</span><span class="lang zh">架構相同，但目標已經變成餐廳規劃與獲利改善。</span></p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">The project shows how prompt, agent, and tools work together in a practical restaurant use case.</span><span class="lang zh">這個專案示範提示詞、智能體與工具如何在餐廳情境中協同運作。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Simulation</span><span class="lang zh">情境模擬</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Core problem and solution</span>
+          <span class="lang zh">核心問題與解法</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">The restaurant workflow: unpredictable demand, perishable goods, and profit pressure.</span>
+          <span class="lang zh">餐廳流程面對的是不穩定需求、易腐食材與獲利壓力。</span>
+        </h2>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3><span class="lang en">Core system rules</span><span class="lang zh">核心系統規則</span></h3>
+            <ul>
+              <li><span class="lang en"><strong>Daily demand swings:</strong> multiple product types with changing customer flows.</span><span class="lang zh"><strong>每日需求起伏：</strong>多種產品，客流也會隨時間變動。</span></li>
+              <li><span class="lang en"><strong>Shared inventory capacity:</strong> limited warehouse and cross-product consumption.</span><span class="lang zh"><strong>共享庫存容量：</strong>倉儲空間有限，而且不同產品會彼此競爭資源。</span></li>
+              <li><span class="lang en"><strong>Perishable stock:</strong> expiration windows force smart replenishment.</span><span class="lang zh"><strong>易腐庫存：</strong>有效期限會迫使我們更聰明地安排補貨。</span></li>
+              <li><span class="lang en"><strong>Business objective:</strong> maximize service while minimizing waste and holding cost.</span><span class="lang zh"><strong>商業目標：</strong>在提高服務率的同時，盡量降低浪費與持有成本。</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3><span class="lang en">Policy evolution narrative</span><span class="lang zh">策略演進過程</span></h3>
+            <div class="diagram">
+              <div class="node"><strong><span class="lang en">1. Baseline order heuristic</span><span class="lang zh">1. 基線訂貨規則</span></strong><br /><span class="lang en">Simple reorder points and safety stock based on historical demand.</span><span class="lang zh">根據歷史需求設定簡單補貨點與安全庫存。</span></div>
+              <div class="node"><strong><span class="lang en">2. Adaptive budget allocation</span><span class="lang zh">2. 自適應預算分配</span></strong><br /><span class="lang en">Scale replenishment to fit shared capacity while protecting service.</span><span class="lang zh">根據共享容量調整補貨量，同時維持服務表現。</span></div>
+              <div class="node strong"><strong><span class="lang en">3. AI-enhanced residual policy</span><span class="lang zh">3. AI 強化殘差策略</span></strong><br /><span class="lang en">A small learned adjustment layer improves predictions for key items.</span><span class="lang zh">透過小型學習調整層，提升關鍵品項的預測精度。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">Managers can watch the system improve on measurable inventory and margin decisions.</span><span class="lang zh">管理者可以觀察系統在可衡量的庫存與毛利決策上逐步變好。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Results</span><span class="lang zh">成果</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">A scoring ledger makes progress visible and auditable.</span>
+          <span class="lang zh">評分記錄讓進度一目了然，也方便稽核。</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">The project is about moving from weak baseline logic to a stronger inventory policy.</span>
+          <span class="lang zh">這個專案展示了如何從較弱的基線邏輯，逐步走向更強的庫存策略。</span>
+        </h2>
+
+        <div class="result-grid" style="margin-top: 1rem;">
+          <div class="result-summary">
+            <div class="metric">
+              <div class="label"><span class="lang en">Baseline to best kept</span><span class="lang zh">從基線到最佳保留</span></div>
+              <div class="value">-23,500.00 → 4,120.00</div>
+              <div class="sub"><span class="lang en">A measurable improvement from the ledger by tracking service, waste, and holding cost.</span><span class="lang zh">透過記錄服務率、浪費和持有成本，可以清楚看到可量化的進步。</span></div>
+            </div>
+
+            <div class="card">
+              <h3><span class="lang en">Audit-ready business results</span><span class="lang zh">可追溯的商業成果</span></h3>
+              <p><span class="lang en">The ledger is a simple TSV that managers can open in a spreadsheet and review.</span><span class="lang zh">這份記錄是一個簡單的 TSV，管理者可以直接用試算表開啟並檢視。</span></p>
+              <p style="margin-top: 0.5rem; font-size: 0.9rem;"><span class="lang en"><strong>Learning point:</strong> AI improvements should be anchored in measurable business impact.</span><span class="lang zh"><strong>重點：</strong>AI 的改進應該建立在可衡量的商業影響上。</span></p>
+            </div>
+          </div>
+
+          <div class="card strong">
+            <h3><span class="lang en">Frontier records</span><span class="lang zh">前沿紀錄</span></h3>
+            <div class="result-list">
+              <div class="result-row">
+                <div><strong><span class="lang en">1. Baseline</span><span class="lang zh">1. 基線</span></strong></div>
+                <div class="score">-23,500.00</div>
+                <div class="note"><span class="lang en">Simple reorder point default.</span><span class="lang zh">採用簡單的補貨點預設策略。</span></div>
+              </div>
+              <div class="result-row">
+                <div><strong><span class="lang en">Heuristic pass</span><span class="lang zh">啟發式調整</span></strong></div>
+                <div class="score">-14,200.00</div>
+                <div class="note"><span class="lang en">Service improves while expiry waste falls.</span><span class="lang zh">服務率提升，過期浪費也下降了。</span></div>
+              </div>
+              <div class="result-row">
+                <div><strong><span class="lang en">Budget-aware</span><span class="lang zh">預算感知</span></strong></div>
+                <div class="score">1,320.00</div>
+                <div class="note"><span class="lang en">Capacity-aware allocation keeps stock balanced.</span><span class="lang zh">根據容量進行分配，讓庫存更平衡。</span></div>
+              </div>
+              <div class="result-row good">
+                <div><strong><span class="lang en">Best kept</span><span class="lang zh">最佳保留</span></strong></div>
+                <div class="score">4,120.00</div>
+                <div class="note"><span class="lang en">Final policy improves service and lowers total cost.</span><span class="lang zh">最終策略同時提升服務率並降低總成本。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">The ledger proves the project is about measurable AI engineering, not hype.</span><span class="lang zh">這份記錄證明，這個專案談的是可衡量的 AI 工程，而不是空泛炒作。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Progress graph</span><span class="lang zh">進展圖</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Visualizing policy performance across kept experiments.</span>
+          <span class="lang zh">把每次保留的實驗結果視覺化。</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">A simple curve that makes improvement easy to explain in class.</span>
+          <span class="lang zh">這條簡單曲線讓課堂上的改進一看就懂。</span>
+        </h2>
+        <p class="lede">
+          <span class="lang en">Every dot is an accepted inventory policy state from the ledger.</span>
+          <span class="lang zh">每個點都代表記錄中一個被接受的庫存策略狀態。</span>
+        </p>
+
+        <div class="chart-wrap">
+          <div class="chart-grid-layout">
+            <svg class="chart-svg" viewBox="0 0 1040 420" role="img" aria-label="Inventory policy score progression">
+              <line class="chart-grid" x1="90" y1="56" x2="980" y2="56"></line>
+              <line class="chart-grid" x1="90" y1="126" x2="980" y2="126"></line>
+              <line class="chart-grid" x1="90" y1="196" x2="980" y2="196"></line>
+              <line class="chart-grid" x1="90" y1="266" x2="980" y2="266"></line>
+              <line class="chart-grid" x1="90" y1="336" x2="980" y2="336"></line>
+
+              <line class="chart-axis" x1="90" y1="336" x2="980" y2="336"></line>
+              <line class="chart-axis" x1="90" y1="40" x2="90" y2="336"></line>
+
+              <text class="chart-label" x="20" y="60">4k</text>
+              <text class="chart-label" x="16" y="130">-4k</text>
+              <text class="chart-label" x="12" y="200">-12k</text>
+              <text class="chart-label" x="12" y="270">-20k</text>
+              <text class="chart-label" x="10" y="340">-28k</text>
+
+              <text class="chart-label" x="90" y="360">1</text>
+              <text class="chart-label" x="268" y="360">2</text>
+              <text class="chart-label" x="446" y="360">3</text>
+              <text class="chart-label" x="624" y="360">4</text>
+              <text class="chart-label" x="802" y="360">5</text>
+              <text class="chart-label" x="972" y="360">6</text>
+
+              <polyline class="chart-line" points="90,320 268,236 446,115 624,28 802,26 980,24"></polyline>
+
+              <circle class="chart-point" cx="90" cy="320" r="6"></circle>
+              <circle class="chart-point" cx="268" cy="236" r="6"></circle>
+              <circle class="chart-point" cx="446" cy="115" r="6"></circle>
+              <circle class="chart-point" cx="624" cy="28" r="6"></circle>
+              <circle class="chart-point" cx="802" cy="26" r="6"></circle>
+              <circle class="chart-point" cx="980" cy="24" r="6"></circle>
+
+              <text class="chart-point-id" x="84" y="324">1</text>
+              <text class="chart-point-id" x="262" y="240">2</text>
+              <text class="chart-point-id" x="440" y="119">3</text>
+              <text class="chart-point-id" x="618" y="32">4</text>
+              <text class="chart-point-id" x="796" y="30">5</text>
+              <text class="chart-point-id" x="974" y="28">6</text>
+
+              <text class="chart-score" x="96" y="306">-23,500</text>
+              <text class="chart-score" x="274" y="222">-14,200</text>
+              <text class="chart-score" x="452" y="101">1,320</text>
+              <text class="chart-score" x="596" y="50">4,120</text>
+            </svg>
+
+            <div class="message-list">
+              <div class="message-item"><span class="message-tag">1</span><span><span class="lang en">Baseline shows why naive reorder policy fails under demand swings.</span><span class="lang zh">基線說明了為什麼在需求波動下，簡單補貨策略會失效。</span></span></div>
+              <div class="message-item"><span class="message-tag">2</span><span><span class="lang en">Heuristic tuning improves service but still wastes perishable stock.</span><span class="lang zh">啟發式調整讓服務率提升，但仍然浪費不少易腐庫存。</span></span></div>
+              <div class="message-item"><span class="message-tag">3</span><span><span class="lang en">Capacity-aware budget control stabilizes inventory load.</span><span class="lang zh">容量感知的預算控制讓庫存負載更穩定。</span></span></div>
+              <div class="message-item"><span class="message-tag">4</span><span><span class="lang en">Residual AI corrections sharpen orders for key items.</span><span class="lang zh">殘差式 AI 修正讓關鍵品項的訂單更精準。</span></span></div>
+              <div class="message-item"><span class="message-tag">5</span><span><span class="lang en">Final kept policy demonstrates measurable business success.</span><span class="lang zh">最後保留下來的策略，展示了可量化的商業成果。</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">Progress graphs help learners understand the value of incremental improvement.</span><span class="lang zh">進展圖能幫助學習者理解，一點一點改進其實很有價值。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Scalability demo</span><span class="lang zh">擴充展示</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Connecting the project to a scalable business story.</span>
+          <span class="lang zh">把專案和容易理解的 AI 故事連在一起。</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">Imagine an AI assistant that knows the store’s handbook and suggests smarter restocking.</span>
+          <span class="lang zh">想像一個懂得門市手冊、還能提出更聰明補貨建議的 AI 助手。</span>
+        </h2>
+        <p class="lede">
+          <span class="lang en">This follows the same pattern as a RAG chatbot, but now applied to restaurant operations and margin improvement.</span>
+          <span class="lang zh">這和連接政策手冊的 RAG 聊天機器人概念很像，只是應用在庫存營運上。</span>
+        </p>
+
+        <div class="report-host">
+          <div class="card" style="height: 100%; border-radius: 0; box-shadow: none; border: 0; padding: 1.5rem;">
+            <h3><span class="lang en">Demo concept</span><span class="lang zh">展示概念</span></h3>
+            <ul style="margin-top: 0.75rem;">
+              <li><span class="lang en">Show how a policy change affects service and waste immediately.</span><span class="lang zh">展示策略一改，服務率和浪費會怎麼立刻變化。</span></li>
+              <li><span class="lang en">Use the ledger as evidence that AI decisions are grounded in numbers.</span><span class="lang zh">用記錄來證明，AI 決策是有數據依據的。</span></li>
+              <li><span class="lang en">Explain the system boundaries: input, policy function, and evaluation output.</span><span class="lang zh">把系統邊界講清楚：輸入、策略函式、評估輸出。</span></li>
+            </ul>
+            <div class="callout" style="margin-top: 1rem;">
+              <span class="lang en">This slide shows how the idea can grow into a practical product for restaurants.</span>
+              <span class="lang zh">這張適合課堂的投影片，會把庫存 AI 專案和老師想要的實用框架連結起來。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">A strong demo ties AI to a task a restaurant operator actually cares about.</span><span class="lang zh">一個好的展示，應該把 AI 連到餐廳經營者真正關心的任務上。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
+    <section class="slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Takeaways</span><span class="lang zh">重點整理</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Practical lessons for operators and product teams.</span>
+          <span class="lang zh">給營運團隊與產品團隊的實用啟發。</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">The best AI projects solve a concrete operational problem and show a measurable gain.</span>
+          <span class="lang zh">最好的 AI 專案，應該解決具體營運問題，並且看得見成效。</span>
+        </h2>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3><span class="lang en">Key business lessons</span><span class="lang zh">關鍵商業重點</span></h3>
+            <ul>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Avoid hidden state:</strong> isolate policy changes from simulation state and cached behavior.</span><span class="lang zh"><strong>避免隱藏狀態：</strong>把策略變更和模擬狀態、快取行為分開處理。</span></li>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Build fallback safety:</strong> the product should still give useful suggestions when data is incomplete.</span><span class="lang zh"><strong>建立備援機制：</strong>當資料不完整時，系統仍應給出有用建議。</span></li>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Use measurable feedback:</strong> progress should be evident in numbers, not just slides.</span><span class="lang zh"><strong>使用可衡量回饋：</strong>進步應該體現在數字上，而不只是投影片裡。</span></li>
+            </ul>
+          </div>
+
+          <div class="stack">
+            <div class="card">
+              <h3><span class="lang en">Scalability safeguards</span><span class="lang zh">擴充保護</span></h3>
+              <ul>
+                <li><span class="lang en">The architecture can be reused across branches and cities.</span><span class="lang zh">這套架構可以在不同分店與城市之間重複使用。</span></li>
+                <li><span class="lang en">APIs make supplier, booking, and delivery integrations possible.</span><span class="lang zh">API 讓供應商、訂位與外送整合成為可能。</span></li>
+                <li><span class="lang en">The multilingual interface is ready for English, Chinese, and future markets.</span><span class="lang zh">多語言介面已可支援英文、中文與未來市場。</span></li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3><span class="lang en">Core presentation takeaway</span><span class="lang zh">簡報核心結論</span></h3>
+              <p><span class="lang en">AI is strongest when it solves a concrete restaurant pain point and improves profit in measurable ways.</span><span class="lang zh">AI 最有力量的時候，是它真的解決餐廳的具體痛點，並且以可衡量的方式提升獲利。</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">This project is a clear example of applied AI for restaurant innovation.</span><span class="lang zh">這個專案清楚示範了 AI 如何成為餐飲創新的解決方案。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+      </footer>
+    </section>
+
+  </div>
+
+  <script>
+    (() => {
+      const body = document.body;
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const themeToggle = document.getElementById('theme-toggle');
+      const languageToggle = document.getElementById('language-toggle');
+      const progressContainers = Array.from(document.querySelectorAll('.progress'));
+      let index = 0;
+
+      const storedTheme = localStorage.getItem('deck-theme');
+      const storedLang = localStorage.getItem('deck-lang');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const prefersZh = navigator.language && navigator.language.startsWith('zh');
+
+      if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+        body.setAttribute('data-theme', 'dark');
+      }
+
+      const initialLang = storedLang || (prefersZh ? 'zh' : 'en');
+      body.setAttribute('data-lang', initialLang);
+
+      const syncThemeLabel = () => {
+        if (!themeToggle) return;
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        themeToggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+      };
+
+      const syncLanguageLabel = () => {
+        if (!languageToggle) return;
+        const isZh = body.getAttribute('data-lang') === 'zh';
+        languageToggle.textContent = isZh ? 'English' : '中文';
+        languageToggle.setAttribute('aria-pressed', String(isZh));
+      };
+
+      const render = () => {
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        progressContainers.forEach((container) => {
+          container.innerHTML = slides.map((_, i) =>
+            `<span class="dot${i === index ? ' active' : ''}"></span>`
+          ).join('');
+        });
+      };
+
+      const next = () => {
+        index = Math.min(index + 1, slides.length - 1);
+        render();
+      };
+
+      const previous = () => {
+        index = Math.max(index - 1, 0);
+        render();
+      };
+
+      document.addEventListener('keydown', (event) => {
+        if (window.innerWidth <= 1120) return;
+        if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+          event.preventDefault();
+          next();
+        } else if (["ArrowLeft", "PageUp"].includes(event.key)) {
+          event.preventDefault();
+          previous();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (window.innerWidth <= 1120) return;
+        const activeSlide = slides[index];
+        if (activeSlide?.classList.contains('report-slide') && event.target.closest('.report-host')) {
+          return;
+        }
+        if (event.target.closest('button, a, input, textarea, select, summary, .theme-toggle, .language-toggle')) {
+          return;
+        }
+        if (event.clientX < window.innerWidth / 2) previous();
+        else next();
+      });
+
+      themeToggle?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          body.removeAttribute('data-theme');
+          localStorage.setItem('deck-theme', 'light');
+        } else {
+          body.setAttribute('data-theme', 'dark');
+          localStorage.setItem('deck-theme', 'dark');
+        }
+        syncThemeLabel();
+      });
+
+      languageToggle?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isZh = body.getAttribute('data-lang') === 'zh';
+        body.setAttribute('data-lang', isZh ? 'en' : 'zh');
+        localStorage.setItem('deck-lang', isZh ? 'en' : 'zh');
+        syncLanguageLabel();
+      });
+
+      syncThemeLabel();
+      syncLanguageLabel();
+      render();
+    })();
+  </script>
+</body>
+</html>
