@@ -754,6 +754,33 @@
       </footer>
     </section>
 
+    <section class="slide report-slide">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Inventory AI</div>
+        <div class="meta"><span class="lang en">Before Optimization</span><span class="lang zh">優化前報告</span></div>
+      </header>
+
+      <div>
+        <div class="eyebrow">
+          <span class="lang en">Baseline run before the agent improves the policy.</span>
+          <span class="lang zh">先看優化前的基線報告，再進入自我改進流程。</span>
+        </div>
+        <h2 class="section-title">
+          <span class="lang en">Baseline Trace: this is the earlier report we compare against the improved frontier.</span>
+          <span class="lang zh">基線軌跡：這份是自動優化前的早期報告，用來對比後面的最佳策略。</span>
+        </h2>
+
+        <div class="report-host">
+          <iframe class="report-frame" src="../artifacts/reports/baseline-20260430-start/report.html" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <span><span class="lang en">Use this baseline to see what changes once the self-improvement loop starts to learn.</span><span class="lang zh">先看這個基線，再看後面的改進版，就能直接比較自我優化前後的差異。</span></span>
+        <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </footer>
+    </section>
+
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
@@ -1153,17 +1180,17 @@ git reset --hard HEAD~1</span></div>
     <section class="slide report-slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Live Sandbox Trace</span><span class="lang zh">現場展示＆交互沙盒</span></div>
+        <div class="meta"><span class="lang en">Improved Frontier</span><span class="lang zh">優化後前沿</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">Connecting the project to an interactive trace visualization.</span>
-          <span class="lang zh">第 6 輪最優策略在高保真沙盒中的日度運行流動重放</span>
+          <span class="lang en">After the loop learns, the kept policy becomes the live interactive demo.</span>
+          <span class="lang zh">經過自我優化後，保留下來的策略會在這裡作為互動示範。</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">Interactive Trace Replay: Dynamically inspect supplier deliveries, decay logs, and cashflow.</span>
-          <span class="lang zh">動態軌跡重放：實時點擊觀測不同模擬天數下的食材進出庫、物理折舊與余額波動。</span>
+          <span class="lang en">Interactive Trace Replay: inspect supplier deliveries, decay logs, and cashflow after optimization.</span>
+          <span class="lang zh">互動軌跡重放：請直接對比優化後的補貨、耗損與現金流變化。</span>
         </h2>
 
         <div class="report-host">
