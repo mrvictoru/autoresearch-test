@@ -30,6 +30,9 @@
       overflow: hidden;
       color: var(--ink);
       font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
       background:
         radial-gradient(circle at 14% 10%, rgba(14, 165, 233, 0.24), transparent 22%),
         radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.18), transparent 20%),
@@ -58,6 +61,21 @@
 
     body[data-lang="en"] {
       font-family: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body[data-lang="zh"] {
+      font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+      letter-spacing: 0.02em;
+    }
+
+    body[data-lang="zh"] .hero-title,
+    body[data-lang="zh"] .section-title,
+    body[data-lang="zh"] h1,
+    body[data-lang="zh"] h2,
+    body[data-lang="zh"] h3 {
+      font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-weight: 850;
+      letter-spacing: -0.01em;
     }
 
     h1, h2, h3, p { margin: 0; }
@@ -692,46 +710,46 @@
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">AI-Driven Inventory Intelligence · Project Presentation 2026</span>
-          <span class="lang zh">AI 驅動的智慧庫存管理 · 2026 項目展示</span>
+          <span class="lang en">Beyond Vibe Coding · Python Autonomous Optimization System 2026</span>
+          <span class="lang zh">超越憑感覺盲調 · 基於 Python 自動進化架構的 2026 項目展示</span>
         </div>
         <h1 class="hero-title">
-          <span class="lang en">Building an <span class="accent">AI-driven self-improving inventory management system</span> that lifts restaurant profit.</span>
-          <span class="lang zh">打造一套能持續自我優化的<span class="accent">AI 智慧庫存管理系統</span>，幫餐廳提升營運利潤。</span>
+          <span class="lang en">Building a <span class="accent">self-improving inventory AI agent</span> to maximize restaurant bottom line.</span>
+          <span class="lang zh">構建自動進化的<span class="accent">餐廳 AI 智慧庫存決策智能體</span>，重塑餐飲底線獲利。</span>
         </h1>
         <p class="lede">
-          <span class="lang en">This deck shows how AI can reduce waste, improve service, and automate restocking for restaurants with a practical business workflow.</span>
-          <span class="lang zh">這份簡報說明如何用 AI 降低浪費、提升服務率，並以可落地的商業流程，協助餐廳自動補貨。</span>
+          <span class="lang en">This presentation details how we deploy sandboxed Python experiment harnesses to robustly automate restocking, eliminate waste, and optimize supply-chain margin.</span>
+          <span class="lang zh">本簡報將深入解析如何利用受控的 Python 沙盒實驗機制，自動化迭代補貨決策、消滅到期損耗並最大化庫存邊際收益。</span>
         </p>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3><span class="lang en">Project Pain Points</span><span class="lang zh">項目痛點</span></h3>
+            <h3><span class="lang en">Operations Pain Points</span><span class="lang zh">餐飲營運痛點</span></h3>
             <div class="hero-bullets">
-              <div class="bullet"><span class="bullet-mark">1.</span><span class="lang en"><strong>Fragmented information:</strong> ticketing, supplier, transport, and demand data live in different places.</span><span class="lang zh"><strong>資訊碎片化：</strong>訂單、供應商、運輸與需求資料分散在不同系統，難以整合。</span></div>
-              <div class="bullet"><span class="bullet-mark">2.</span><span class="lang en"><strong>Waste and stockouts:</strong> restaurants lose money when ingredients expire or run out at peak hours.</span><span class="lang zh"><strong>浪費與缺貨：</strong>食材過期或尖峰時段缺料，都會直接傷害餐廳營收。</span></div>
-              <div class="bullet"><span class="bullet-mark">3.</span><span class="lang en"><strong>Manual planning is slow:</strong> staff must balance demand, shelf life, storage limits, and replenishment timing by hand.</span><span class="lang zh"><strong>人工規劃太慢：</strong>員工要手動同時兼顧需求、保存期限、倉儲上限和補貨時機。</span></div>
-              <div class="bullet"><span class="bullet-mark">4.</span><span class="lang en"><strong>Bottom-line pressure:</strong> the system must increase service while lowering waste, labor effort, and holding cost.</span><span class="lang zh"><strong>直接影響獲利：</strong>系統必須在提升服務率的同時，降低浪費、人力負擔和持有成本。</span></div>
+              <div class="bullet"><span class="bullet-mark">1.</span><span class="lang en"><strong>Information fragmentation:</strong> orders, supplier constraints, lead times, and decay rules live separately.</span><span class="lang zh"><strong>資訊碎片孤島：</strong>訂單數據、供應商約束、交期與食材物理（shelf-life）特性散落各處。</span></div>
+              <div class="bullet"><span class="bullet-mark">2.</span><span class="lang en"><strong>Double-sided margin leakage:</strong> over-ordering causes immediate spoilage, under-ordering causes high peak-hour stockouts.</span><span class="lang zh"><strong>雙向利潤流失：</strong>補貨多則過期浪費、補貨少則尖峰時段缺料，皆嚴重傷害門店營收。</span></div>
+              <div class="bullet"><span class="bullet-mark">3.</span><span class="lang en"><strong>Multi-variable constraint planning:</strong> human operators struggle to manual-balance capacity limits and spoilage.</span><span class="lang zh"><strong>多約束人工計算：</strong>店經理極難靠人工手動精準算清「物理倉儲容積上限」與「易腐食材到期日」。</span></div>
+              <div class="bullet"><span class="bullet-mark">4.</span><span class="lang en"><strong>Intense pressure on net margin:</strong> systems must raise fulfillment rate, yet compress waste and labor workload.</span><span class="lang zh"><strong>底線利潤逼仄：</strong>迫切需要自動化智能系統，兼顧「提升備貨率」與「削減過期損耗/持有成本」。</span></div>
             </div>
             <div class="callout">
               <span class="lang en">The goal is to turn restaurant inventory into a repeatable AI workflow that improves profit instead of relying on guesswork.</span>
-              <span class="lang zh">目標是把餐廳庫存管理變成可重複的 AI 工作流程，讓系統靠數據提升利潤，而不是憑感覺下決定。</span>
+              <span class="lang zh">核心目標：推動庫存管理擺脫主觀粗估，升級為由真實數據與嚴謹模擬約束驅動的「自適應最優決策循環」。</span>
             </div>
           </div>
 
           <div class="card">
-            <h3><span class="lang en">Target Audience</span><span class="lang zh">目標受眾</span></h3>
+            <h3><span class="lang en">Target Audience &amp; Value</span><span class="lang zh">對象與核心價值</span></h3>
             <ul>
-              <li><span class="lang en"><strong>Primary market:</strong> restaurants, cafés, and multi-branch food operators that need tighter inventory control.</span><span class="lang zh"><strong>主要市場：</strong>需要更精準庫存控制的餐廳、咖啡店與連鎖餐飲業者。</span></li>
-              <li><span class="lang en"><strong>Who benefits most:</strong> small teams that manage orders manually and want fewer stock surprises.</span><span class="lang zh"><strong>最有感的族群：</strong>目前仍靠人工下單、希望減少缺貨驚喜的小型團隊。</span></li>
-              <li><span class="lang en"><strong>Class presentation angle:</strong> show how AI solves a real business pain point instead of a toy demo.</span><span class="lang zh"><strong>簡報角度：</strong>展示 AI 如何解決真實商業痛點，而不是只做一個玩具示範。</span></li>
+              <li><span class="lang en"><strong>Operators &amp; Chains:</strong> Eager to automate repetitive daily restocking schedules and stabilize margins.</span><span class="lang zh"><strong>餐飲門店與連鎖運營方：</strong>擺脫每日沉重流程，實現全自動、高可靠的安全定量補貨。</span></li>
+              <li><span class="lang en"><strong>Technical &amp; Product Teams:</strong> Seeking code-level patterns for dynamic imports and deterministic simulator scoring.</span><span class="lang zh"><strong>研發與產品技術團隊：</strong>掌握利用 Python 動態裝載（Dynamic Imports）與沙盒隔離實現代碼自進化的經典範式。</span></li>
+              <li><span class="lang en"><strong>Measurable Ledger Gains:</strong> Placing optimization goals on hard revenue numbers, not vague prompt chats.</span><span class="lang zh"><strong>拒絕虛浮提示（Vibe-Coding）：</strong>以真實可審計的財務總賬（results.tsv）來證明技術如何創造直接增收。</span></li>
             </ul>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">Designed for a restaurant project brief in both English and Chinese.</span><span class="lang zh">為餐廳專案簡報打造的中英雙語版本。</span></span>
+        <span><span class="lang en">Empowering restaurant operations with automated, self-evolving system design.</span><span class="lang zh">中英雙語對照 · 基於真實 Python 自動化 R&amp;D 沙盒成果匯報。</span></span>
         <div class="progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -784,58 +802,58 @@
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Method</span><span class="lang zh">做法</span></div>
+        <div class="meta"><span class="lang en">Method</span><span class="lang zh">項目架構</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
           <span class="lang en">What &amp; How</span>
-          <span class="lang zh">項目內容與實現方式</span>
+          <span class="lang zh">項目做法與核心模組</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">What the system does: one AI agent, one restaurant workflow, one measurable bottom-line goal.</span>
-          <span class="lang zh">系統要做什麼：一個 AI 智能體、一條餐廳工作流程、一個可衡量的獲利目標。</span>
+          <span class="lang en">System Architecture: AI Agent, high-fidelity simulator, and measurable profit goals.</span>
+          <span class="lang zh">核心做法：將 AI 決策代理、高保真營運沙盒與量化利潤指標深度融合。</span>
         </h2>
 
         <div class="grid-4" style="margin-top: 1rem;">
           <div class="card">
-            <h3><span class="lang en">One-stop restaurant info</span><span class="lang zh">餐廳資訊一站整合</span></h3>
-            <p><span class="lang en">Bring orders, stock levels, supplier lead times, menu demand, and expiry status into one view.</span><span class="lang zh">把訂單、庫存、供應商交期、菜單需求與到期狀況整合到同一畫面。</span></p>
+            <h3><span class="lang en">1. Multi-source Data Integration</span><span class="lang zh">1. 多維營運數據融合</span></h3>
+            <p><span class="lang en">Integrate previous salesorders, current inventory levels, lead times, and shelflife rules.</span><span class="lang zh">集成銷售訂單、動態庫存水位、供應商交期與食材 perishable（到期易腐）物理特性。</span></p>
           </div>
           <div class="card">
-            <h3><span class="lang en">Smart restocking</span><span class="lang zh">智能補貨</span></h3>
-            <p><span class="lang en">Recommend how much to reorder based on demand, storage room, and product shelf life.</span><span class="lang zh">根據需求、儲存空間與產品保存期限，建議每次補貨數量。</span></p>
+            <h3><span class="lang en">Dynamic Smart Reordering</span><span class="lang zh">2. 庫存保鮮智能補貨</span></h3>
+            <p><span class="lang en">Recommend target order volume dynamically under dynamic demand and physical volume capacity.</span><span class="lang zh">根據尖峰需求預測與門店物理物理容量上限，自動輸出精準的按日補貨清單。</span></p>
           </div>
           <div class="card strong">
-            <h3><span class="lang en">Customer experience</span><span class="lang zh">顧客體驗</span></h3>
-            <p><span class="lang en">Keep popular items available while lowering out-of-stock incidents during peak hours.</span><span class="lang zh">在尖峰時段維持熱門品項供應，降低缺貨情況。</span></p>
+            <h3><span class="lang en">Peak Stock Protection</span><span class="lang zh">3. 尖峰就餐體驗保障</span></h3>
+            <p><span class="lang en">Maintain highly robust buffers for sensitive items like cheese, lettuce, and onions to block out stockouts.</span><span class="lang zh">重點配置核心易耗品儲備，阻斷用餐客群高發期缺貨風險，確保供應服務率（Service Rate）。</span></p>
           </div>
           <div class="card">
-            <h3><span class="lang en">Business metrics</span><span class="lang zh">商業指標</span></h3>
-            <p><span class="lang en">Track waste, service rate, gross margin, holding cost, and labor effort in every run.</span><span class="lang zh">每次運行都追蹤浪費、服務率、毛利、持有成本與人力負擔。</span></p>
+            <h3><span class="lang en">Financial Margin Audit</span><span class="lang zh">4. 可審計利潤精化</span></h3>
+            <p><span class="lang en">Audit revenue, decay waste loss, offlink capacity penalty, and opportunities lost at every simulated day.</span><span class="lang zh">每日模擬核算毛利損益、過期耗損代價、倉庫溢出罰金以及缺貨造成等機會利潤赤字。</span></p>
           </div>
         </div>
 
         <div class="grid-2" style="margin-top: 1rem;">
           <div class="card">
-            <h3><span class="lang en">Core features</span><span class="lang zh">核心功能</span></h3>
+            <h3><span class="lang en">Strategic Abstraction</span><span class="lang zh">決策抽象：顧問式建議</span></h3>
             <ul>
-              <li><span class="lang en"><strong>Concierge-style planning:</strong> combine dining demand, stock status, and replenishment timing.</span><span class="lang zh"><strong>顧問式規劃：</strong>結合用餐需求、庫存狀態與補貨時間。</span></li>
-              <li><span class="lang en"><strong>AI-generated recommendations:</strong> produce restocking suggestions the manager can review quickly.</span><span class="lang zh"><strong>AI 建議輸出：</strong>快速產出可供經理審核的補貨建議。</span></li>
+              <li><span class="lang en"><strong>Multi-Factor Assessment:</strong> analyze future customer traffic spikes, lead times, and decay window to prevent stock spoilage.</span><span class="lang zh"><strong>多約束自適應分析：</strong>融合客流尖峰、到貨物流期與保鮮時效等多維度條件，給出最優動態採購量。</span></li>
+              <li><span class="lang en"><strong>Interactive Dashboards:</strong> compile precise restocking advice per item in kilograms to let restaurant managers approve or override.</span><span class="lang zh"><strong>一鍵可視化報表：</strong>自動生成店經理專用審批清單，將繁瑣的紙筆推算徹底升級為智能輔助下單。</span></li>
             </ul>
           </div>
           <div class="card strong">
-            <h3><span class="lang en">Technical implementation</span><span class="lang zh">技術實現</span></h3>
+            <h3><span class="lang en">System-Level Design</span><span class="lang zh">底層技術：系統接口與推理</span></h3>
             <ul>
-              <li><span class="lang en">Prompt design turns a few simple inputs into a structured restaurant recommendation.</span><span class="lang zh">透過提示詞設計，把少量輸入轉成結構化的餐廳建議。</span></li>
-              <li><span class="lang en">Agent logic decides what to look up, what to rank, and what to return.</span><span class="lang zh">智能體邏輯負責決定要查什麼、怎麼排序、最後回傳什麼。</span></li>
+              <li><span class="lang en"><strong>Structured Schema Output:</strong> prompt LLMs to reply securely in structured JSON models, eliminating fragile text parsing logic.</span><span class="lang zh"><strong>結構化數據校準（Schema）：</strong>以 strict prompts 強制引導 LLM 輸出 JSON，免去脆弱的常規正則文本解析。</span></li>
+              <li><span class="lang en"><strong>Dynamic Runtime Hook:</strong> leverage tools to dynamically request ingredient status, query constraints, and rank proposals.</span><span class="lang zh"><strong>動態工具庫編排（Agent-Tool）：</strong>在決策流程中，智能自主調度各數據接口，查詢交期並自動排序。</span></li>
             </ul>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">The system turns restaurant inventory into a measurable business workflow.</span><span class="lang zh">這套系統把餐廳庫存管理變成可衡量的商業流程。</span></span>
+        <span><span class="lang en">The system turns restaurant inventory into a measurable business workflow.</span><span class="lang zh">中英雙語對照 · 基於真實 Python 自動化 R&amp;D 沙盒成果匯報。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -843,54 +861,68 @@
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Orchestration</span><span class="lang zh">編排</span></div>
+        <div class="meta"><span class="lang en">Self-Improvement Loop</span><span class="lang zh">自主優化沙盒</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">Data, prompt, agent, and skills</span>
-          <span class="lang zh">資料、提示詞、智能體、技能</span>
+          <span class="lang en">Sandboxed Orchestration &amp; Security boundaries</span>
+          <span class="lang zh">四重防禦：防舞弊與動態代碼演進</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">How the AI system turns raw restaurant data into a clear inventory recommendation.</span>
-          <span class="lang zh">AI 系統如何把餐廳原始資料轉成清楚的庫存建議。</span>
+          <span class="lang en">Ratchetting Loop: How the LLM safely mutates, tests, and locks policy code.</span>
+          <span class="lang zh">棘輪自主優化環：AI 如何在嚴格防禦邊界內自主修改與鎖定策略代碼。</span>
         </h2>
-        <p class="lede">
-          <span class="lang en">The workflow combines prompt optimization, an agent layer, and task-specific tools to produce accurate and concise output.</span>
-          <span class="lang zh">這套流程結合提示詞優化、智能體邏輯與專用工具，輸出準確又簡潔的結果。</span>
-        </p>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3><span class="lang en">Data sources</span><span class="lang zh">資料來源</span></h3>
-            <div class="diagram">
-              <div class="node"><strong><span class="lang en">Concert / event info</span><span class="lang zh">演唱會與活動資訊</span></strong><br /><span class="lang en">Pull dates, venues, and time windows that affect dining demand.</span><span class="lang zh">抓取日期、場地與時間區間，判斷哪些時段會帶動餐飲需求。</span></div>
-              <div class="node"><strong><span class="lang en">Restaurant operations data</span><span class="lang zh">餐廳營運資料</span></strong><br /><span class="lang en">Use sales history, stock levels, shelf life, and supplier lead times.</span><span class="lang zh">使用銷售紀錄、庫存水位、保存期限與供應商交期。</span></div>
-              <div class="node"><strong><span class="lang en">Open travel and location data</span><span class="lang zh">公開交通與地點資料</span></strong><br /><span class="lang en">Add transport, nearby demand trends, and local operating constraints.</span><span class="lang zh">加入交通、周邊需求趨勢與在地營運限制。</span></div>
+            <h3><span class="lang en">Four Layers of Agent Defenses</span><span class="lang zh">AI 真實研發沙盒：四重安全性防線</span></h3>
+            <div class="diagram" style="gap: 0.5rem;">
+              <div class="node" style="padding: 0.5rem; text-align: left;">
+                <strong><span class="lang en">1. Non-Tampering Git Guard</span><span class="lang zh">1. 接口防篡改防線 (`git diff`)</span></strong><br />
+                <span class="lang en">Verify inputs and block changes to test suites or eval modules using <code>git diff --name-only</code>.</span>
+                <span class="lang zh">在運行前強制進行變動審計，確保 AI 只修改 `restaurant_train.py`。若試圖篡改測試代碼或評估器，即刻中斷判定舞弊。</span>
+              </div>
+              <div class="node" style="padding: 0.5rem; text-align: left;">
+                <strong><span class="lang en">2. Subprocess Isolation</span><span class="lang zh">2. 進程級獨立沙盒 (`subprocess`)</span></strong><br />
+                <span class="lang en">Spawn a clean subprocess per trial to clear Python import cache and prevent dirty global variables.</span>
+                <span class="lang zh">利用子進程隔離加載候選策略模組，防止 Python `sys.modules` 導入緩存和全域變量殘留，保證環境 100% 潔淨。</span>
+              </div>
+              <div class="node" style="padding: 0.5rem; text-align: left;">
+                <strong><span class="lang en">3. Pinned Pseudo-Seeds</span><span class="lang zh">3. 隨機數種子釘扎 (Deterministic Seeds)</span></strong><br />
+                <span class="lang en">A Gaussian demand stream pinned with deterministic random seeds to block AI from cheating on lucky draws.</span>
+                <span class="lang zh">在 `tasks.py` 釘扎客流隨機數種子。每次評估都在完全相同的客流噪聲與供應交期中考驗，消除巧合干擾。</span>
+              </div>
+              <div class="node" style="padding: 0.5rem; text-align: left;">
+                <strong><span class="lang en">4. Atomic Rollback Guard</span><span class="lang zh">4. 物理級原子回滾 (`git reset`)</span></strong><br />
+                <span class="lang en">Record results. If score decreases, invoke <code>git reset --hard HEAD~1</code>. Keep and commit only when a new high record is made.</span>
+                <span class="lang zh">在 `control_plane.py` 對接 Git：每次測試前存檔。若評估分數未超越 `results.tsv` 的歷史最高分，一秒回滾！唯有創新高才允許提交。</span>
+              </div>
             </div>
           </div>
 
           <div class="card">
-            <h3><span class="lang en">Agent structure</span><span class="lang zh">智能體架構</span></h3>
+            <h3><span class="lang en">Dynamic Hot-Swapping</span><span class="lang zh">工程精華：動態熱插拔與推進</span></h3>
+            <p><span class="lang en">The control plane behaves as an automated R&amp;D lab, checking out branches, running eval, and managing state directly.</span><span class="lang zh">模擬真實頂尖工程師的 R&amp;D 行為。AI 智能體藉由編排腳本自動發起改寫、執行評測、判定損益並維護本地 Frontier！</span></p>
+            <div class="command" style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.5rem;"><span class="lang en">python -m autoresearch.control_plane \
+  --brief research_brief_restaurant.json
+
+# If scores decline during trial:
+git reset --hard HEAD~1</span><span class="lang zh">python -m autoresearch.control_plane \
+  --brief research_brief_restaurant.json
+
+# 當策略退化或得分下降：
+git reset --hard HEAD~1</span></div>
             <ul>
-              <li><span class="lang en"><strong>Prompt:</strong> guide the model to answer in a compact, business-focused format.</span><span class="lang zh"><strong>提示詞：</strong>引導模型以簡潔、聚焦商業需求的格式回答。</span></li>
-              <li><span class="lang en"><strong>Agent:</strong> decide whether to recommend restocking, where to source data, and how to prioritize items.</span><span class="lang zh"><strong>智能體：</strong>決定是否補貨、去哪裡查資料，以及品項優先順序。</span></li>
-              <li><span class="lang en"><strong>Skills / tools:</strong> call the right data retrieval tools for tickets, routes, and restaurant planning.</span><span class="lang zh"><strong>技能／工具：</strong>呼叫正確的資料查詢工具，整合票務、路線與餐廳規劃資訊。</span></li>
+              <li><span class="lang en"><strong>Frontier Buffer:</strong> the best validated source code is saved as a solid platform to evolve further.</span><span class="lang zh"><strong>Frontier 演進平台：</strong>只在累積最優代碼上進行下一次突變，形成完美的漸進式學習曲線。</span></li>
+              <li><span class="lang en"><strong>Evaluation Ledger:</strong> updates are tracked on <code>results.tsv</code> as an immutable benchmark ledger.</span><span class="lang zh"><strong>不可變收支賬本：</strong>將得分指標同步追加到 `results.tsv`，供後續數據與趨勢分析。</span></li>
             </ul>
-            <div class="command"><span class="lang en">python -m autoresearch.experiments.inventory_eval \
-  --experiment autoresearch/experiments/inventory_policy.py
-
-./scripts/run_once.sh "restaurant pilot note"</span><span class="lang zh">python -m autoresearch.experiments.inventory_eval \
-  --experiment autoresearch/experiments/inventory_policy.py
-
-./scripts/run_once.sh "餐廳專案註記"</span></div>
-            <p class="mini"><span class="lang en">Same architecture, but now the goal is restaurant planning and profit improvement.</span><span class="lang zh">架構相同，但目標已經變成餐廳規劃與獲利改善。</span></p>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">The project shows how prompt, agent, and tools work together in a practical restaurant use case.</span><span class="lang zh">這個專案示範提示詞、智能體與工具如何在餐廳情境中協同運作。</span></span>
+        <span><span class="lang en">Secure isolation enables continuous unattended agent optimization.</span><span class="lang zh">安全隔離與自動回滾，是實現不依賴人工干預、可持續自主優化的工程基石。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -898,42 +930,60 @@
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Simulation</span><span class="lang zh">情境模擬</span></div>
+        <div class="meta"><span class="lang en">Simulation</span><span class="lang zh">物理營運模擬</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">Core problem and solution</span>
-          <span class="lang zh">核心問題與解法</span>
+          <span class="lang en">Constraint Dynamics and Formula Optimization</span>
+          <span class="lang zh">約束求解與全域目標優化</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">The restaurant workflow: unpredictable demand, perishable goods, and profit pressure.</span>
-          <span class="lang zh">餐廳流程面對的是不穩定需求、易腐食材與獲利壓力。</span>
+          <span class="lang en">High-Fidelity Sandbox: Operations under stochastic demand and shelf-life constraints.</span>
+          <span class="lang zh">高保真營運沙盒：多重物理約束與非平穩客流下的庫存動力學。</span>
         </h2>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3><span class="lang en">Core system rules</span><span class="lang zh">核心系統規則</span></h3>
+            <h3><span class="lang en">Multi-Factor Constraints</span><span class="lang zh">多因庫存物理約束</span></h3>
             <ul>
-              <li><span class="lang en"><strong>Daily demand swings:</strong> multiple product types with changing customer flows.</span><span class="lang zh"><strong>每日需求起伏：</strong>多種產品，客流也會隨時間變動。</span></li>
-              <li><span class="lang en"><strong>Shared inventory capacity:</strong> limited warehouse and cross-product consumption.</span><span class="lang zh"><strong>共享庫存容量：</strong>倉儲空間有限，而且不同產品會彼此競爭資源。</span></li>
-              <li><span class="lang en"><strong>Perishable stock:</strong> expiration windows force smart replenishment.</span><span class="lang zh"><strong>易腐庫存：</strong>有效期限會迫使我們更聰明地安排補貨。</span></li>
-              <li><span class="lang en"><strong>Business objective:</strong> maximize service while minimizing waste and holding cost.</span><span class="lang zh"><strong>商業目標：</strong>在提高服務率的同時，盡量降低浪費與持有成本。</span></li>
+              <li><span class="lang en"><strong>Stochastic Demand Peaks:</strong> weekly cyclical consumer demand spikes with varying weekday consumption profiles.</span><span class="lang zh"><strong>隨機需求起伏（Stochastic Demand）：</strong> 波動性客戶流量，週一至週四低平、週末暴烈上升。</span></li>
+              <li><span class="lang en"><strong>Physical Volume Thresholds:</strong> shared storage constraints. Overflowing triggers massive holding cost penalties.</span><span class="lang zh"><strong>共享倉庫容積上限（Capacity Barrier）：</strong> 倉儲空間物理極限固定。一旦囤貨溢出，觸發溢出保管罰金。</span></li>
+              <li><span class="lang en"><strong>Perishable Spoilage Window:</strong> strict food perishability decay curves. Excess supply degrades directly into zero-value waste.</span><span class="lang zh"><strong>食材到期耗損（Spoilage Penalty）：</strong> 核心食材（生菜、起司、洋蔥、麵體）保鮮期極短，過量補貨即刻報廢。</span></li>
+              <li>
+                <span class="lang en"><strong>Global Objective Optimization:</strong> maximize cashflow and customer orders filled while curbing physical decay costs.</span>
+                <span class="lang zh"><strong>全域財務優化函數（Objective Function）：</strong></span>
+                <div style="font-size: 0.9rem; margin-top: 0.3rem; font-family: monospace; background: rgba(0,0,0,0.1); padding: 0.4rem; border-radius: 4px; border-left: 3px solid var(--primary);">
+                  $$\text{Net Profit} = \sum (\text{Revenue}) - \text{Holding Cost} - \text{Spoilage Penalty} - \text{Stockout Opp Loss}$$
+                </div>
+              </li>
             </ul>
           </div>
           <div class="card">
-            <h3><span class="lang en">Policy evolution narrative</span><span class="lang zh">策略演進過程</span></h3>
+            <h3><span class="lang en">Policy Evolution Path</span><span class="lang zh">策略突破：從經驗規則到機器學習混合策略</span></h3>
             <div class="diagram">
-              <div class="node"><strong><span class="lang en">1. Baseline order heuristic</span><span class="lang zh">1. 基線訂貨規則</span></strong><br /><span class="lang en">Simple reorder points and safety stock based on historical demand.</span><span class="lang zh">根據歷史需求設定簡單補貨點與安全庫存。</span></div>
-              <div class="node"><strong><span class="lang en">2. Adaptive budget allocation</span><span class="lang zh">2. 自適應預算分配</span></strong><br /><span class="lang en">Scale replenishment to fit shared capacity while protecting service.</span><span class="lang zh">根據共享容量調整補貨量，同時維持服務表現。</span></div>
-              <div class="node strong"><strong><span class="lang en">3. AI-enhanced residual policy</span><span class="lang zh">3. AI 強化殘差策略</span></strong><br /><span class="lang en">A small learned adjustment layer improves predictions for key items.</span><span class="lang zh">透過小型學習調整層，提升關鍵品項的預測精度。</span></div>
+              <div class="node">
+                <strong><span class="lang en">1. Heuristic Static Policy</span><span class="lang zh">1. Heuristic 靜態均勻策略</span></strong><br />
+                <span class="lang en">Simple reorder points and safety stock. Ignored shared storage and dynamic weekday flows.</span>
+                <span class="lang zh">採用固定靜態補貨區間。忽視倉庫極限和週期波動，極易導致大爆倉或極端缺料斷供。</span>
+              </div>
+              <div class="node">
+                <strong><span class="lang en">2. Capacity-Budget Adaptive Heuristic</span><span class="lang zh">2. 預算與容積自適應補貨</span></strong><br />
+                <span class="lang en">Calculate dynamic safety stocks. Order proportionally to safeguard shared physical warehouse limit.</span>
+                <span class="lang zh">根據剩餘物理庫存與歷史交付前置期，實施比例收縮分配，鎖住共享容積紅線，防爆倉。</span>
+              </div>
+              <div class="node strong">
+                <strong><span class="lang en">3. Machine Learning Focus-Residual Hybrid</span><span class="lang zh">3. MLP 殘差預測混合策略</span></strong><br />
+                <span class="lang en">An MLP model learns from the policy search log to predict correct leftover bias on volatile ingredients.</span>
+                <span class="lang zh">融合 ML 架構。利用 MLP 預測高波動食材（起司、生菜、洋蔥、麵體）隱式殘差，實施精準主動調補，毛利最大化。</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">Managers can watch the system improve on measurable inventory and margin decisions.</span><span class="lang zh">管理者可以觀察系統在可衡量的庫存與毛利決策上逐步變好。</span></span>
+        <span><span class="lang en">Solving stochastic, multi-category inventory decisions using learned residual offsets.</span><span class="lang zh">中英雙語對照 · 深度剖析 MLP 擬合與 Heuristic 決策多宿營運博弈。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -941,56 +991,66 @@
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Results</span><span class="lang zh">成果</span></div>
+        <div class="meta"><span class="lang en">Results Ledger</span><span class="lang zh">成果對帳本</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
           <span class="lang en">A scoring ledger makes progress visible and auditable.</span>
-          <span class="lang zh">評分記錄讓進度一目了然，也方便稽核。</span>
+          <span class="lang zh">不可修改、物理留痕的 R&amp;D 日誌，讓演進完全可追溯。</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">The project is about moving from weak baseline logic to a stronger inventory policy.</span>
-          <span class="lang zh">這個專案展示了如何從較弱的基線邏輯，逐步走向更強的庫存策略。</span>
+          <span class="lang en">Ledger Audit: Tracking the evolution from fragile baseline to peak net cashflow.</span>
+          <span class="lang zh">指標評測審計：從巨額耗損赤字，走向 3,866.29 核心利潤的漸進軌跡。</span>
         </h2>
 
         <div class="result-grid" style="margin-top: 1rem;">
           <div class="result-summary">
             <div class="metric">
-              <div class="label"><span class="lang en">Baseline to best kept</span><span class="lang zh">從基線到最佳保留</span></div>
-              <div class="value">-23,500.00 → 4,120.00</div>
-              <div class="sub"><span class="lang en">A measurable improvement from the ledger by tracking service, waste, and holding cost.</span><span class="lang zh">透過記錄服務率、浪費和持有成本，可以清楚看到可量化的進步。</span></div>
+              <div class="label"><span class="lang en">Absolute Gain Delta</span><span class="lang zh">利潤峰值反擊曲線</span></div>
+              <div class="value" style="font-size: 1.8rem; font-weight: 800; color: var(--success);">-28,735 → 3,866</div>
+              <div class="sub" style="font-size: 0.8rem;"><span class="lang en">A net gain of 32,600+ units, combining solid 92%+ customer orders filled with minimized shelf-life waste.</span><span class="lang zh">極限挽回 32,600+ 點數赤字，將服務率大幅拉升至 92% 同時，實現極低耗損。</span></div>
             </div>
 
-            <div class="card">
-              <h3><span class="lang en">Audit-ready business results</span><span class="lang zh">可追溯的商業成果</span></h3>
-              <p><span class="lang en">The ledger is a simple TSV that managers can open in a spreadsheet and review.</span><span class="lang zh">這份記錄是一個簡單的 TSV，管理者可以直接用試算表開啟並檢視。</span></p>
-              <p style="margin-top: 0.5rem; font-size: 0.9rem;"><span class="lang en"><strong>Learning point:</strong> AI improvements should be anchored in measurable business impact.</span><span class="lang zh"><strong>重點：</strong>AI 的改進應該建立在可衡量的商業影響上。</span></p>
+            <div class="card" style="padding: 0.8rem;">
+              <h3><span class="lang en">Audit-Ready TSV Records</span><span class="lang zh">防篡改實時數據</span></h3>
+              <p style="font-size: 0.85rem;"><span class="lang en">Every trial score is logged instantly on <code>results.tsv</code>. This data ledger is read-only for transparency.</span><span class="lang zh">任何突變策略的得分與 Git SHA 雜湊被即時寫入 `results.tsv`。完全留檔，隨時可用電子表格稽核。</span></p>
+              <p style="margin-top: 0.4rem; font-size: 0.8rem;"><span class="lang en"><strong>Verify:</strong> AI capability is defined by structured software engineering logs.</span><span class="lang zh"><strong>研究心得：</strong>AI 的領先不靠感性，必須由不偏不倚的系統日誌帳單定義。</span></p>
             </div>
           </div>
 
-          <div class="card strong">
-            <h3><span class="lang en">Frontier records</span><span class="lang zh">前沿紀錄</span></h3>
-            <div class="result-list">
-              <div class="result-row">
-                <div><strong><span class="lang en">1. Baseline</span><span class="lang zh">1. 基線</span></strong></div>
-                <div class="score">-23,500.00</div>
-                <div class="note"><span class="lang en">Simple reorder point default.</span><span class="lang zh">採用簡單的補貨點預設策略。</span></div>
+          <div class="card strong" style="padding: 0.8rem;">
+            <h3><span class="lang en">Frontier Records</span><span class="lang zh">最優策略迭代 (Frontier)</span></h3>
+            <div class="result-list" style="gap: 0.25rem;">
+              <div class="result-row" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">1. Docker Baseline</span><span class="lang zh">1. 基線 (Docker)</span></strong></div>
+                <div class="score">-28,735.04</div>
+                <div class="note"><span class="lang en">Naive order heuristic collapses under peak traffic.</span><span class="lang zh">簡單安全庫存。客流高峰期缺料嚴重，非高峰期爆倉。</span></div>
               </div>
-              <div class="result-row">
-                <div><strong><span class="lang en">Heuristic pass</span><span class="lang zh">啟發式調整</span></strong></div>
-                <div class="score">-14,200.00</div>
-                <div class="note"><span class="lang en">Service improves while expiry waste falls.</span><span class="lang zh">服務率提升，過期浪費也下降了。</span></div>
+              <div class="result-row" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">2. Adaptive Heuristic</span><span class="lang zh">2. 比例自適應分配</span></strong></div>
+                <div class="score">-19,458.59</div>
+                <div class="note"><span class="lang en">Limits shared overflow, but tomato stockouts remain high.</span><span class="lang zh">引入容積安全線，降低部分超倉罰金，但依然有缺貨。</span></div>
               </div>
-              <div class="result-row">
-                <div><strong><span class="lang en">Budget-aware</span><span class="lang zh">預算感知</span></strong></div>
-                <div class="score">1,320.00</div>
-                <div class="note"><span class="lang en">Capacity-aware allocation keeps stock balanced.</span><span class="lang zh">根據容量進行分配，讓庫存更平衡。</span></div>
+              <div class="result-row" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">3. Tuned Adaptive</span><span class="lang zh">3. 微調自適應</span></strong></div>
+                <div class="score">-6,157.12</div>
+                <div class="note"><span class="lang en">Raises service to 0.635; waste collapses sharply.</span><span class="lang zh">調度閾值深度微調，服務率拉升 63.5%，報廢量減半。</span></div>
               </div>
-              <div class="result-row good">
-                <div><strong><span class="lang en">Best kept</span><span class="lang zh">最佳保留</span></strong></div>
-                <div class="score">4,120.00</div>
-                <div class="note"><span class="lang en">Final policy improves service and lowers total cost.</span><span class="lang zh">最終策略同時提升服務率並降低總成本。</span></div>
+              <div class="result-row" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">4. Spike Budget</span><span class="lang zh">4. 週末高峰調幅</span></strong></div>
+                <div class="score">3,419.60</div>
+                <div class="note"><span class="lang en">Recognizes peak patterns. Net cash turns positive.</span><span class="lang zh">感知週五週六暴增特徵，扭虧為盈，利潤高達 3,419.6。</span></div>
+              </div>
+              <div class="result-row" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">5. Focus NN Hybrid</span><span class="lang zh">5. 聚焦殘差 MLP</span></strong></div>
+                <div class="score">3,687.32</div>
+                <div class="note"><span class="lang en">Volatile items (cheese/pasta) corrected by MLP network.</span><span class="lang zh">兩層 MLP 精準補償高度易耗食材，避免盲目囤料。</span></div>
+              </div>
+              <div class="result-row good" style="padding: 0.3rem 0.5rem;">
+                <div><strong><span class="lang en">6. Optimal Hybrid</span><span class="lang zh">6. 最佳流暢混合體</span></strong></div>
+                <div class="score">3,866.29</div>
+                <div class="note"><span class="lang en">Record cashflow with safe service rate & lowest footprints.</span><span class="lang zh">峰值利潤。最精準補貨點與最低折舊報廢組合。</span></div>
               </div>
             </div>
           </div>
@@ -998,7 +1058,7 @@
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">The ledger proves the project is about measurable AI engineering, not hype.</span><span class="lang zh">這份記錄證明，這個專案談的是可衡量的 AI 工程，而不是空泛炒作。</span></span>
+        <span><span class="lang en">The ledger proves the project is about measurable AI engineering, not hype.</span><span class="lang zh">中英雙語對照 · 基於 results.tsv 不可變帳本數據實施指標審計。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -1006,21 +1066,21 @@
     <section class="slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Progress graph</span><span class="lang zh">進展圖</span></div>
+        <div class="meta"><span class="lang en">Progress Graph</span><span class="lang zh">收支進展圖</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
           <span class="lang en">Visualizing policy performance across kept experiments.</span>
-          <span class="lang zh">把每次保留的實驗結果視覺化。</span>
+          <span class="lang zh">最優保留試驗的全局收支利潤提升曲線</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">A simple curve that makes improvement easy to explain in class.</span>
-          <span class="lang zh">這條簡單曲線讓課堂上的改進一看就懂。</span>
+          <span class="lang en">A real-world learning curve of policy iteration from results.tsv.</span>
+          <span class="lang zh">真實研發收支演進：基於 Git 原子提交記錄繪製的漸進式增長。</span>
         </h2>
         <p class="lede">
-          <span class="lang en">Every dot is an accepted inventory policy state from the ledger.</span>
-          <span class="lang zh">每個點都代表記錄中一個被接受的庫存策略狀態。</span>
+          <span class="lang en">Every numbered node maps to a keeping transaction committed in results.tsv.</span>
+          <span class="lang zh">曲線中每一個物理點，對應 results.tsv 帳本中一條真實的 `decision="keep"` 改進提交。</span>
         </p>
 
         <div class="chart-wrap">
@@ -1048,83 +1108,71 @@
               <text class="chart-label" x="802" y="360">5</text>
               <text class="chart-label" x="972" y="360">6</text>
 
-              <polyline class="chart-line" points="90,320 268,236 446,115 624,28 802,26 980,24"></polyline>
+              <polyline class="chart-line" points="90,342 268,261 446,145 624,61 802,59 980,57"></polyline>
 
-              <circle class="chart-point" cx="90" cy="320" r="6"></circle>
-              <circle class="chart-point" cx="268" cy="236" r="6"></circle>
-              <circle class="chart-point" cx="446" cy="115" r="6"></circle>
-              <circle class="chart-point" cx="624" cy="28" r="6"></circle>
-              <circle class="chart-point" cx="802" cy="26" r="6"></circle>
-              <circle class="chart-point" cx="980" cy="24" r="6"></circle>
+              <circle class="chart-point" cx="90" cy="342" r="6"></circle>
+              <circle class="chart-point" cx="268" cy="261" r="6"></circle>
+              <circle class="chart-point" cx="446" cy="145" r="6"></circle>
+              <circle class="chart-point" cx="624" cy="61" r="6"></circle>
+              <circle class="chart-point" cx="802" cy="59" r="6"></circle>
+              <circle class="chart-point" cx="980" cy="57" r="6"></circle>
 
-              <text class="chart-point-id" x="84" y="324">1</text>
-              <text class="chart-point-id" x="262" y="240">2</text>
-              <text class="chart-point-id" x="440" y="119">3</text>
-              <text class="chart-point-id" x="618" y="32">4</text>
-              <text class="chart-point-id" x="796" y="30">5</text>
-              <text class="chart-point-id" x="974" y="28">6</text>
+              <text class="chart-point-id" x="84" y="346">1</text>
+              <text class="chart-point-id" x="262" y="265">2</text>
+              <text class="chart-point-id" x="440" y="149">3</text>
+              <text class="chart-point-id" x="618" y="65">4</text>
+              <text class="chart-point-id" x="796" y="63">5</text>
+              <text class="chart-point-id" x="974" y="61">6</text>
 
-              <text class="chart-score" x="96" y="306">-23,500</text>
-              <text class="chart-score" x="274" y="222">-14,200</text>
-              <text class="chart-score" x="452" y="101">1,320</text>
-              <text class="chart-score" x="596" y="50">4,120</text>
+              <text class="chart-score" x="96" y="328">-28,735</text>
+              <text class="chart-score" x="274" y="247">-19,459</text>
+              <text class="chart-score" x="452" y="131">-6,157</text>
+              <text class="chart-score" x="590" y="83">3,420</text>
+              <text class="chart-score" x="768" y="47">3,687</text>
+              <text class="chart-score" x="918" y="45">3,866</text>
             </svg>
 
             <div class="message-list">
-              <div class="message-item"><span class="message-tag">1</span><span><span class="lang en">Baseline shows why naive reorder policy fails under demand swings.</span><span class="lang zh">基線說明了為什麼在需求波動下，簡單補貨策略會失效。</span></span></div>
-              <div class="message-item"><span class="message-tag">2</span><span><span class="lang en">Heuristic tuning improves service but still wastes perishable stock.</span><span class="lang zh">啟發式調整讓服務率提升，但仍然浪費不少易腐庫存。</span></span></div>
-              <div class="message-item"><span class="message-tag">3</span><span><span class="lang en">Capacity-aware budget control stabilizes inventory load.</span><span class="lang zh">容量感知的預算控制讓庫存負載更穩定。</span></span></div>
-              <div class="message-item"><span class="message-tag">4</span><span><span class="lang en">Residual AI corrections sharpen orders for key items.</span><span class="lang zh">殘差式 AI 修正讓關鍵品項的訂單更精準。</span></span></div>
-              <div class="message-item"><span class="message-tag">5</span><span><span class="lang en">Final kept policy demonstrates measurable business success.</span><span class="lang zh">最後保留下來的策略，展示了可量化的商業成果。</span></span></div>
+              <div class="message-item"><span class="message-tag">1</span><span><span class="lang en">Baseline fails to handle weekend traffic spikes.</span><span class="lang zh">Docker 基線：在隨機流量下嚴重斷供，赤字高企。</span></span></div>
+              <div class="message-item"><span class="message-tag">2</span><span><span class="lang en">Adaptive heuristic prevents shared storage overflow.</span><span class="lang zh">比例自適應分配：守住共享容量紅線，防止天價超倉費。</span></span></div>
+              <div class="message-item"><span class="message-tag">3</span><span><span class="lang en">Service rate improves; tomato stockout collapsed.</span><span class="lang zh">調密優化：番茄耗損塌縮，全局服務率突破 63.5%。</span></span></div>
+              <div class="message-item"><span class="message-tag">4</span><span><span class="lang en">Peak-aware budget controls turn net cashflow positive.</span><span class="lang zh">週末峰值調補：精準對齊需求，首度扭虧為盈突破 3,400。</span></span></div>
+              <div class="message-item"><span class="message-tag">5</span><span><span class="lang en">MLP residual predictions target cheese/onion buffer.</span><span class="lang zh">殘差 MLP 網絡：主導預測高波動性消耗，實施高頻精確調補。</span></span></div>
+              <div class="message-item"><span class="message-tag">6</span><span><span class="lang en">Final optimal hybrid minimizes spoilage & maximum cash.</span><span class="lang zh">黃金平衡體：在 0.99 安全服務下，實現極低報廢折舊。</span></span></div>
             </div>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">Progress graphs help learners understand the value of incremental improvement.</span><span class="lang zh">進展圖能幫助學習者理解，一點一點改進其實很有價值。</span></span>
+        <span><span class="lang en">Progress graphs help learners understand the value of incremental improvement.</span><span class="lang zh">中英雙語對照 · 比對 6 輪真實 Frontier 提交在 100% 相同客流噪聲下的財務回報。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
       </footer>
     </section>
 
-    <section class="slide">
+    <section class="slide report-slide">
       <header class="topline">
         <div class="brand"><span class="mark"></span>Inventory AI</div>
-        <div class="meta"><span class="lang en">Scalability demo</span><span class="lang zh">擴充展示</span></div>
+        <div class="meta"><span class="lang en">Live Sandbox Trace</span><span class="lang zh">現場展示＆交互沙盒</span></div>
       </header>
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">Connecting the project to a scalable business story.</span>
-          <span class="lang zh">把專案和容易理解的 AI 故事連在一起。</span>
+          <span class="lang en">Connecting the project to an interactive trace visualization.</span>
+          <span class="lang zh">第 6 輪最優策略在高保真沙盒中的日度運行流動重放</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">Imagine an AI assistant that knows the store’s handbook and suggests smarter restocking.</span>
-          <span class="lang zh">想像一個懂得門市手冊、還能提出更聰明補貨建議的 AI 助手。</span>
+          <span class="lang en">Interactive Trace Replay: Dynamically inspect supplier deliveries, decay logs, and cashflow.</span>
+          <span class="lang zh">動態軌跡重放：實時點擊觀測不同模擬天數下的食材進出庫、物理折舊與余額波動。</span>
         </h2>
-        <p class="lede">
-          <span class="lang en">This follows the same pattern as a RAG chatbot, but now applied to restaurant operations and margin improvement.</span>
-          <span class="lang zh">這和連接政策手冊的 RAG 聊天機器人概念很像，只是應用在庫存營運上。</span>
-        </p>
 
         <div class="report-host">
-          <div class="card" style="height: 100%; border-radius: 0; box-shadow: none; border: 0; padding: 1.5rem;">
-            <h3><span class="lang en">Demo concept</span><span class="lang zh">展示概念</span></h3>
-            <ul style="margin-top: 0.75rem;">
-              <li><span class="lang en">Show how a policy change affects service and waste immediately.</span><span class="lang zh">展示策略一改，服務率和浪費會怎麼立刻變化。</span></li>
-              <li><span class="lang en">Use the ledger as evidence that AI decisions are grounded in numbers.</span><span class="lang zh">用記錄來證明，AI 決策是有數據依據的。</span></li>
-              <li><span class="lang en">Explain the system boundaries: input, policy function, and evaluation output.</span><span class="lang zh">把系統邊界講清楚：輸入、策略函式、評估輸出。</span></li>
-            </ul>
-            <div class="callout" style="margin-top: 1rem;">
-              <span class="lang en">This slide shows how the idea can grow into a practical product for restaurants.</span>
-              <span class="lang zh">這張適合課堂的投影片，會把庫存 AI 專案和老師想要的實用框架連結起來。</span>
-            </div>
-          </div>
+          <iframe class="report-frame" src="reports/best-20260430-service-cashflow/report.html" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">A strong demo ties AI to a task a restaurant operator actually cares about.</span><span class="lang zh">一個好的展示，應該把 AI 連到餐廳經營者真正關心的任務上。</span></span>
+        <span><span class="lang en">A live trace report acts as proof that AI policies are mathematically audited and real.</span><span class="lang zh">中英雙語對照 · 實時嵌入 `best-20260430-service-cashflow` 沙盒運行軌跡（支持頁面內交互與切換）。</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
       </footer>
     </section>
@@ -1138,43 +1186,43 @@
       <div>
         <div class="eyebrow">
           <span class="lang en">Practical lessons for operators and product teams.</span>
-          <span class="lang zh">給營運團隊與產品團隊的實用啟發。</span>
+          <span class="lang zh">適用於現場經營、產研團隊與決策優化的核心啟示</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">The best AI projects solve a concrete operational problem and show a measurable gain.</span>
-          <span class="lang zh">最好的 AI 專案，應該解決具體營運問題，並且看得見成效。</span>
+          <span class="lang en">AI is strongest when it is bound by rigid engineering constraints to optimize audit-ready margins.</span>
+          <span class="lang zh">研究總結：以嚴謹的軟體工程物理防線，約束 AI 智能體實現可靠的利潤演進。</span>
         </h2>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3><span class="lang en">Key business lessons</span><span class="lang zh">關鍵商業重點</span></h3>
+            <h3><span class="lang en">Best Practices for AI R&amp;D</span><span class="lang zh">1. AI 自動研發工程實踐啟示</span></h3>
             <ul>
-              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Avoid hidden state:</strong> isolate policy changes from simulation state and cached behavior.</span><span class="lang zh"><strong>避免隱藏狀態：</strong>把策略變更和模擬狀態、快取行為分開處理。</span></li>
-              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Build fallback safety:</strong> the product should still give useful suggestions when data is incomplete.</span><span class="lang zh"><strong>建立備援機制：</strong>當資料不完整時，系統仍應給出有用建議。</span></li>
-              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Use measurable feedback:</strong> progress should be evident in numbers, not just slides.</span><span class="lang zh"><strong>使用可衡量回饋：</strong>進步應該體現在數字上，而不只是投影片裡。</span></li>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Isolate State &amp; Runtime:</strong> Process-level isolation (subprocess/dynamic import) is the only baseline to prevent code mutation polluting memories.</span><span class="lang zh"><strong>消除進程與狀態污染：</strong>必須實施子進程隔離載入及依賴熱插拔，拒絕全局變量污染與 sys.modules 快取中毒。</span></li>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Erect Security Boundaries:</strong> Without git reset rollback and file non-tampering audits, agents will easily bypass metrics or cheat test suites.</span><span class="lang zh"><strong>構築物理級防護邊界：</strong>必須部署 Git 原子備份與篡改阻斷（git diff），防止大模型篡改測試集代碼來自動舞弊。</span></li>
+              <li style="margin-bottom: 0.8rem;"><span class="lang en"><strong>Pin Deterministic Seeds:</strong> Lock randomized demands using pinned pseudo-seeds. Fluctuating random factors will completely mislead optimization.</span><span class="lang zh"><strong>堅守確定性種子（Seed Pinning）：</strong>隨機噪聲是 AI 優化的大敵。必須釘死客流種子，否則策略微調方向將完全失焦。</span></li>
             </ul>
           </div>
 
           <div class="stack">
             <div class="card">
-              <h3><span class="lang en">Scalability safeguards</span><span class="lang zh">擴充保護</span></h3>
+              <h3><span class="lang en">Production Scalability</span><span class="lang zh">2. 連鎖門市橫向拓展物理防線</span></h3>
               <ul>
-                <li><span class="lang en">The architecture can be reused across branches and cities.</span><span class="lang zh">這套架構可以在不同分店與城市之間重複使用。</span></li>
-                <li><span class="lang en">APIs make supplier, booking, and delivery integrations possible.</span><span class="lang zh">API 讓供應商、訂位與外送整合成為可能。</span></li>
-                <li><span class="lang en">The multilingual interface is ready for English, Chinese, and future markets.</span><span class="lang zh">多語言介面已可支援英文、中文與未來市場。</span></li>
+                <li><span class="lang en"><strong>Replicability:</strong> Fully-dockerized templates allow one-click deployments to thousands of multi-city restaurant networks.</span><span class="lang zh"><strong>容器化極簡擴展：</strong>純 Docker 容器化 + Git 沙盒模式，無痛對接多地區或連鎖門店。</span></li>
+                <li><span class="lang en"><strong>Protocol Compatibility:</strong> Standardized JSON schemas align perfectly with external POS, supplier logistics, and warehouse ERP interfaces.</span><span class="lang zh"><strong>標準接口兼容：</strong>嚴格 JSON schema 輸出，無縫對接 ERP 系統與供應商採購通道。</span></li>
+                <li><span class="lang en"><strong>Dynamic Swapping:</strong> Run hot-swapped Python modular policies under production, achieving zero-reload zero-stop updates.</span><span class="lang zh"><strong>動態決策熱加載：</strong>不停機、零中斷，做到按日自動加載全新 Frontier 策略。</span></li>
               </ul>
             </div>
 
             <div class="card">
-              <h3><span class="lang en">Core presentation takeaway</span><span class="lang zh">簡報核心結論</span></h3>
-              <p><span class="lang en">AI is strongest when it solves a concrete restaurant pain point and improves profit in measurable ways.</span><span class="lang zh">AI 最有力量的時候，是它真的解決餐廳的具體痛點，並且以可衡量的方式提升獲利。</span></p>
+              <h3><span class="lang en">Core Takeaway</span><span class="lang zh">3. 核心結論 (Core Takeaways)</span></h3>
+              <p><span class="lang en">Real-world AI application is not just about calling APIs; its true potential is released when framed within rigorous engineering and financial bounds.</span><span class="lang zh">AI 應用的真正突破，絕非套用 API；而在於用鋼鐵般的軟體工程結構去約束限制並評價智能體，還原入真實商業對帳本中實現可審計利潤增長。</span></p>
             </div>
           </div>
         </div>
       </div>
 
       <footer class="footer">
-        <span><span class="lang en">This project is a clear example of applied AI for restaurant innovation.</span><span class="lang zh">這個專案清楚示範了 AI 如何成為餐飲創新的解決方案。</span></span>
+        <span><span class="lang en">This project is a clear example of applied AI for restaurant innovation.</span><span class="lang zh">中英雙語對照 · PCon HK 2026 研討大會大會演講官方主投影片</span></span>
         <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
       </footer>
     </section>
