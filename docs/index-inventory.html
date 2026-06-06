@@ -893,56 +893,51 @@
 
       <div>
         <div class="eyebrow">
-          <span class="lang en">Sandboxed Orchestration &amp; Security boundaries</span>
-          <span class="lang zh">四重防禦：防舞弊與動態代碼演進</span>
+          <span class="lang en">How the system learns from trials, safely and transparently.</span>
+          <span class="lang zh">AI 自主學習的循環流程：安全、可檢驗、逐步改進。</span>
         </div>
         <h2 class="section-title">
-          <span class="lang en">Ratchetting Loop: How the LLM safely mutates, tests, and locks policy code.</span>
-          <span class="lang zh">棘輪自主優化環：AI 如何在嚴格防禦邊界內自主修改與鎖定策略代碼。</span>
+          <span class="lang en">A simple learning loop: propose a change, test it, and keep it only if it performs better.</span>
+          <span class="lang zh">簡單的學習循環：提出改進、做沙盒測試、只有更好才保留。</span>
         </h2>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3><span class="lang en">Four Layers of Agent Defenses</span><span class="lang zh">AI 真實研發沙盒：四重安全性防線</span></h3>
+            <h3><span class="lang en">Four Practical Safeguards</span><span class="lang zh">四個實用保護機制</span></h3>
             <div class="diagram" style="gap: 0.5rem;">
               <div class="node" style="padding: 0.5rem; text-align: left;">
-                <strong><span class="lang en">1. Non-Tampering Git Guard</span><span class="lang zh">1. 接口防篡改防線 (`git diff`)</span></strong><br />
-                <span class="lang en">Verify inputs and block changes to test suites or eval modules using <code>git diff --name-only</code>.</span>
-                <span class="lang zh">在運行前強制進行變動審計，確保 AI 只修改 `restaurant_train.py`。若試圖篡改測試代碼或評估器，即刻中斷判定舞弊。</span>
+                <strong><span class="lang en">1. Only the strategy changes</span><span class="lang zh">1. 只允許策略本身改變</span></strong><br />
+                <span class="lang en">Each trial is checked so the experiment only updates the decision policy, not the scoring rules or tests.</span>
+                <span class="lang zh">每次嘗試前都會檢查，確保只變更補貨決策，不會修改評估標準或測試內容。</span>
               </div>
               <div class="node" style="padding: 0.5rem; text-align: left;">
-                <strong><span class="lang en">2. Subprocess Isolation</span><span class="lang zh">2. 進程級獨立沙盒 (`subprocess`)</span></strong><br />
-                <span class="lang en">Spawn a clean subprocess per trial to clear Python import cache and prevent dirty global variables.</span>
-                <span class="lang zh">利用子進程隔離加載候選策略模組，防止 Python `sys.modules` 導入緩存和全域變量殘留，保證環境 100% 潔淨。</span>
+                <strong><span class="lang en">2. Every run starts clean</span><span class="lang zh">2. 每次測試從乾淨環境開始</span></strong><br />
+                <span class="lang en">The system evaluates each idea in a fresh sandbox so past attempts cannot bias the result.</span>
+                <span class="lang zh">每次測試都在乾淨的沙盒中執行，避免之前的結果影響新的比較。</span>
               </div>
               <div class="node" style="padding: 0.5rem; text-align: left;">
-                <strong><span class="lang en">3. Pinned Pseudo-Seeds</span><span class="lang zh">3. 隨機數種子釘扎 (Deterministic Seeds)</span></strong><br />
-                <span class="lang en">A Gaussian demand stream pinned with deterministic random seeds to block AI from cheating on lucky draws.</span>
-                <span class="lang zh">在 `tasks.py` 釘扎客流隨機數種子。每次評估都在完全相同的客流噪聲與供應交期中考驗，消除巧合干擾。</span>
+                <strong><span class="lang en">3. Fair comparisons only</span><span class="lang zh">3. 只做公平比較</span></strong><br />
+                <span class="lang en">The same demand pattern and rules are reused so every new policy is judged on equal terms.</span>
+                <span class="lang zh">使用相同的需求和條件，讓每一次策略改進都在公平的前提下比較成績。</span>
               </div>
               <div class="node" style="padding: 0.5rem; text-align: left;">
-                <strong><span class="lang en">4. Atomic Rollback Guard</span><span class="lang zh">4. 物理級原子回滾 (`git reset`)</span></strong><br />
-                <span class="lang en">Record results. If score decreases, invoke <code>git reset --hard HEAD~1</code>. Keep and commit only when a new high record is made.</span>
-                <span class="lang zh">在 `control_plane.py` 對接 Git：每次測試前存檔。若評估分數未超越 `results.tsv` 的歷史最高分，一秒回滾！唯有創新高才允許提交。</span>
+                <strong><span class="lang en">4. Keep only real improvement</span><span class="lang zh">4. 只有真實提升才保留</span></strong><br />
+                <span class="lang en">If the new idea does not improve performance, it is discarded and the previous policy remains the baseline.</span>
+                <span class="lang zh">若新策略沒有真正提升，就會放棄它，繼續使用上一個最好的策略。</span>
               </div>
             </div>
           </div>
 
           <div class="card">
-            <h3><span class="lang en">Dynamic Hot-Swapping</span><span class="lang zh">工程精華：動態熱插拔與推進</span></h3>
-            <p><span class="lang en">The control plane behaves as an automated R&amp;D lab, checking out branches, running eval, and managing state directly.</span><span class="lang zh">模擬真實頂尖工程師的 R&amp;D 行為。AI 智能體藉由編排腳本自動發起改寫、執行評測、判定損益並維護本地 Frontier！</span></p>
-            <div class="command" style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.5rem;"><span class="lang en">python -m autoresearch.control_plane \
-  --brief research_brief_restaurant.json
-
-# If scores decline during trial:
-git reset --hard HEAD~1</span><span class="lang zh">python -m autoresearch.control_plane \
-  --brief research_brief_restaurant.json
-
-# 當策略退化或得分下降：
-git reset --hard HEAD~1</span></div>
+            <h3><span class="lang en">Automated idea testing</span><span class="lang zh">自動化的想法驗證流程</span></h3>
+            <p><span class="lang en">The system acts like a disciplined R&amp;D lab: it proposes a candidate, runs a controlled simulation, and records the result.</span><span class="lang zh">這個系統就像一個嚴謹的研發實驗室：提出候選方案、在控制環境中測試、並記錄每次結果。</span></p>
+            <div class="command" style="font-size: 0.8rem; margin: 0.5rem 0; padding: 0.5rem;">
+              <span class="lang en">Try a new decision. Run a private simulation. Keep only if it makes the restaurant more profitable.</span>
+              <span class="lang zh">嘗試新決策。執行私有模擬。只有讓餐廳更賺錢，才會保留。</span>
+            </div>
             <ul>
-              <li><span class="lang en"><strong>Frontier Buffer:</strong> the best validated source code is saved as a solid platform to evolve further.</span><span class="lang zh"><strong>Frontier 演進平台：</strong>只在累積最優代碼上進行下一次突變，形成完美的漸進式學習曲線。</span></li>
-              <li><span class="lang en"><strong>Evaluation Ledger:</strong> updates are tracked on <code>results.tsv</code> as an immutable benchmark ledger.</span><span class="lang zh"><strong>不可變收支賬本：</strong>將得分指標同步追加到 `results.tsv`，供後續數據與趨勢分析。</span></li>
+              <li><span class="lang en"><strong>Stable foundation:</strong> the best proven policy is kept as the current starting point for the next iteration.</span><span class="lang zh"><strong>穩定基礎：</strong>保留已驗證最好的策略，作為下一次改進的起點。</span></li>
+              <li><span class="lang en"><strong>Transparent history:</strong> every trial is logged so progress is easy to review and trust.</span><span class="lang zh"><strong>透明記錄：</strong>每一次試驗都會記錄下來，讓改進路徑可以被檢視和信賴。</span></li>
             </ul>
           </div>
         </div>
