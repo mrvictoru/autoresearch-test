@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auto-research · Presentation deck</title>
+  <title>Build Your Own Ratcheting Experiment Harness · PyCon HK 2026</title>
   <style>
     :root {
       --bg: #f8fbff;
@@ -18,6 +18,8 @@
       --teal: #0f766e;
       --gold: #f59e0b;
       --shadow: 0 32px 70px rgba(15, 23, 42, 0.1);
+      --good: #0f766e;
+      --bad: #b91c1c;
     }
 
     * { box-sizing: border-box; }
@@ -52,7 +54,7 @@
         linear-gradient(180deg, #08111f 0%, #0b1425 50%, #0c1730 100%);
     }
 
-    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3, h4, p { margin: 0; }
     code, pre {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
@@ -167,18 +169,18 @@
 
     .hero-title {
       font-size: clamp(2.35rem, 4.4vw, 4.6rem);
-      max-width: 16ch;
+      max-width: 18ch;
       margin-bottom: 0.8rem;
     }
 
     .section-title {
       font-size: clamp(1.95rem, 3.25vw, 3.05rem);
-      max-width: 20ch;
+      max-width: 22ch;
       margin-bottom: 0.8rem;
     }
 
     .lede {
-      max-width: 52ch;
+      max-width: 56ch;
       font-size: clamp(1.02rem, 1.35vw, 1.24rem);
       line-height: 1.45;
       color: #334155;
@@ -213,7 +215,8 @@
     .card,
     .metric,
     .node,
-    .result-row {
+    .result-row,
+    .step {
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
     }
@@ -347,12 +350,122 @@
       box-shadow: 0 24px 56px rgba(0, 0, 0, 0.38);
     }
 
-    .result-summary,
-    .result-list {
-      display: grid;
-      gap: 0.9rem;
-      align-content: start;
+    .code {
+      margin-top: 0.95rem;
+      border-radius: 18px;
+      padding: 1rem 1.1rem;
+      background: #0f172a;
+      color: #e0f2fe;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
     }
+
+    body[data-theme="dark"] .code {
+      background: linear-gradient(180deg, #030712 0%, #0b1220 100%);
+      border-color: rgba(56, 189, 248, 0.32);
+    }
+
+    .code .c-comment { color: #94a3b8; font-style: italic; }
+    .code .c-keyword { color: #f0abfc; }
+    .code .c-str     { color: #fcd34d; }
+    .code .c-fn      { color: #7dd3fc; }
+    .code .c-num     { color: #fda4af; }
+
+    /* Lifecycle steps */
+    .lifecycle {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 2.4rem 1fr;
+      gap: 0.85rem;
+      align-items: start;
+      padding: 0.9rem 1.05rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body[data-theme="dark"] .step {
+      background: rgba(10, 22, 40, 0.92);
+    }
+
+    .step .num {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--sky), var(--violet));
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 0.95rem;
+    }
+
+    .step h4 {
+      font-size: 1rem;
+      margin-bottom: 0.15rem;
+      letter-spacing: -0.01em;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    /* Guardrails table */
+    .table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 0.6rem;
+      font-size: 0.98rem;
+    }
+
+    .table th,
+    .table td {
+      text-align: left;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .table th {
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      background: rgba(14, 165, 233, 0.04);
+    }
+
+    body[data-theme="dark"] .table th {
+      background: rgba(14, 165, 233, 0.08);
+    }
+
+    .table td code {
+      font-size: 0.9rem;
+      color: var(--ink);
+      background: rgba(14, 165, 233, 0.08);
+      padding: 0.06rem 0.4rem;
+      border-radius: 6px;
+    }
+
+    body[data-theme="dark"] .table td code {
+      background: rgba(14, 165, 233, 0.18);
+    }
+
+    .table tr:last-child td { border-bottom: 0; }
+
+    .threat { color: var(--bad); font-weight: 700; }
+    body[data-theme="dark"] .threat { color: #fca5a5; }
 
     .metric {
       padding: 1.2rem;
@@ -598,6 +711,35 @@
       border-color: rgba(14, 165, 233, 0.18);
     }
 
+    .glossary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-top: 0.6rem;
+    }
+
+    .term {
+      padding: 0.85rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    body[data-theme="dark"] .term {
+      background: rgba(10, 22, 40, 0.85);
+    }
+
+    .term strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 0.15rem;
+      letter-spacing: -0.01em;
+    }
+
+    .term span { color: var(--muted); }
+
     @media (max-width: 1120px) {
       body { overflow: auto; }
       .deck { height: auto; min-height: 100vh; }
@@ -616,6 +758,7 @@
       .result-row {
         grid-template-columns: 1fr;
       }
+      .glossary { grid-template-columns: 1fr; }
       .footer {
         flex-direction: column;
         align-items: flex-start;
@@ -657,7 +800,9 @@
       .metric,
       .node,
       .result-row,
-      .command {
+      .command,
+      .code,
+      .step {
         box-shadow: none;
       }
     }
@@ -666,392 +811,413 @@
 <body>
   <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
   <div class="deck" id="deck">
-    <section class="slide active">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Auto-research</div>
-        <div class="meta">Overview</div>
-      </header>
 
+    <!-- Slide 1 — Opening hook -->
+    <section class="slide active" data-section="Overview">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">PyCon HK 2026 · Overview</div>
+      </header>
       <div>
-        <div class="eyebrow">Beyond Vibe Coding · PyCon HK 2026</div>
-        <h1 class="hero-title">Auto-research: Building a <span class="accent">Ratcheting Experiment Harness</span> in Python.</h1>
-        <p class="lede">How we move beyond chaotic manual chat sessions to programmatically orchestrate LLM agents inside repeatable, sandboxed experiment loops.</p>
+        <div class="eyebrow">A 15-minute pattern for LLM-driven iteration</div>
+        <h1 class="hero-title">Build your own <span class="accent">ratcheting experiment harness</span> in Python.</h1>
+        <p class="lede">A strict, reproducible loop that turns "chat with an LLM" into a score-driven search. One mutable file. One fixed simulator. One ledger.</p>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3>Orchestration Framework</h3>
+            <h3>What you will leave with</h3>
             <div class="hero-bullets">
-              <div class="bullet"><span class="bullet-mark">1.</span><span><strong>Define Programmatic Interfaces:</strong> Split the codebase into fixed environments and a single mutable candidate contract.</span></div>
-              <div class="bullet"><span class="bullet-mark">2.</span><span><strong>Orchestrate with Python:</strong> Candidate loading via dynamic imports, automated verification runners, and isolation barriers.</span></div>
-              <div class="bullet"><span class="bullet-mark">3.</span><span><strong>Score on Stable Simulators:</strong> Run deterministic simulation scenarios with pinned seeds to eliminate random metric variance.</span></div>
-              <div class="bullet"><span class="bullet-mark">4.</span><span><strong>Auto-Ratchet Mutations:</strong> Commit, evaluate, and rollback automatically—ratcheting forward only when scores strictly improve.</span></div>
+              <div class="bullet"><span class="bullet-mark">1.</span><span><strong>One sentence</strong> that explains the entire pattern.</span></div>
+              <div class="bullet"><span class="bullet-mark">2.</span><span><strong>Four safety checks</strong> that prevent silent cheating and noisy scores.</span></div>
+              <div class="bullet"><span class="bullet-mark">3.</span><span><strong>One 30-line skeleton</strong> you can copy into a new repo tonight.</span></div>
+              <div class="bullet"><span class="bullet-mark">4.</span><span><strong>One live example</strong> — a real restaurant inventory benchmark — to ground all of it.</span></div>
             </div>
-            <div class="callout">This shifts the engineer's role from writing and debugging local snippets to designing high-fidelity sandboxes and rigorous scoring pipelines.</div>
+            <div class="callout">Mental model: <em>"We let the LLM edit one file, score it, and only keep strict improvements. Everything else is plumbing."</em></div>
           </div>
 
           <div class="card">
-            <h3>Why it matters for Python Devs</h3>
+            <h3>Why a new pattern at all?</h3>
             <ul>
-              <li><strong>Why Simulation Wins:</strong> Real-world testing telemetry contains too much noise; a simulation sandbox allows instant, high-fidelity, and stable scalar scoring.</li>
-              <li><strong>Dynamic Exploration:</strong> Let AI autonomously explore thousands of parameter variations, models, or configurations while you maintain absolute discipline.</li>
-              <li><strong>Auditable Ledger:</strong> Every accepted candidate is logged as a git commit and appended to a transparent TSV/JSON optimization ledger.</li>
+              <li><strong>Vibe coding</strong> — paste, eyeball, ship. Fine once, broken at iteration 200.</li>
+              <li><strong>Unconstrained agents</strong> — write anywhere, edit the tests, drift the score.</li>
+              <li><strong>Ratcheting harness</strong> — one file, one simulator, one ledger, strict better-than-best.</li>
             </ul>
+            <p style="margin-top: 0.7rem; color: var(--muted); font-size: 0.95rem;">Same idea works for scheduling, bidding, prompt selection, and any other scalar-scored problem.</p>
           </div>
         </div>
       </div>
-
       <footer class="footer">
         <span>Use arrows, PageUp/PageDown, space, or click left and right.</span>
-        <div class="progress">
-          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </footer>
-    </section>
-
-    <section class="slide">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Auto-research</div>
-        <div class="meta">Framing</div>
-      </header>
-
-      <div>
-        <div class="eyebrow">Shift the abstraction layer</div>
-        <h2 class="section-title">Framing: The path from <span class="accent-4">vibe coding</span> to <span class="accent-2">reproducible auto-research</span>.</h2>
-        <p class="lede">Rather than treating AI as a human replacement that guesses answers, we treat it as an optimizer that runs validated trials under custom Python contracts.</p>
-
-        <div class="grid-3" style="margin-top: 1rem;">
-          <div class="card">
-            <h3>1. Vibe Coding</h3>
-            <p>Manual prompts, copy-pasting code, and informal visual verification.</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Tradeoff:</strong> Highly subjective, zero telemetry, prone to silent regression, and low reproducibility.</p>
-          </div>
-          <div class="card strong">
-            <h3>2. Agentic Engineering</h3>
-            <p>Agents running shell tools directly, writing arbitrary scripts or touching files across many directories.</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Tradeoff:</strong> Fragile command sequences, high risk of workspace state pollution, and hard to replicate safely.</p>
-          </div>
-          <div class="card">
-            <h3>3. Auto-Research Harness</h3>
-            <p>Isolated sandbox runtime where the LLM is restricted to modifying exactly *one* explicit Python module interface.</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Tradeoff:</strong> Completely reproducible, sandboxed, and easily logged via standard execution streams.</p>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer">
-        <span>The developer designs the boundary; the harness manages disciplined, automated search.</span>
-        <div class="progress">
-          <span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </footer>
-    </section>
-
-    <section class="slide">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Method</div>
-        <div class="meta">Harness design</div>
-      </header>
-
-      <div>
-        <div class="eyebrow">Ensuring Reproducibility</div>
-        <h2 class="section-title">Harness design: Preventing AI <span class="accent">cheating & statistical noise</span>.</h2>
-        <div class="grid-4" style="margin-top: 1rem;">
-          <div class="card">
-            <h3>1. Deterministic Scenarios</h3>
-            <p>We pin custom random states utilizing <code>random.Random(seed)</code> combined with isolated lists of training/validation seed constants in <code>tasks.py</code>, ensuring results are fully reproducible.</p>
-          </div>
-          <div class="card">
-            <h3>2. Subprocess Hygiene</h3>
-            <p>Running successive candidates in isolated Docker subprocesses gets rid of system state pollution, module caches (<code>sys.modules</code>), and stale memory leakages.</p>
-          </div>
-          <div class="card strong">
-            <h3>3. Git-Diff Security Guard</h3>
-            <p>To prevent the AI from cheating by editing evaluation constraints or tests, we check changes against <code>git diff --name-only</code>, rejecting any commit that alters non-policy files.</p>
-          </div>
-          <div class="card">
-            <h3>4. UnitTest Pre-checks</h3>
-            <p>Run standard library <code>unittest</code> suites to guarantee candidate syntax and interface returns are fully sane before starting high-overhead simulations.</p>
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-top: 1rem;">
-          <div class="card">
-            <h3>Immutable vs. Mutable Code Boundaries</h3>
-            <ul>
-              <li><strong>Immutable Task Harness (<code>tasks.py</code>):</strong> Controls simulation rules, resource constraints, perishability equations, and seed lists.</li>
-              <li><strong>Mutable Candidate Script (<code>restaurant_train.py</code>):</strong> The single approved surface of modification allowed for our LLM optimizer.</li>
-            </ul>
-          </div>
-          <div class="card strong">
-            <h3>Eliminating Random Luck</h3>
-            <ul>
-              <li>If scenarios change dynamically or have random seeds, the AI could "win" simply from lucky seed draws.</li>
-              <li>Fixed scenario environments guarantee that every single score shift directly reflects actual logical improvements.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer">
-        <span>A hard statistical ratchet requires complete, unpolluted sandbox determinism.</span>
-        <div class="progress">
-          <span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </footer>
-    </section>
-
-    <section class="slide">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Orchestration</div>
-        <div class="meta">Implementation</div>
-      </header>
-
-      <div>
-        <div class="eyebrow">Python dynamic loading</div>
-        <h2 class="section-title">Dynamic imports and Git-backed atomic ratchets.</h2>
-        <p class="lede">How standard library modules and basic Git commands orchestrate a perfect, state-free loop without database complex state.</p>
-
-        <div class="hero-grid" style="margin-top: 1rem;">
-          <div class="card strong">
-            <h3>Standard Python & Git Primitives</h3>
-            <div class="diagram">
-              <div class="node"><strong>Dynamic Module Swap (<code>importlib.util</code>)</strong><br />Loads the unique iteration path dynamically without global cache locking, executing candidate logic directly at runtime on demand.</div>
-              <div class="node"><strong>Atomic Git Ratchet Loop</strong><br />Automatically runs <code>git commit</code> before evaluating. On score loss or crash, rolls back instantly with <code>git reset --hard HEAD~1</code>.</div>
-              <div class="node"><strong>Portable Ledger (<code>results.tsv</code>)</strong><br />Maintains a flat file tracking all candidate executions, SHA records, resulting scores, andkeep / discard outcomes.</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>The Duck-Typed Policy Contract</h3>
-            <ul>
-              <li><strong>The Hook:</strong> Candidate files must expose exactly one function: <code>build_policy()</code>.</li>
-              <li><strong>The Interface:</strong> Returns an object implementing <code>decide_orders(observation)</code> and optional <code>fit(scenarios, task)</code>.</li>
-              <li><strong>Decoupled Logic:</strong> The evaluator runs this logic cleanly without knowing whether it is a heuristic, rule-base, or Neural Net.</li>
-            </ul>
-            <div class="command">docker compose run --rm autoresearch python -m autoresearch.experiments.restaurant_eval \
-  --experiment autoresearch/experiments/restaurant_train.py
-
-./scripts/run_once.sh "short experiment note"</div>
-            <p class="mini" style="margin-top: 0.9rem; color: var(--muted);">Clean boundaries, standard commands, reproducible outcomes.</p>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer">
-        <span>One simulator. One dynamic loader. One isolated mutable module.</span>
-        <div class="progress">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </footer>
-    </section>
-
-    <section class="slide">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Simulation</div>
-        <div class="meta">The Target Task</div>
-      </header>
-
-      <div>
-        <div class="eyebrow">Simulator Rules and Policy Target</div>
-        <h2 class="section-title">The Target Challenge: The Restaurant Inventory Policy</h2>
-        <p class="lede">A complex, multi-variable daily logistics environment that standardizes performance gains.</p>
-
-        <div class="hero-grid" style="margin-top: 1rem;">
-          <div class="card strong">
-            <h3>Simulator Core Design & Constraints</h3>
-            <ul>
-              <li><strong>Dynamic Daily Demand:</strong> Overnight sequences of menu demands with varying customer volumes.</li>
-              <li><strong>Multi-Ingredient Overlaps:</strong> Individual menu items require variable amounts of shared ingredients.</li>
-              <li><strong>Physical Realities:</strong> Overlapping lead times, strict physical storage caps, and raw ingredient shelf-life perishability.</li>
-              <li><strong>The Objective:</strong> Maximize restaurant service rate (sales) while minimizing ingredient expirations and holding costs.</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Evolution of Policy Logic</h3>
-            <div class="diagram">
-              <div class="node">
-                <strong>1. Baseline Adaptive Heuristic</strong><br />
-                Blends weekday historical averages with recent usages. Uses square-root safety buffers & FIFO expiration tracking.
-              </div>
-              <div class="node">
-                <strong>2. Proportional Shared Capacity Budgeting</strong><br />
-                Heuristics order without safety limits; our budget allocator scales ordered volumes down dynamically to fit the physical warehouse headroom.
-              </div>
-              <div class="node" style="border-left-color: var(--accent-3);">
-                <strong>3. Focused Residual Neural Hybrid (Best)</strong><br />
-                An MLP regressor predicts target margins (derived from a perfect-knowledge hindsight oracle), adding learned positive adjustments to cheese, onion, lettuce, and pasta.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer">
-        <span>The agent's sole task is rewriting restaurant_train.py to maximize operating income.</span>
         <div class="progress"></div>
       </footer>
     </section>
 
-    <section class="slide">
+    <!-- Slide 2 — The mental model -->
+    <section class="slide" data-section="Mental model">
       <header class="topline">
-        <div class="brand"><span class="mark"></span>Results</div>
-        <div class="meta">Frontier</div>
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 2 · Mental model</div>
       </header>
-
       <div>
-        <div class="eyebrow">Recorded Python Optimization Ledger</div>
-        <h2 class="section-title">The optimization loop drives from heavy loss to a <span class="accent-2">positive operating score</span>.</h2>
+        <div class="eyebrow">Three components, one loop</div>
+        <h2 class="section-title">The mental model: one <span class="accent">simulator</span>, one <span class="accent-4">policy file</span>, one <span class="accent-2">ratchet</span>.</h2>
+        <p class="lede">Every question in the rest of the talk — "why subprocess?", "why git revert?", "why one file?" — is anchored to this picture.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>The diagram, in one image</h3>
+            <pre class="code"><span class="c-comment">┌──────────────────────┐    ┌──────────────────────┐</span>
+<span class="c-comment">│  Immutable simulator │</span>    <span class="c-comment">│  Mutable policy file │</span>
+<span class="c-comment">│  (the truth)         │</span>    <span class="c-comment">│  (the LLM's surface)  │</span>
+<span class="c-comment">└──────────┬───────────┘</span>    <span class="c-comment">└──────────┬───────────┘</span>
+           <span class="c-keyword">│</span>                           <span class="c-keyword">│</span>
+           <span class="c-keyword">└─────────►</span>  ratchet  <span class="c-keyword">◄─────┘</span>
+                        loop
+                          <span class="c-keyword">│</span>
+                          <span class="c-keyword">▼</span>
+                  results.tsv ledger</pre>
+            <ul style="margin-top: 0.7rem;">
+              <li><strong>Simulator</strong> — frozen. Function from <code>policy → score</code>. Trusted.</li>
+              <li><strong>Policy file</strong> — the only thing the LLM edits. Exposes <code>build_policy()</code>.</li>
+              <li><strong>Ratchet</strong> — accepts the new policy only on strict improvement, else reverts.</li>
+              <li><strong>Ledger</strong> — append-only TSV of every attempt. The current best lives here.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Glossary (define on first use)</h3>
+            <div class="glossary">
+              <div class="term"><strong>Ratcheting</strong><span>Keep a new candidate only if it strictly beats the current best.</span></div>
+              <div class="term"><strong>Mutable / immutable</strong><span>Which files the LLM may touch vs. which are frozen.</span></div>
+              <div class="term"><strong>Frontier ledger</strong><span>Append-only record of every attempt. In this repo: <code>results.tsv</code>.</span></div>
+              <div class="term"><strong>Duck-typed contract</strong><span>Runtime interface: <code>build_policy()</code> returns an object with <code>decide_orders</code>.</span></div>
+              <div class="term"><strong>Capacity budgeting</strong><span>Self-imposed ceiling on requests so the simulator does not silently clip.</span></div>
+              <div class="term"><strong>Residual hybrid</strong><span>Learned correction on top of a safe rule-based policy.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>"Why subprocess?" — to keep the simulator trustworthy. "Why git revert?" — the ratchet only moves up.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 3 — The loop, end to end -->
+    <section class="slide" data-section="Loop">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 3 · The loop</div>
+      </header>
+      <div>
+        <div class="eyebrow">Seven steps, one column</div>
+        <h2 class="section-title">The loop, end to end.</h2>
+        <p class="lede">Walk top-to-bottom. Everything else in this talk is a defense of one of these steps.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>Lifecycle of one attempt</h3>
+            <div class="lifecycle">
+              <div class="step"><div class="num">1</div><div><h4>Read the best</h4><p>Open <code>results.tsv</code>, parse the highest <code>keep</code> row. That is your bar.</p></div></div>
+              <div class="step"><div class="num">2</div><div><h4>Edit the policy</h4><p>Change only <code>train.py</code> (or your domain equivalent). One commit, one file.</p></div></div>
+              <div class="step"><div class="num">3</div><div><h4>Pre-check</h4><p>Run <code>unittest</code> so syntax / import / contract errors fail fast.</p></div></div>
+              <div class="step"><div class="num">4</div><div><h4>Evaluate in a fresh process</h4><p><code>subprocess</code> + Docker. No shared <code>sys.modules</code>, no leaked globals, no warmed caches.</p></div></div>
+              <div class="step"><div class="num">5</div><div><h4>Parse the score</h4><p>Read <code>score</code> from the <code>--- RESULTS ---</code> block. Never from chat.</p></div></div>
+              <div class="step"><div class="num">6</div><div><h4>Decide</h4><p>Strictly better than the bar? Keep. Else revert via <code>git reset --hard HEAD~1</code>. Crash? Revert and record <code>crash</code>.</p></div></div>
+              <div class="step"><div class="num">7</div><div><h4>Append to the ledger</h4><p>One row per attempt — <em>always</em>, even for <code>discard</code> and <code>crash</code>.</p></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>One atomic helper packages it</h3>
+            <pre class="code"><span class="c-comment"># scripts/run_once.sh — commit, evaluate, keep/discard, log</span>
+<span class="c-fn">./scripts/run_once.sh</span> <span class="c-str">"tweak safety factor to 1.4"</span>
+
+<span class="c-comment"># Prefer Docker so the Python process is fresh:</span>
+docker compose run --rm autoresearch \
+  python -m autoresearch.experiments.restaurant_eval \
+  --experiment autoresearch/experiments/restaurant_train.py</pre>
+            <p style="margin-top: 0.85rem; color: var(--muted); font-size: 0.95rem;">The shell script and the Docker command are the only two entry points you need to remember. The harness does the rest.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>That is the whole loop. The next three slides defend three of those steps.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 4 — Guardrails vs. threats -->
+    <section class="slide" data-section="Guardrails">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 4 · Guardrails</div>
+      </header>
+      <div>
+        <div class="eyebrow">Four threats, four guards, four files</div>
+        <h2 class="section-title">The guardrails and the threats they prevent.</h2>
+        <p class="lede">Each row is a real failure mode we have hit. Each column-three is the one file that prevents it.</p>
+
+        <div class="card strong" style="margin-top: 1rem;">
+          <table class="table" aria-label="Guardrails vs. threats">
+            <thead>
+              <tr>
+                <th style="width: 28%;">Threat</th>
+                <th style="width: 32%;">What it would do</th>
+                <th style="width: 40%;">Where it is prevented</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="threat">Lucky random draw wins the score</span></td>
+                <td>A bad policy passes by noise</td>
+                <td>Pinned <code>training_seeds</code> / <code>validation_seeds</code> in <a href="../autoresearch/tasks.py">autoresearch/tasks.py</a></td>
+              </tr>
+              <tr>
+                <td><span class="threat">LLM edits the evaluator or tests</span></td>
+                <td>Self-graded homework</td>
+                <td><code>git diff --name-only</code> gate in <a href="../autoresearch/control_plane.py">autoresearch/control_plane.py</a></td>
+              </tr>
+              <tr>
+                <td><span class="threat">Stale state across runs</span></td>
+                <td>A "fix" hides a regression from last attempt</td>
+                <td>Subprocess + Docker eval in <a href="../autoresearch/experiments/restaurant_eval.py">autoresearch/experiments/restaurant_eval.py</a></td>
+              </tr>
+              <tr>
+                <td><span class="threat">Silent regression sneaks in</span></td>
+                <td>Frontier moves sideways or down</td>
+                <td><code>commit_before_run</code> + <code>revert_last_commit</code> in <a href="../autoresearch/frontier.py">autoresearch/frontier.py</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid-2" style="margin-top: 1rem;">
+          <div class="card">
+            <h3>Read order on stage</h3>
+            <p>Read column one, point to column three. Do not re-explain the code. The audience will look it up after the talk.</p>
+          </div>
+          <div class="card strong">
+            <h3>Why this is the heart of the talk</h3>
+            <p>If a participant can list these four threats and the file that prevents each one, they can port the harness to a new domain tomorrow.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Two of those rows depend on a single contract between the harness and the policy file.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 5 — The duck-typed policy contract -->
+    <section class="slide" data-section="Contract">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 5 · Contract</div>
+      </header>
+      <div>
+        <div class="eyebrow">Six lines, the whole API</div>
+        <h2 class="section-title">The duck-typed policy contract.</h2>
+        <p class="lede">Runtime-enforced. No base class. The harness looks up the function and the method by name and refuses to run if either is missing.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>The minimum viable policy</h3>
+            <pre class="code"><span class="c-comment"># train.py — the LLM's only writable surface</span>
+<span class="c-keyword">def</span> <span class="c-fn">build_policy</span>():
+    <span class="c-keyword">return</span> MyPolicy(...)
+
+
+<span class="c-keyword">class</span> <span class="c-fn">MyPolicy</span>:
+    <span class="c-keyword">def</span> <span class="c-fn">fit</span>(self, scenarios, task): ...         <span class="c-comment"># optional</span>
+    <span class="c-keyword">def</span> <span class="c-fn">decide_orders</span>(self, observation): ...   <span class="c-comment"># required</span></pre>
+            <ul style="margin-top: 0.8rem;">
+              <li><strong>Runtime-enforced</strong> — <code>getattr</code> + <code>hasattr</code>. No <code>Protocol</code> needed.</li>
+              <li><strong>Stable across domains</strong> — restaurant, scheduling, bidding, routing: same shape.</li>
+              <li><strong>Only thing the LLM may change.</strong> No imports of internal helpers, no monkey-patching.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>How the harness checks it</h3>
+            <pre class="code"><span class="c-comment"># autoresearch/experiments/restaurant_eval.py</span>
+build_fn = <span class="c-fn">getattr</span>(module, <span class="c-str">"build_policy"</span>, <span class="c-keyword">None</span>)
+<span class="c-keyword">if</span> build_fn <span class="c-keyword">is</span> <span class="c-keyword">None</span>:
+    <span class="c-keyword">raise</span> <span class="c-fn">RuntimeError</span>(<span class="c-str">"must define build_policy()"</span>)
+policy = <span class="c-fn">build_fn</span>()
+<span class="c-keyword">if</span> <span class="c-keyword">not</span> <span class="c-fn">hasattr</span>(policy, <span class="c-str">"decide_orders"</span>):
+    <span class="c-keyword">raise</span> <span class="c-fn">RuntimeError</span>(<span class="c-str">"must return an object with decide_orders"</span>)</pre>
+            <p style="margin-top: 0.9rem; color: var(--muted); font-size: 0.95rem;">That is the entire interface surface between the immutable harness and the LLM's edits. It is small on purpose.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Now we can talk about the actual ratchet: how a keep or revert happens.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 6 — The ratchet and the ledger -->
+    <section class="slide" data-section="Ratchet">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 6 · Ratchet</div>
+      </header>
+      <div>
+        <div class="eyebrow">Commit, evaluate, decide, append</div>
+        <h2 class="section-title">The ratchet and the ledger.</h2>
+        <p class="lede">The whole search is just this loop: read best, run candidate, compare, keep or revert, log.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>Six lines that move the frontier</h3>
+            <pre class="code"><span class="c-comment"># autoresearch/frontier.py</span>
+<span class="c-fn">commit_before_run</span>(<span class="c-str">"candidate: tweak safety factor"</span>)
+score = <span class="c-fn">parse_score_from_log</span>()
+<span class="c-keyword">if</span> score &gt; <span class="c-fn">read_best_result</span>(<span class="c-str">"results.tsv"</span>)[<span class="c-str">"score"</span>]:
+    <span class="c-fn">append_result</span>(..., decision=<span class="c-str">"keep"</span>,    message=msg)
+<span class="c-keyword">else</span>:
+    <span class="c-fn">revert_last_commit</span>()
+    <span class="c-fn">append_result</span>(..., decision=<span class="c-str">"discard"</span>, message=msg)</pre>
+            <ul style="margin-top: 0.85rem;">
+              <li><strong>Ledger is the source of truth</strong> for "what is the current best."</li>
+              <li><strong>Git is the source of truth</strong> for "what code produced this score."</li>
+              <li><strong>Together they are auditable</strong> — file → score → commit, on demand.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>The ledger, real rows</h3>
+            <pre class="code"><span class="c-comment"># results.tsv — append-only, one row per attempt</span>
+timestamp  branch  sha  score  decision message
+2026-04-30  5c64f4c  -28735.04  keep     baseline
+2026-04-30  646a3d8   -6157.12  keep     tuned adaptive
+2026-04-30  0abf41a    3419.60  keep     budget-aware
+2026-04-30  85e83ea    3866.29  keep     service/cashflow hybrid</pre>
+            <p style="margin-top: 0.7rem; color: var(--muted); font-size: 0.95rem;">The next slide plots the full <code>keep</code> history. Every point on that line is one of these rows.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>Now let's ground all of that in a concrete example.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 7 — The restaurant example -->
+    <section class="slide" data-section="Restaurant">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 7 · The example</div>
+      </header>
+      <div>
+        <div class="eyebrow">One instance of the pattern, not the pattern itself</div>
+        <h2 class="section-title">The restaurant example.</h2>
+        <p class="lede">A concrete benchmark that lets us see the ratchet work in public. The point is not the restaurant — the point is the loop around it.</p>
+
+        <div class="hero-grid" style="margin-top: 1rem;">
+          <div class="card strong">
+            <h3>What is the simulator?</h3>
+            <ul>
+              <li><strong>Horizon</strong> — 14 days, two service periods per day (lunch, dinner).</li>
+              <li><strong>State</strong> — menu items share ingredients. Each ingredient has a shelf life, a supplier lead time, a per-ingredient storage cap, and a unit cost.</li>
+              <li><strong>Constraints</strong> — a global 1000-unit warehouse cap shared across all ingredients.</li>
+              <li><strong>Objective</strong> — <code>score = revenue − waste − holding − order − stockout_penalty</code>. Higher is better.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>What is the policy file?</h3>
+            <ul>
+              <li><strong>Path</strong> — <a href="../autoresearch/experiments/restaurant_train.py">autoresearch/experiments/restaurant_train.py</a>.</li>
+              <li><strong>Contract</strong> — exposes <code>build_policy()</code>. Same contract as slide 5.</li>
+              <li><strong>Current best</strong> — a focused residual hybrid: a safe rule-based heuristic plus a small MLP residual on cheese / onion / lettuce / pasta.</li>
+            </ul>
+            <p style="margin-top: 0.7rem; color: var(--muted); font-size: 0.95rem;">If you remember nothing else about the restaurant: the policy is small, the loop is the value, and the simulator never changes.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <span>If you are running late, cut this slide first. The replay on the next two slides carries the story.</span>
+        <div class="progress"></div>
+      </footer>
+    </section>
+
+    <!-- Slide 8 — Results curve (real data) -->
+    <section class="slide" data-section="Results">
+      <header class="topline">
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 8 · Results</div>
+      </header>
+      <div>
+        <div class="eyebrow">Live curve, generated from <code>results.tsv</code></div>
+        <h2 class="section-title">From <span class="accent-4">−28,735</span> to <span class="accent-2">+3,866</span> in six kept attempts.</h2>
+        <p class="lede">Each dot on the line is a <code>keep</code> row. Each label is its commit message. The line is the ratchet — it only goes up.</p>
 
         <div class="result-grid" style="margin-top: 1rem;">
           <div class="result-summary">
             <div class="metric">
               <div class="label">Baseline to best kept</div>
-              <div class="value">-28,735.04 → 3,866.29</div>
-              <div class="sub">A performance lift of <strong>32,601.33</strong> tracking over <code>results.tsv</code>.</div>
+              <div class="value" id="headline-range">−28,735 → +3,866</div>
+              <div class="sub">A performance lift of <strong id="headline-delta">+32,601</strong> across <strong id="headline-count">6</strong> kept attempts.</div>
             </div>
 
             <div class="card">
-              <h3>Structured Post-Run Telemetry</h3>
-              <p>No heavy backend or database required. Post-run stats are serialized directly into <code>run_artifact.json</code> and updated into a portable TSV ledger.</p>
-              <p style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Local Auditability:</strong> Standardized logging makes it simple for humans or agents to parse, plot, and verify the progression timeline.</p>
+              <h3>Headline numbers</h3>
+              <ul id="headline-list">
+                <li>Baseline <code>-28,735.04</code> — random / cold-start.</li>
+                <li>Adaptive heuristic <code>-19,458.59</code> — service improves, waste falls.</li>
+                <li>Tuned adaptive <code>-6,157.12</code> — service reaches 0.635, tomato stockouts collapse.</li>
+                <li>Budget-aware <code>+3,419.60</code> — first positive score via shared capacity budgeting.</li>
+                <li>Focused residual <code>+3,687.32</code> — MLP overlay on cheese / onion / lettuce / pasta.</li>
+                <li>Service/cashflow hybrid <code>+3,866.29</code> — best kept so far.</li>
+              </ul>
             </div>
           </div>
 
           <div class="card strong">
-            <h3>Ledger Frontier Records</h3>
-            <div class="result-list">
-              <div class="result-row">
-                <div><strong>1. Baseline</strong></div>
-                <div class="score">-28,735.04</div>
-                <div class="note">Pure random initialization.</div>
-              </div>
-              <div class="result-row">
-                <div><strong>Heuristic Pass</strong></div>
-                <div class="score">-19,458.59</div>
-                <div class="note">Service rate improves; inventory waste drops.</div>
-              </div>
-              <div class="result-row">
-                <div><strong>Tuned Heuristic</strong></div>
-                <div class="score">-6,157.12</div>
-                <div class="note">Tomato stockouts drop; service rate reaches 0.635.</div>
-              </div>
-              <div class="result-row">
-                <div><strong>Budget-Aware</strong></div>
-                <div class="score">3,419.60</div>
-                <div class="note">Crosses positive boundary using shared capacity limits.</div>
-              </div>
-              <div class="result-row">
-                <div><strong>Residual Hybrid</strong></div>
-                <div class="score">3,687.32</div>
-                <div class="note">Neural Network focuses on specific ingredient prioritization.</div>
-              </div>
-              <div class="result-row good">
-                <div><strong>6. Best Kept</strong></div>
-                <div class="score">3,866.29</div>
-                <div class="note">Highest service coverage with optimized holding costs.</div>
+            <h3>Frontier curve (live data)</h3>
+            <div class="chart-wrap">
+              <div class="chart-grid-layout">
+                <svg class="chart-svg" id="frontier-chart" viewBox="0 0 1040 420" role="img" aria-label="Frontier score progression">
+                  <line class="chart-grid" x1="90"  y1="56"  x2="980" y2="56"></line>
+                  <line class="chart-grid" x1="90"  y1="126" x2="980" y2="126"></line>
+                  <line class="chart-grid" x1="90"  y1="196" x2="980" y2="196"></line>
+                  <line class="chart-grid" x1="90"  y1="266" x2="980" y2="266"></line>
+                  <line class="chart-grid" x1="90"  y1="336" x2="980" y2="336"></line>
+
+                  <line class="chart-axis" x1="90" y1="336" x2="980" y2="336"></line>
+                  <line class="chart-axis" x1="90" y1="40"  x2="90"  y2="336"></line>
+
+                  <g id="chart-y-labels"></g>
+                  <g id="chart-x-labels"></g>
+
+                  <polyline class="chart-line" id="chart-line" points=""></polyline>
+                  <g id="chart-points"></g>
+                </svg>
+                <div class="message-list" id="message-list"></div>
               </div>
             </div>
+            <p style="margin-top: 0.7rem; color: var(--muted); font-size: 0.92rem;">The chart is generated client-side from <code>../results.tsv</code>. Run the harness again and the deck updates.</p>
           </div>
         </div>
       </div>
-
       <footer class="footer">
-        <span>Actual ledger history from the repository branch, tracked deterministically.</span>
-        <div class="progress">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span>
-        </div>
-      </footer>
-    </section>
-
-    <section class="slide">
-      <header class="topline">
-        <div class="brand"><span class="mark"></span>Progress graph</div>
-        <div class="meta">Iteration trend</div>
-      </header>
-
-      <div>
-        <div class="eyebrow">Python-Rendered Analytics Ledger</div>
-        <h2 class="section-title">Visualizing the ratcheted progress curve from standard file inputs.</h2>
-        <p class="lede">Every coordinate represents an accepted logical state recorded in <code>results.tsv</code>, parsed and serialized by our Python reporting pipeline.</p>
-
-        <div class="chart-wrap">
-          <div class="chart-grid-layout">
-            <svg class="chart-svg" viewBox="0 0 1040 420" role="img" aria-label="Frontier score progression from baseline to final kept score">
-              <line class="chart-grid" x1="90" y1="56" x2="980" y2="56"></line>
-              <line class="chart-grid" x1="90" y1="126" x2="980" y2="126"></line>
-              <line class="chart-grid" x1="90" y1="196" x2="980" y2="196"></line>
-              <line class="chart-grid" x1="90" y1="266" x2="980" y2="266"></line>
-              <line class="chart-grid" x1="90" y1="336" x2="980" y2="336"></line>
-
-              <line class="chart-axis" x1="90" y1="336" x2="980" y2="336"></line>
-              <line class="chart-axis" x1="90" y1="40" x2="90" y2="336"></line>
-
-              <text class="chart-label" x="20" y="60">4k</text>
-              <text class="chart-label" x="16" y="130">-4k</text>
-              <text class="chart-label" x="12" y="200">-12k</text>
-              <text class="chart-label" x="12" y="270">-20k</text>
-              <text class="chart-label" x="10" y="340">-28k</text>
-
-              <text class="chart-label" x="90" y="360">1</text>
-              <text class="chart-label" x="268" y="360">2</text>
-              <text class="chart-label" x="446" y="360">3</text>
-              <text class="chart-label" x="624" y="360">4</text>
-              <text class="chart-label" x="802" y="360">5</text>
-              <text class="chart-label" x="972" y="360">6</text>
-
-              <polyline class="chart-line" points="90,320 268,236 446,115 624,28 802,26 980,24"></polyline>
-
-              <circle class="chart-point" cx="90" cy="320" r="6"></circle>
-              <circle class="chart-point" cx="268" cy="236" r="6"></circle>
-              <circle class="chart-point" cx="446" cy="115" r="6"></circle>
-              <circle class="chart-point" cx="624" cy="28" r="6"></circle>
-              <circle class="chart-point" cx="802" cy="26" r="6"></circle>
-              <circle class="chart-point" cx="980" cy="24" r="6"></circle>
-
-              <text class="chart-point-id" x="84" y="324">1</text>
-              <text class="chart-point-id" x="262" y="240">2</text>
-              <text class="chart-point-id" x="440" y="119">3</text>
-              <text class="chart-point-id" x="618" y="32">4</text>
-              <text class="chart-point-id" x="796" y="30">5</text>
-              <text class="chart-point-id" x="974" y="28">6</text>
-
-              <text class="chart-score" x="96" y="306">-28,735</text>
-              <text class="chart-score" x="274" y="222">-19,459</text>
-              <text class="chart-score" x="452" y="101">-6,157</text>
-              <text class="chart-score" x="596" y="50">3,420</text>
-              <text class="chart-score" x="774" y="48">3,687</text>
-              <text class="chart-score" x="950" y="46">3,866</text>
-            </svg>
-
-            <div class="message-list">
-              <div class="message-item"><span class="message-tag">1</span><span>Baseline via docker run; compose blocked by nvidia runtime mismatch</span></div>
-              <div class="message-item"><span class="message-tag">2</span><span>Adaptive heuristic improves service and cuts waste; tomato-led stockouts remain high</span></div>
-              <div class="message-item"><span class="message-tag">3</span><span>Tuned adaptive raises service to 0.635; tomato stockouts reduced sharply and waste collapses</span></div>
-              <div class="message-item"><span class="message-tag">4</span><span>Budget-aware adaptive policy with spike-sensitive config; RL-style residual NN explored but far worse</span></div>
-              <div class="message-item"><span class="message-tag">5</span><span>Focused residual hybrid improves cheese/onion/lettuce/pasta ordering on top of budget-aware heuristic</span></div>
-              <div class="message-item"><span class="message-tag">6</span><span>Service/cashflow hybrid pass: higher service with focused cheese/onion/lettuce/pasta priority and lower holding cost</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <footer class="footer">
-        <span>Trend and message annotations are directly mapped from kept entries in results.tsv.</span>
+        <span>The bar at the start is the failure mode without any of the guardrails.</span>
         <div class="progress"></div>
       </footer>
     </section>
 
-    <section class="slide report-slide">
+    <!-- Slide 9 — Live replay -->
+    <section class="slide report-slide" data-section="Replay">
       <header class="topline">
-        <div class="brand"><span class="mark"></span>Best report</div>
-        <div class="meta">Top experiment</div>
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 9 · Live replay</div>
       </header>
-
       <div>
-        <div class="eyebrow">Live replay</div>
-        <h2 class="section-title">Best run report playback embedded directly in this deck.</h2>
-        <p class="lede">Use the controls inside the report to inspect events and play out the scenario exactly as in the generated artifact.</p>
+        <div class="eyebrow">Two minutes, mostly hands-off</div>
+        <h2 class="section-title">The best run, replayed.</h2>
+        <p class="lede">The simulator's per-day orders, fulfillment, spoilage, and cumulative cash — generated by <a href="../autoresearch/reporting.py">autoresearch/reporting.py</a> from the JSON artifact the evaluator emitted.</p>
 
         <div class="report-host">
           <iframe
@@ -1060,59 +1226,68 @@
             title="Best experiment report playback"
             loading="lazy"></iframe>
         </div>
+        <p style="margin-top: 0.7rem; color: var(--muted); font-size: 0.92rem;">If the iframe fails (no network, sandboxed), fall back to a 30-second narrated walk of <code>run_artifact.json</code>.</p>
       </div>
-
       <footer class="footer">
-        <span>Highlights from the repository's best-performing kept experiment.</span>
+        <span>Observability after the fact is what makes the loop debuggable.</span>
         <div class="progress"></div>
       </footer>
     </section>
 
-    <section class="slide">
+    <!-- Slide 10 — Build your own + Q&A -->
+    <section class="slide" data-section="Takeaway">
       <header class="topline">
-        <div class="brand"><span class="mark"></span>Takeaways</div>
-        <div class="meta">Lessons</div>
+        <div class="brand"><span class="mark"></span>Ratcheting Harness</div>
+        <div class="meta">Slide 10 · Build your own</div>
       </header>
-
       <div>
-        <div class="eyebrow">A blueprint for AI collaboration</div>
-        <h2 class="section-title">Practical Python lessons from building <span class="accent">ratchetting sandboxes</span>.</h2>
+        <div class="eyebrow">Take this home</div>
+        <h2 class="section-title">Build your own ratcheting harness.</h2>
+        <p class="lede">Five required files. Four required safety checks. A 30-line skeleton. A porting checklist. The full recipe lives at <a href="build_your_own.md">docs/build_your_own.md</a>.</p>
 
         <div class="hero-grid" style="margin-top: 1rem;">
           <div class="card strong">
-            <h3>Key Python Engineering Lessons</h3>
+            <h3>The minimum viable recipe</h3>
             <ul>
-              <li style="margin-bottom: 0.8rem;"><strong>Avert State Contamination:</strong> Dynamic module updates can pollute <code>sys.modules</code> caching or global singletons. Running iterations inside fresh subprocesses or isolated container pipelines ensures total runtime environment hygiene.</li>
-              <li style="margin-bottom: 0.8rem;"><strong>Resilient Environment Design:</strong> Gracefully handle host landscape mismatches (e.g. NVIDIA runtime discrepancies in local Docker contexts) with seamless CPU fallbacks to ensure un-halted pipelines.</li>
-              <li style="margin-bottom: 0.8rem;"><strong>The Power of the Ratchet:</strong> Bounded, statistical optimization feedback loops beat chat posturing and chaotic prompt-guessing every single time.</li>
+              <li><strong>Five files</strong> — <code>task.py</code>, <code>eval.py</code>, <code>train.py</code> (mutable), <code>frontier.py</code>, <code>run_once.sh</code>, plus <code>results.tsv</code>.</li>
+              <li><strong>Four safety checks</strong> — fixed seeds, single-file mutation, fresh process, strict better-than-best.</li>
+              <li><strong>Five-step porting checklist</strong>:
+                <ol style="margin-top: 0.35rem; padding-left: 1.2rem;">
+                  <li>Define state / action / constraints.</li>
+                  <li>Write a deterministic scenario generator.</li>
+                  <li>Pick a scalar objective.</li>
+                  <li>Build a baseline policy.</li>
+                  <li>Run the ratchet.</li>
+                </ol>
+              </li>
             </ul>
+            <p style="margin-top: 0.6rem;"><a href="build_your_own.md">→ Open the full recipe</a></p>
           </div>
 
           <div class="stack">
             <div class="card">
-              <h3>Architectural Safeguards</h3>
+              <h3>Common pitfalls</h3>
               <ul>
-                <li>The task engine simulator remains 100% immutable.</li>
-                <li>The dynamic loading interface contract is heavily explicit.</li>
-                <li>The frontier progress is fully peer-reviewed and auditable.</li>
+                <li>Forgetting the subprocess boundary — old globals leak into new runs.</li>
+                <li>Letting <code>sys.modules</code> cache leak — always load candidates by path.</li>
+                <li>Accepting the first improvement instead of strict — silent regression.</li>
+                <li>Conflating "score went up" with "model improved" — only strict greater-than counts.</li>
               </ul>
             </div>
 
-            <div class="card">
-              <h3>Core Presentation Takeaway</h3>
-              <p>Reliable AI integration is not "let the model code harder." It is <strong>engineering a meticulous loop in Python, setting strict boundaries, and letting structured validation compound improvements</strong>.</p>
+            <div class="card strong">
+              <h3>One-sentence takeaway</h3>
+              <p style="font-size: 1.08rem; line-height: 1.5;">The LLM is not the trick. <strong>The boundary is.</strong> Define it, enforce it, and the loop does the work.</p>
             </div>
           </div>
         </div>
       </div>
-
       <footer class="footer">
-        <span>Engineering-first AI orchestration provides discipline, safety, and reproducible value.</span>
-        <div class="progress">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span>
-        </div>
+        <span>Thank you. Questions? (Q&amp;A prep lives in <a href="speaker_notes.md">docs/speaker_notes.md</a>.)</span>
+        <div class="progress"></div>
       </footer>
     </section>
+
   </div>
 
   <script>
@@ -1192,8 +1367,177 @@
         syncThemeLabel();
       });
 
+      // -----------------------------------------------------------------
+      // Live chart from results.tsv
+      // -----------------------------------------------------------------
+      const parseResultsTSV = (text) => {
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length < 2) return [];
+        const header = lines[0].split('\t');
+        const idx = (name) => header.indexOf(name);
+        const iScore = idx('score');
+        const iDecision = idx('decision');
+        const iMessage = idx('message');
+        if (iScore < 0 || iDecision < 0) return [];
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split('\t');
+          if (cols.length < header.length) continue;
+          if (cols[iDecision] !== 'keep') continue;
+          const score = Number.parseFloat(cols[iScore]);
+          if (!Number.isFinite(score)) continue;
+          rows.push({ score, message: (cols[iMessage] || '').trim() });
+        }
+        return rows;
+      };
+
+      const FALLBACK_ROWS = [
+        { score: -28735.04, message: 'baseline via docker run; compose blocked by nvidia runtime mismatch' },
+        { score: -19458.59, message: 'adaptive heuristic improves service and cuts waste; tomato-led stockouts remain high' },
+        { score: -6157.12,  message: 'tuned adaptive raises service to 0.635; tomato stockouts reduced sharply and waste collapses' },
+        { score:  3419.60,  message: 'budget-aware adaptive policy with spike-sensitive config; RL-style residual NN explored but far worse' },
+        { score:  3687.32,  message: 'focused residual hybrid improves cheese/onion/lettuce/pasta ordering on top of budget-aware heuristic' },
+        { score:  3866.29,  message: 'service/cashflow hybrid pass: higher service with focused cheese/onion/lettuce/pasta priority and lower holding cost' },
+      ];
+
+      const formatScore = (s) => {
+        const rounded = Math.round(s);
+        if (rounded >= 0) return `+${rounded.toLocaleString()}`;
+        return rounded.toLocaleString();
+      };
+
+      const renderChart = (rows) => {
+        if (!rows.length) return;
+        const svg = document.getElementById('frontier-chart');
+        if (!svg) return;
+        const leftPad = 90;
+        const rightPad = 60;
+        const topPad = 40;
+        const bottomPad = 60;
+        const w = 1040, h = 420;
+        const plotW = w - leftPad - rightPad;
+        const plotH = h - topPad - bottomPad;
+
+        const scores = rows.map((r) => r.score);
+        const minS = Math.min(...scores);
+        const maxS = Math.max(...scores);
+        // pad a little so the line does not touch the axes
+        const range = (maxS - minS) || 1;
+        const yMin = minS - range * 0.08;
+        const yMax = maxS + range * 0.12;
+        const ySpan = yMax - yMin;
+
+        const xFor = (i) => rows.length === 1
+          ? leftPad + plotW / 2
+          : leftPad + (plotW * i) / (rows.length - 1);
+        const yFor = (s) => topPad + plotH * (1 - (s - yMin) / ySpan);
+
+        // Y axis tick labels
+        const yLabels = svg.querySelector('#chart-y-labels');
+        yLabels.innerHTML = '';
+        const ticks = 5;
+        for (let t = 0; t < ticks; t++) {
+          const v = yMin + (ySpan * t) / (ticks - 1);
+          const y = yFor(v);
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('class', 'chart-label');
+          text.setAttribute('x', '10');
+          text.setAttribute('y', String(y + 4));
+          if (v >= 0) {
+            text.textContent = `${Math.round(v / 1000)}k`;
+          } else {
+            text.textContent = `${-Math.round(-v / 1000)}k`;
+          }
+          yLabels.appendChild(text);
+        }
+
+        // X axis tick labels
+        const xLabels = svg.querySelector('#chart-x-labels');
+        xLabels.innerHTML = '';
+        rows.forEach((_, i) => {
+          const x = xFor(i);
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('class', 'chart-label');
+          text.setAttribute('x', String(x - 4));
+          text.setAttribute('y', '360');
+          text.textContent = String(i + 1);
+          xLabels.appendChild(text);
+        });
+
+        // Polyline
+        const points = rows.map((r, i) => `${xFor(i)},${yFor(r.score)}`).join(' ');
+        svg.querySelector('#chart-line').setAttribute('points', points);
+
+        // Points + score labels
+        const pointsGroup = svg.querySelector('#chart-points');
+        pointsGroup.innerHTML = '';
+        rows.forEach((r, i) => {
+          const x = xFor(i), y = yFor(r.score);
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('class', 'chart-point');
+          circle.setAttribute('cx', String(x));
+          circle.setAttribute('cy', String(y));
+          circle.setAttribute('r', '6');
+          pointsGroup.appendChild(circle);
+
+          const idText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          idText.setAttribute('class', 'chart-point-id');
+          idText.setAttribute('x', String(x - 6));
+          idText.setAttribute('y', String(y + 4));
+          idText.textContent = String(i + 1);
+          pointsGroup.appendChild(idText);
+
+          const scoreText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          scoreText.setAttribute('class', 'chart-score');
+          // place the label above the point, with a small offset
+          scoreText.setAttribute('x', String(x + 8));
+          scoreText.setAttribute('y', String(y - 12));
+          scoreText.textContent = formatScore(r.score);
+          pointsGroup.appendChild(scoreText);
+        });
+
+        // Update message list
+        const list = document.getElementById('message-list');
+        if (list) {
+          list.innerHTML = rows.map((r, i) =>
+            `<div class="message-item"><span class="message-tag">${i + 1}</span><span>${r.message}</span></div>`
+          ).join('');
+        }
+
+        // Update headline numbers
+        const first = rows[0].score;
+        const best = rows[rows.length - 1].score;
+        const headlineRange = document.getElementById('headline-range');
+        const headlineDelta = document.getElementById('headline-delta');
+        const headlineCount = document.getElementById('headline-count');
+        if (headlineRange) headlineRange.textContent = `${formatScore(first)} → ${formatScore(best)}`;
+        if (headlineDelta) headlineDelta.textContent = `+${Math.round(best - first).toLocaleString()}`;
+        if (headlineCount) headlineCount.textContent = String(rows.length);
+      };
+
+      const loadResults = async () => {
+        const candidates = ['../results.tsv', 'results.tsv'];
+        for (const url of candidates) {
+          try {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) continue;
+            const text = await response.text();
+            const rows = parseResultsTSV(text);
+            if (rows.length) {
+              renderChart(rows);
+              return;
+            }
+          } catch (_) {
+            // try next candidate
+          }
+        }
+        // If we get here, neither fetch worked (e.g. file://). Fall back to baked-in data.
+        renderChart(FALLBACK_ROWS);
+      };
+
       syncThemeLabel();
       render();
+      loadResults();
     })();
   </script>
 </body>

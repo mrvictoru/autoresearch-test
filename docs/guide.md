@@ -155,6 +155,10 @@ return REGISTRY.build("my_policy")
 All registered policies must implement `decide_orders(observation)` and may
 optionally implement `fit(scenarios, task)` for supervised pre-training.
 
+## Building your own harness
+
+The restaurant benchmark is one instance of the pattern. To port the same ratcheting loop to a new domain, follow [build_your_own.md](build_your_own.md) — it has a 30-line minimal harness, the four required safety checks, and a five-step porting checklist.
+
 ## Machine-readable brief
 
 `research_brief_restaurant.json` and `research_brief_restaurant.yaml` provide the same restaurant contract in machine-readable form:

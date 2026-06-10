@@ -22,6 +22,11 @@ Recent harness result:
 - the best kept score reached `3866.29`
 - the latest preserved report bundle lives in `artifacts/reports/best-20260430-service-cashflow/`
 
+## Where to read next
+
+- [docs/build_your_own.md](build_your_own.md) — a copy-pasteable recipe for porting this harness to a new domain in one day.
+- [docs/speaker_notes.md](speaker_notes.md) — the PyCon HK 2026 talk script that motivates the harness.
+
 ## `autoresearch/__init__.py`
 
 Defines the public harness-facing package surface.
